@@ -191,11 +191,11 @@
 			}
 		},
 
-		showErrorModal: function (messageText) {
-			var text = messageText || 'অনুগ্রহ করে নাম এবং ফোন নাম্বার দিন।';
-			var errorHtml = '<div class="wcsc-error-icon"><svg xmlns="http://www.w3.org/2000/svg" viewBox="0 0 24 24" width="48" height="48" fill="none" stroke="#e53e3e" stroke-width="2" stroke-linecap="round" stroke-linejoin="round"><circle cx="12" cy="12" r="10"></circle><line x1="12" y1="8" x2="12" y2="12"></line><line x1="12" y1="16" x2="12.01" y2="16"></line></svg></div>';
-			errorHtml += '<h3 class="wcsc-error-title">' + text + '</h3>';
-			var $modal = $('<div class="wcsc-error-modal-overlay"><div class="wcsc-error-modal"><span class="wcsc-error-modal-close">&times;</span><div class="wcsc-error-content">' + errorHtml + '</div></div></div>');
+		showErrorModal: function (errorHtml) {
+			var text = errorHtml || 'অনুগ্রহ করে নাম এবং ফোন নাম্বার দিন।';
+			var modalHtml = '<div class="wcsc-error-icon"><svg xmlns="http://www.w3.org/2000/svg" viewBox="0 0 24 24" width="48" height="48" fill="none" stroke="#e53e3e" stroke-width="2" stroke-linecap="round" stroke-linejoin="round"><circle cx="12" cy="12" r="10"></circle><line x1="12" y1="8" x2="12" y2="12"></line><line x1="12" y1="16" x2="12.01" y2="16"></line></svg></div>';
+			modalHtml += '<div class="wcsc-error-title">' + text + '</div>';
+			var $modal = $('<div class="wcsc-error-modal-overlay"><div class="wcsc-error-modal"><span class="wcsc-error-modal-close">&times;</span><div class="wcsc-error-content">' + modalHtml + '</div></div></div>');
 			$('body').append($modal);
 			$modal.find('.wcsc-error-modal-close, .wcsc-error-modal-overlay').on('click', function(e) {
 				if (e.target === this) {
@@ -282,7 +282,7 @@
 			var $errors = $wrapper.find('.woocommerce-error');
 			if ($errors.length && errorDisp) {
 				if (errorDisp === 'modal') {
-					this.showErrorModal('অনুগ্রহ করে নাম এবং ফোন নাম্বার দিন।');
+					this.showErrorModal($errors.html());
 					$errors.remove();
 				} else {
 					var $errorContainer = $wrapper.find('.wcsc-custom-error-container');

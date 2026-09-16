@@ -39,6 +39,8 @@ class Checkout_Handler {
 		// AJAX endpoints for cart synchronization.
 		add_action( 'wp_ajax_wcsc_sync_cart', array( __CLASS__, 'ajax_sync_cart' ) );
 		add_action( 'wp_ajax_nopriv_wcsc_sync_cart', array( __CLASS__, 'ajax_sync_cart' ) );
+
+		add_action( 'woocommerce_after_checkout_validation', array( __CLASS__, 'validate_bd_phone_number' ), 10, 2 );
 	}
 
 	/**
@@ -272,6 +274,10 @@ class Checkout_Handler {
 			$wrapper_classes[] = 'wcsc-hide-payment';
 		}
 
+		if ( ! empty( $settings['bd_phone_validation'] ) && 'yes' === $settings['bd_phone_validation'] ) {
+			add_action( 'woocommerce_checkout_billing', array( __CLASS__, 'add_bd_phone_validation_flag' ), 99 );
+		}
+
 		$shipping_pos = ! empty( $settings['shipping_method_position'] ) ? $settings['shipping_method_position'] : 'inside_form';
 		$button_pos   = ! empty( $settings['order_button_position'] ) ? $settings['order_button_position'] : 'below_form';
 		$error_disp   = ! empty( $settings['error_message_display'] ) ? $settings['error_message_display'] : 'inline';
@@ -381,4 +387,23 @@ class Checkout_Handler {
 			'currency_text' => wp_strip_all_tags( $cart->get_total() ),
 		) );
 	}
+	public static function add_bd_phone_validation_flag() {
+		echo '<input type="hidden" name="wcsc_bd_phone_validation" value="1" />';
+	}
+
+	/**
+	 * Validate BD phone number.
+	 */
+	public static function validate_bd_phone_number( $data, $errors ) {
+		if ( isset( $_POST['wcsc_bd_phone_validation'] ) && '1' === $_POST['wcsc_bd_phone_validation'] ) {
+			$phone = isset( $data['billing_phone'] ) ? $data['billing_phone'] : '';
+			if ( ! empty( $phone ) ) {
+				$phone = preg_replace( '/[^0-9]/', '', $phone );
+				if ( strlen( $phone ) !== 11 || substr( $phone, 0, 2 ) !== '01' ) {
+					$errors->add( 'billing_phone', __( 'সঠিক ১১ ডিজিটের ফোন নাম্বার দিন।', 'wc-smart-checkout-builder' ) );
+				}
+			}
+		}
+	}
+
 }

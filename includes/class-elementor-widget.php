@@ -325,6 +325,18 @@ class Elementor_Widget extends Widget_Base {
 		);
 
 		$this->add_control(
+			'bd_phone_validation',
+			array(
+				'label'        => esc_html__( 'Enable BD Phone Validation', 'wc-smart-checkout-builder' ),
+				'type'         => Controls_Manager::SWITCHER,
+				'label_on'     => esc_html__( 'On', 'wc-smart-checkout-builder' ),
+				'label_off'    => esc_html__( 'Off', 'wc-smart-checkout-builder' ),
+				'return_value' => 'yes',
+				'default'      => '',
+			)
+		);
+
+		$this->add_control(
 			'heading_section_visibility',
 			array(
 				'label'     => esc_html__( 'Sections Visibility', 'wc-smart-checkout-builder' ),

@@ -878,6 +878,12 @@ body .wcsc-product-checkout-widget form.checkout.wcsc-layout-1-col .col-2,
 	border-color: #e53e3e !important;
 	box-shadow: 0 0 0 1px #e53e3e !important;
 }
+
+/* Hide Inline Errors */
+.wcsc-product-checkout-widget .woocommerce form.checkout .checkout-inline-error-message,
+.wcsc-product-checkout-widget .woocommerce form.checkout .woocommerce-error {
+	display: none !important;
+}
 .wcsc-error-content .woocommerce-error {
 	list-style: none;
 	margin: 0;
