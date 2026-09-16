@@ -358,6 +358,21 @@ class Elementor_Widget extends Widget_Base {
 		);
 
 		$this->add_control(
+			'show_cart_item_image',
+			array(
+				'label'        => esc_html__( 'Show Product Image in Order Review', 'wc-smart-checkout-builder' ),
+				'type'         => Controls_Manager::SWITCHER,
+				'label_on'     => esc_html__( 'Yes', 'wc-smart-checkout-builder' ),
+				'label_off'    => esc_html__( 'No', 'wc-smart-checkout-builder' ),
+				'return_value' => 'yes',
+				'default'      => 'yes',
+				'condition' => array(
+					'show_checkout_order_review' => 'yes',
+				),
+			)
+		);
+
+		$this->add_control(
 			'show_checkout_shipping',
 			array(
 				'label'        => esc_html__( 'Show Shipping Methods', 'wc-smart-checkout-builder' ),
@@ -366,6 +381,22 @@ class Elementor_Widget extends Widget_Base {
 				'label_off'    => esc_html__( 'Hide', 'wc-smart-checkout-builder' ),
 				'return_value' => 'yes',
 				'default'      => 'yes',
+			)
+		);
+
+		$this->add_control(
+			'shipping_method_position',
+			array(
+				'label'   => esc_html__( 'Shipping Section Position', 'wc-smart-checkout-builder' ),
+				'type'    => Controls_Manager::SELECT,
+				'options' => array(
+					'inside_form'   => esc_html__( 'Inside Checkout Form', 'wc-smart-checkout-builder' ),
+					'order_review'  => esc_html__( 'Inside Order Review (Default)', 'wc-smart-checkout-builder' ),
+				),
+				'default' => 'inside_form',
+				'condition' => array(
+					'show_checkout_shipping' => 'yes',
+				),
 			)
 		);
 
@@ -448,6 +479,28 @@ class Elementor_Widget extends Widget_Base {
 		// Order Button Customization
 		$this->add_control(
 			'heading_order_button_content',
+			array(
+				'label'     => esc_html__( 'Order Button', 'wc-smart-checkout-builder' ),
+				'type'      => Controls_Manager::HEADING,
+				'separator' => 'before',
+			)
+		);
+
+		$this->add_control(
+			'order_button_position',
+			array(
+				'label'   => esc_html__( 'Button Position', 'wc-smart-checkout-builder' ),
+				'type'    => Controls_Manager::SELECT,
+				'options' => array(
+					'below_form'   => esc_html__( 'Below Checkout Form', 'wc-smart-checkout-builder' ),
+					'order_review' => esc_html__( 'Inside Order Review (Default)', 'wc-smart-checkout-builder' ),
+				),
+				'default' => 'below_form',
+			)
+		);
+
+		$this->add_control(
+			'heading_order_button_effects',
 			array(
 				'label'     => esc_html__( 'Order Now Button Content & Effects', 'wc-smart-checkout-builder' ),
 				'type'      => Controls_Manager::HEADING,
@@ -1375,6 +1428,97 @@ class Elementor_Widget extends Widget_Base {
 				'type'      => Controls_Manager::COLOR,
 				'selectors' => array(
 					'{{WRAPPER}} table.shop_table, {{WRAPPER}} table.shop_table th, {{WRAPPER}} table.shop_table td' => 'border-color: {{VALUE}} !important;',
+				),
+			)
+		);
+
+		$this->end_controls_section();
+
+		// --- Section: Shipping Cards Styling ---
+		$this->start_controls_section(
+			'section_style_shipping',
+			array(
+				'label'     => esc_html__( 'Shipping Cards', 'wc-smart-checkout-builder' ),
+				'tab'       => Controls_Manager::TAB_STYLE,
+				'condition' => array(
+					'show_checkout'          => 'yes',
+					'show_checkout_shipping' => 'yes',
+				),
+			)
+		);
+
+		$this->add_control(
+			'shipping_card_bg',
+			array(
+				'label'     => esc_html__( 'Card Background', 'wc-smart-checkout-builder' ),
+				'type'      => Controls_Manager::COLOR,
+				'selectors' => array(
+					'{{WRAPPER}} .wcsc-shipping-card' => 'background-color: {{VALUE}};',
+				),
+			)
+		);
+
+		$this->add_control(
+			'shipping_card_border_color',
+			array(
+				'label'     => esc_html__( 'Card Border Color', 'wc-smart-checkout-builder' ),
+				'type'      => Controls_Manager::COLOR,
+				'selectors' => array(
+					'{{WRAPPER}} .wcsc-shipping-card' => 'border-color: {{VALUE}};',
+				),
+			)
+		);
+
+		$this->add_control(
+			'shipping_card_active_border',
+			array(
+				'label'     => esc_html__( 'Active Border Color', 'wc-smart-checkout-builder' ),
+				'type'      => Controls_Manager::COLOR,
+				'selectors' => array(
+					'{{WRAPPER}} .wcsc-shipping-card.is-active' => 'border-color: {{VALUE}};',
+				),
+			)
+		);
+
+		$this->add_responsive_control(
+			'shipping_card_padding',
+			array(
+				'label'      => esc_html__( 'Padding', 'wc-smart-checkout-builder' ),
+				'type'       => Controls_Manager::DIMENSIONS,
+				'size_units' => array( 'px', 'em', '%' ),
+				'selectors'  => array(
+					'{{WRAPPER}} .wcsc-shipping-card' => 'padding: {{TOP}}{{UNIT}} {{RIGHT}}{{UNIT}} {{BOTTOM}}{{UNIT}} {{LEFT}}{{UNIT}};',
+				),
+			)
+		);
+
+		$this->add_responsive_control(
+			'shipping_card_border_radius',
+			array(
+				'label'      => esc_html__( 'Border Radius', 'wc-smart-checkout-builder' ),
+				'type'       => Controls_Manager::DIMENSIONS,
+				'size_units' => array( 'px', 'em', '%' ),
+				'selectors'  => array(
+					'{{WRAPPER}} .wcsc-shipping-card' => 'border-radius: {{TOP}}{{UNIT}} {{RIGHT}}{{UNIT}} {{BOTTOM}}{{UNIT}} {{LEFT}}{{UNIT}};',
+				),
+			)
+		);
+
+		$this->add_control(
+			'shipping_card_gap',
+			array(
+				'label'      => esc_html__( 'Gap Between Cards', 'wc-smart-checkout-builder' ),
+				'type'       => Controls_Manager::SLIDER,
+				'size_units' => array( 'px' ),
+				'range'      => array(
+					'px' => array(
+						'min' => 0,
+						'max' => 50,
+						'step' => 1,
+					),
+				),
+				'selectors'  => array(
+					'{{WRAPPER}} .wcsc-shipping-methods-container' => 'gap: {{SIZE}}{{UNIT}};',
 				),
 			)
 		);

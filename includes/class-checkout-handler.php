@@ -34,6 +34,7 @@ class Checkout_Handler {
 		add_filter( 'woocommerce_order_button_text', array( __CLASS__, 'filter_order_button_text' ), 20 );
 		add_filter( 'woocommerce_order_button_html', array( __CLASS__, 'filter_order_button_html' ), 20 );
 		add_filter( 'gettext', array( __CLASS__, 'filter_checkout_gettext' ), 20, 3 );
+		add_filter( 'woocommerce_cart_item_name', array( __CLASS__, 'filter_cart_item_name' ), 10, 3 );
 
 		// AJAX endpoints for cart synchronization.
 		add_action( 'wp_ajax_wcsc_sync_cart', array( __CLASS__, 'ajax_sync_cart' ) );
@@ -191,6 +192,32 @@ class Checkout_Handler {
 	}
 
 	/**
+	 * Filter cart item name to inject thumbnail if enabled.
+	 *
+	 * @param string $item_name
+	 * @param array  $cart_item
+	 * @param string $cart_item_key
+	 * @return string
+	 */
+	public static function filter_cart_item_name( $item_name, $cart_item, $cart_item_key ) {
+		if ( empty( self::$active_widget_settings ) ) {
+			return $item_name;
+		}
+
+		if ( isset( self::$active_widget_settings['show_cart_item_image'] ) && 'yes' === self::$active_widget_settings['show_cart_item_image'] ) {
+			$product = $cart_item['data'];
+			if ( $product ) {
+				$thumbnail = $product->get_image( array( 48, 48 ), array( 'class' => 'wcsc-cart-item-image' ) );
+				if ( $thumbnail ) {
+					$item_name = '<div class="wcsc-cart-item-with-img">' . $thumbnail . '<span class="wcsc-cart-item-name-text">' . $item_name . '</span></div>';
+				}
+			}
+		}
+
+		return $item_name;
+	}
+
+	/**
 	 * Render the checkout section for the widget.
 	 *
 	 * @param \WC_Product $product
@@ -244,8 +271,18 @@ class Checkout_Handler {
 		if ( isset( $settings['show_checkout_payment'] ) && 'yes' !== $settings['show_checkout_payment'] ) {
 			$wrapper_classes[] = 'wcsc-hide-payment';
 		}
+
+		$shipping_pos = ! empty( $settings['shipping_method_position'] ) ? $settings['shipping_method_position'] : 'inside_form';
+		$button_pos   = ! empty( $settings['order_button_position'] ) ? $settings['order_button_position'] : 'below_form';
+		$error_disp   = ! empty( $settings['error_message_display'] ) ? $settings['error_message_display'] : 'inline';
+		$show_img     = isset( $settings['show_cart_item_image'] ) && 'yes' === $settings['show_cart_item_image'] ? 'yes' : 'no';
+
 		?>
-		<div class="<?php echo esc_attr( implode( ' ', $wrapper_classes ) ); ?>">
+		<div class="<?php echo esc_attr( implode( ' ', $wrapper_classes ) ); ?>" 
+			data-shipping-pos="<?php echo esc_attr( $shipping_pos ); ?>"
+			data-button-pos="<?php echo esc_attr( $button_pos ); ?>"
+			data-error-disp="<?php echo esc_attr( $error_disp ); ?>"
+			data-show-img="<?php echo esc_attr( $show_img ); ?>">
 			<!-- Loading overlay with modern blur and centered spinner -->
 			<div class="wcsc-loading-overlay">
 				<div class="wcsc-spinner"></div>

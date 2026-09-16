@@ -53,6 +53,7 @@
 					this.updateButtonPrice(this.rawPriceText);
 				}
 			}
+			this.rearrangeCheckoutLayout();
 		},
 
 		bindEvents: function () {
@@ -123,10 +124,25 @@
 			$(document.body).on('updated_checkout', function () {
 				self.hideLoading();
 				self.applyCustomTexts();
+				self.rearrangeCheckoutLayout();
 			});
 
 			$(document.body).on('checkout_error', function () {
 				self.hideLoading();
+				self.rearrangeCheckoutLayout();
+			});
+
+			// Make shipping cards clickable
+			this.$container.on('click', '.wcsc-shipping-card', function (e) {
+				if (e.target.tagName !== 'INPUT' && e.target.tagName !== 'LABEL') {
+					var $radio = $(this).find('input[type="radio"]');
+					if ($radio.length && !$radio.is(':checked')) {
+						$radio.prop('checked', true).trigger('change');
+					}
+				}
+			});
+			this.$container.on('change', 'input.shipping_method', function () {
+				self.rearrangeCheckoutLayout();
 			});
 		},
 
@@ -134,12 +150,15 @@
 			if (this.$loadingOverlay.length) {
 				this.$loadingOverlay.addClass('is-active');
 			}
+			// Localized loading (no full blur)
+			this.$container.find('form.checkout').addClass('wcsc-is-loading');
 		},
 
 		hideLoading: function () {
 			if (this.$loadingOverlay.length) {
 				this.$loadingOverlay.removeClass('is-active');
 			}
+			this.$container.find('form.checkout').removeClass('wcsc-is-loading');
 		},
 
 		applyCustomTexts: function () {
@@ -165,9 +184,101 @@
 			}
 			if (txtShipping) {
 				this.$container.find('table.shop_table tr.woocommerce-shipping-totals th').text(txtShipping);
+				this.$container.find('.wcsc-shipping-heading').text(txtShipping);
 			}
 			if (txtTotal) {
 				this.$container.find('table.shop_table tr.order-total th').text(txtTotal);
+			}
+		},
+
+		showErrorModal: function (errorHtml) {
+			var $modal = $('<div class="wcsc-error-modal-overlay"><div class="wcsc-error-modal"><span class="wcsc-error-modal-close">&times;</span><div class="wcsc-error-content">' + errorHtml + '</div></div></div>');
+			$('body').append($modal);
+			$modal.find('.wcsc-error-modal-close, .wcsc-error-modal-overlay').on('click', function(e) {
+				if (e.target === this) {
+					$modal.fadeOut(200, function() { $(this).remove(); });
+				}
+			});
+		},
+
+		rearrangeCheckoutLayout: function () {
+			var $wrapper = this.$container.find('.wcsc-native-checkout-wrapper');
+			if (!$wrapper.length) return;
+
+			var shippingPos = $wrapper.data('shipping-pos');
+			var buttonPos = $wrapper.data('button-pos');
+			var errorDisp = $wrapper.data('error-disp');
+
+			// Move Shipping
+			if (shippingPos === 'inside_form') {
+				var $shippingTotals = $wrapper.find('.woocommerce-shipping-totals');
+				if ($shippingTotals.length) {
+					var $shippingContainer = $wrapper.find('.wcsc-custom-shipping-container');
+					if (!$shippingContainer.length) {
+						$shippingContainer = $('<div class="wcsc-custom-shipping-container"></div>');
+						// Try to append after customer details, fallback to before order review
+						if ($wrapper.find('#customer_details').length) {
+							$wrapper.find('#customer_details').after($shippingContainer);
+						} else {
+							$wrapper.find('#order_review').before($shippingContainer);
+						}
+					}
+					var $methods = $shippingTotals.find('#shipping_method');
+					if ($methods.length) {
+						if (!$shippingContainer.find('.wcsc-shipping-heading').length) {
+							var title = this.$container.data('txt-shipping') || 'Shipping';
+							$shippingContainer.append('<h3 class="wcsc-shipping-heading wcsc-section-title">' + title + '</h3>');
+						}
+						$shippingContainer.find('#shipping_method').remove();
+						$shippingContainer.append($methods);
+						$shippingTotals.hide();
+					}
+				}
+			}
+
+			// Shipping Cards styling & active state
+			$wrapper.find('#shipping_method li').each(function() {
+				var $li = $(this);
+				$li.addClass('wcsc-shipping-card');
+				if ($li.find('input[type="radio"]').is(':checked')) {
+					$li.addClass('is-active');
+				} else {
+					$li.removeClass('is-active');
+				}
+			});
+
+			// Move Order Button
+			if (buttonPos === 'below_form') {
+				var $payment = $wrapper.find('#payment');
+				var $button = $payment.find('#place_order');
+				if ($button.length) {
+					var $btnContainer = $wrapper.find('.wcsc-custom-btn-container');
+					if (!$btnContainer.length) {
+						$btnContainer = $('<div class="wcsc-custom-btn-container"></div>');
+						if ($wrapper.find('#customer_details').length) {
+							$wrapper.find('#customer_details').after($btnContainer);
+						} else {
+							$wrapper.find('#order_review').before($btnContainer);
+						}
+					}
+					$btnContainer.append($button);
+				}
+			}
+
+			// Move Errors
+			var $errors = $wrapper.find('.woocommerce-error');
+			if ($errors.length && errorDisp) {
+				if (errorDisp === 'modal') {
+					this.showErrorModal($errors.html());
+					$errors.remove();
+				} else {
+					var $errorContainer = $wrapper.find('.wcsc-custom-error-container');
+					if (!$errorContainer.length) {
+						$errorContainer = $('<div class="wcsc-custom-error-container"></div>');
+						this.$container.find('.wcsc-variations-section').after($errorContainer);
+					}
+					$errorContainer.html($errors);
+				}
 			}
 		},
 
