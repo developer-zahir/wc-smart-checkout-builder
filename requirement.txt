@@ -1,0 +1,1039 @@
+# WooCommerce Product Variation & Checkout Elementor Widget
+
+## 1. Project Overview
+
+Create a lightweight custom WordPress/WooCommerce plugin using **Pure PHP + JavaScript/CSS where necessary**.
+
+Do NOT use React.
+
+Do NOT build a separate React dashboard.
+
+Do NOT create a separate custom checkout system.
+
+The plugin's primary purpose is to provide a single custom **Elementor Widget** that can be placed anywhere inside an Elementor-designed page.
+
+The widget will:
+
+1. Select a WooCommerce product.
+2. Detect whether the product is Simple or Variable.
+3. If the product is Variable, display its attributes/variations.
+4. Allow the Elementor editor to control how each attribute is displayed.
+5. Allow the product title, image, price, quantity and other elements to be shown/hidden.
+6. Provide complete Elementor-native styling controls.
+7. Support responsive styling.
+8. Display the native WooCommerce checkout below the product/variation section.
+9. Allow the customer to complete the order directly from the same page.
+10. Submit the order through WooCommerce's native checkout system.
+11. Redirect the customer to the normal WooCommerce Thank You / Order Received page.
+
+---
+
+# 2. Technology
+
+Use:
+
+* PHP
+* WordPress APIs
+* WooCommerce APIs
+* Elementor Widget API
+* JavaScript only where required for dynamic variation/checkout behavior
+* CSS for styling
+
+### Do NOT use:
+
+* React
+* React Admin Dashboard
+* Vue
+* Angular
+* Separate SPA architecture
+* Separate custom checkout engine
+* Separate payment system
+* Separate shipping system
+
+The plugin should remain lightweight and easy to maintain.
+
+---
+
+# 3. Main Elementor Widget
+
+Create one Elementor widget.
+
+Widget name:
+
+**Product Variation & Checkout**
+
+The widget should be available inside Elementor.
+
+The user should be able to drag the widget onto any Elementor page.
+
+Example:
+
+```text
+Elementor Page
+│
+├── Hero Section
+├── Product Information
+├── Marketing Content
+│
+└── Product Variation & Checkout Widget
+       │
+       ├── Product Section
+       ├── Variation Selection
+       ├── Price
+       ├── Quantity
+       └── WooCommerce Checkout
+```
+
+The plugin should not control or build the rest of the page.
+
+---
+
+# 4. Product Selection
+
+The widget must provide:
+
+### Current Product
+
+A toggle:
+
+**Use Current Product**
+
+Default:
+
+**ON**
+
+When enabled, the widget automatically detects the current WooCommerce product.
+
+This is especially important when the widget is used on:
+
+* WooCommerce Single Product templates
+* Elementor Single Product pages
+* Dynamic product pages
+
+---
+
+# 5. Manual Product Selection
+
+When:
+
+**Use Current Product = OFF**
+
+show a product search/select field.
+
+Example:
+
+```text
+Use Current Product
+[ ON/OFF ]
+
+Select Product
+[ Search product by name... ]
+```
+
+The user should be able to:
+
+1. Type a product name.
+2. Search WooCommerce products.
+3. See matching products.
+4. Select one product.
+
+Do NOT require manually entering a Product ID.
+
+The selected product should be saved inside the Elementor widget settings.
+
+The product search should be efficient and should not unnecessarily load the entire product catalog.
+
+---
+
+# 6. Supported Product Types
+
+The widget must support:
+
+### Simple Product
+
+If the selected product is a simple product:
+
+* Product title
+* Product image
+* Price
+* Quantity
+* WooCommerce checkout
+
+should be displayed according to the Elementor settings.
+
+No variation selector is required.
+
+### Variable Product
+
+If the selected product is a variable product:
+
+Automatically detect its variation attributes.
+
+Example:
+
+```text
+Color
+Size
+```
+
+or:
+
+```text
+Size
+Color
+Material
+```
+
+Only attributes that actually exist on the selected product should be displayed.
+
+---
+
+# 7. Dynamic Attribute Detection
+
+When a Variable Product is selected in Elementor, the widget editor should detect its available attributes.
+
+Example:
+
+```text
+Variation Attributes
+
+Color       [ Type: Image ▼ ]
+Size        [ Type: Button ▼ ]
+```
+
+If the selected product has:
+
+```text
+Color
+Size
+Material
+```
+
+then Elementor should automatically show:
+
+```text
+Color
+Size
+Material
+```
+
+The developer must not hard-code attribute names such as Color or Size.
+
+Any WooCommerce variation attribute should be supported.
+
+---
+
+# 8. Attribute Display Type
+
+For every detected variation attribute, provide a type selector.
+
+Available types:
+
+### Image
+
+Display the options as image-based selectors.
+
+Example:
+
+```text
+Color
+
+[ Black Image ] [ White Image ] [ Red Image ]
+```
+
+### Button
+
+Display the options as buttons/text selectors.
+
+Example:
+
+```text
+Size
+
+[ S ] [ M ] [ L ] [ XL ]
+```
+
+The user must be able to choose the display type independently for every attribute.
+
+Example:
+
+```text
+Color  → Image
+
+Size   → Button
+
+Material → Button
+```
+
+---
+
+# 9. Image Attribute Logic
+
+If an attribute is configured as:
+
+**Image**
+
+the widget should attempt to display the relevant variation/product images.
+
+Example:
+
+```text
+Color
+
+[ Black Image ]
+[ White Image ]
+[ Red Image ]
+```
+
+If a suitable image is available, display it.
+
+If no image is available but the attribute has a usable color/value, provide a sensible fallback instead of displaying a broken image.
+
+The system must never display broken image elements.
+
+---
+
+# 10. Button Attribute Logic
+
+If an attribute is configured as:
+
+**Button**
+
+display the attribute value as a selectable button.
+
+Example:
+
+```text
+Size
+
+[ S ] [ M ] [ L ] [ XL ]
+```
+
+The selected option must have a clear active state.
+
+Invalid/unavailable combinations should be disabled where possible.
+
+---
+
+# 11. Native WooCommerce Variation Matching
+
+Variation matching must use WooCommerce's native variation data and logic as much as possible.
+
+When the customer selects:
+
+```text
+Color = Black
+Size = L
+```
+
+the widget should identify the matching WooCommerce variation.
+
+The selected variation must determine:
+
+* Variation ID
+* Price
+* Sale price
+* Stock status
+* Variation image
+* Availability
+
+Do not create a separate variation database.
+
+---
+
+# 12. Product Elements Show/Hide Controls
+
+The Elementor widget must provide show/hide controls for:
+
+### Product Title
+
+* Show
+* Hide
+
+### Product Image
+
+* Show
+* Hide
+
+### Product Price
+
+* Show
+* Hide
+
+### Quantity
+
+* Show
+* Hide
+
+### Variation Attributes
+
+* Show
+* Hide
+
+### Checkout
+
+* Show
+* Hide
+
+These should be Elementor controls inside the widget.
+
+---
+
+# 13. Product Title
+
+Provide:
+
+**Show Product Title**
+
+Toggle.
+
+If enabled:
+
+Display the selected product's title.
+
+If disabled:
+
+Do not render the product title.
+
+The title must have Elementor-native styling controls.
+
+---
+
+# 14. Product Image
+
+Provide:
+
+**Show Product Image**
+
+Toggle.
+
+If enabled:
+
+Display the selected product image.
+
+For variable products, the image should update when the selected variation changes if WooCommerce provides a variation image.
+
+Provide Elementor controls for:
+
+* Width
+* Height
+* Alignment
+* Object fit where applicable
+* Border
+* Border radius
+* Spacing
+
+---
+
+# 15. Price
+
+Provide:
+
+**Show Price**
+
+Toggle.
+
+If enabled:
+
+Display the product/selected variation price.
+
+For variable products, the displayed price should update when the customer selects a variation.
+
+The final order price must always be calculated server-side by WooCommerce.
+
+---
+
+# 16. Quantity
+
+Provide:
+
+**Show Quantity**
+
+Toggle.
+
+If enabled:
+
+Display a quantity field.
+
+If disabled:
+
+Use the appropriate WooCommerce default quantity behavior.
+
+The quantity must respect WooCommerce stock and quantity rules.
+
+---
+
+# 17. Checkout
+
+Below the product/variation section, display the native WooCommerce checkout.
+
+The checkout must contain the fields and functionality provided by the existing WooCommerce installation.
+
+For example:
+
+* Name
+* Email
+* Phone
+* Address
+* City
+* State/Area
+* Postcode
+* Country
+* Shipping information
+* Order notes where applicable
+* Shipping methods
+* Payment methods
+* Coupon functionality where supported
+* Place Order button
+
+Do NOT create a custom checkout field manager.
+
+Do NOT create custom shipping settings.
+
+Do NOT create custom payment gateway settings.
+
+WooCommerce remains responsible for all checkout functionality.
+
+---
+
+# 18. Native WooCommerce Shipping
+
+Shipping must come directly from the existing WooCommerce configuration.
+
+Use:
+
+* WooCommerce Shipping Zones
+* Shipping Methods
+* Shipping Rates
+* Shipping Classes
+* Existing shipping plugins
+
+Do not create a separate shipping system.
+
+If the customer's address changes, WooCommerce should recalculate applicable shipping methods and costs normally.
+
+---
+
+# 19. Native WooCommerce Payment Gateway
+
+Payment methods must come directly from WooCommerce.
+
+The widget should automatically display the payment gateways available for the current checkout.
+
+Examples:
+
+* Cash on Delivery
+* Stripe
+* PayPal
+* bKash
+* Nagad
+* SSLCommerz
+* Other WooCommerce-compatible gateways
+
+Do not create a separate payment gateway system.
+
+The plugin must integrate with WooCommerce's existing payment processing.
+
+---
+
+# 20. Order Button
+
+Use the normal WooCommerce checkout order submission mechanism.
+
+The button should be presented as:
+
+**Order Now**
+
+where appropriate.
+
+Clicking the button must:
+
+1. Validate the selected variation.
+2. Validate quantity.
+3. Validate checkout fields.
+4. Validate shipping.
+5. Validate payment.
+6. Process the WooCommerce checkout.
+7. Create a normal WooCommerce order.
+8. Redirect to the WooCommerce Thank You / Order Received page.
+
+Do not create a separate order-processing system.
+
+---
+
+# 21. Thank You Page
+
+After successful order placement, redirect the customer to the standard WooCommerce:
+
+**Order Received / Thank You**
+
+page.
+
+The plugin should not create a separate custom order database.
+
+The resulting order must appear normally under:
+
+**WooCommerce → Orders**
+
+---
+
+# 22. Elementor Native Styling Controls
+
+The widget must use Elementor's native controls wherever possible.
+
+Do NOT create unnecessary custom styling systems.
+
+Use native Elementor controls for:
+
+* Typography
+* Color
+* Background
+* Border
+* Border radius
+* Padding
+* Margin
+* Width
+* Height
+* Alignment
+* Spacing
+* Responsive controls
+
+---
+
+# 23. Widget Main Container Styling
+
+The entire widget must be treated as one controllable section/container.
+
+Provide Elementor controls for:
+
+* Width
+* Height where appropriate
+* Background color
+* Background image where supported
+* Border
+* Border color
+* Border width
+* Border radius
+* Padding
+* Margin
+* Alignment
+
+Maximum border radius should be:
+
+**5px**
+
+Avoid excessive rounded UI.
+
+---
+
+# 24. Variation Section Styling
+
+Provide independent styling controls for the variation section.
+
+Controls should include:
+
+* Background
+* Border
+* Border color
+* Border width
+* Border radius
+* Padding
+* Margin
+* Alignment
+* Gap
+
+---
+
+# 25. Attribute Title Styling
+
+Example:
+
+```text
+Color
+Size
+Material
+```
+
+Provide Elementor controls for:
+
+* Typography
+* Color
+* Alignment
+* Margin
+* Padding
+* Spacing
+
+---
+
+# 26. Variation Option Styling
+
+For Button type:
+
+Provide controls for:
+
+* Typography
+* Text color
+* Background
+* Border
+* Border color
+* Border width
+* Border radius
+* Padding
+* Width
+* Height
+* Gap
+* Alignment
+* Active state
+* Hover state
+* Disabled state
+
+For Image type:
+
+Provide controls for:
+
+* Image width
+* Image height
+* Object fit
+* Border
+* Border color
+* Border width
+* Border radius
+* Gap
+* Alignment
+* Active state
+* Hover state
+* Disabled state
+
+---
+
+# 27. Price Styling
+
+Provide Elementor controls for:
+
+* Typography
+* Color
+* Alignment
+* Margin
+* Padding
+* Spacing
+
+---
+
+# 28. Quantity Styling
+
+Provide Elementor controls for:
+
+* Typography
+* Text color
+* Background
+* Border
+* Border color
+* Border width
+* Border radius
+* Width
+* Height
+* Alignment
+* Spacing
+
+---
+
+# 29. Checkout Styling
+
+The checkout should visually integrate with the widget.
+
+Provide Elementor styling controls where practical for:
+
+* Checkout container
+* Form labels
+* Form inputs
+* Select fields
+* Shipping section
+* Payment section
+* Order summary
+* Order Now button
+* Error messages
+* Notices
+
+Use Elementor-native styling controls wherever possible.
+
+Do not interfere with the actual WooCommerce checkout logic.
+
+---
+
+# 30. Responsive Support
+
+The entire widget must be responsive.
+
+Elementor responsive controls must work for:
+
+* Desktop
+* Tablet
+* Mobile
+
+The user should be able to configure different:
+
+* Width
+* Height
+* Font size
+* Padding
+* Margin
+* Alignment
+* Image size
+* Button size
+* Gap
+* Columns
+
+for different screen sizes.
+
+---
+
+# 31. Elementor Live Editor Preview
+
+This is mandatory.
+
+When the widget is being edited inside Elementor, the user must be able to visually see the widget.
+
+Changes made in the Elementor panel should update the editor preview.
+
+For example:
+
+Changing:
+
+```text
+Show Title → OFF
+```
+
+should immediately hide the title in the editor preview.
+
+Changing:
+
+```text
+Color → Image
+```
+
+should immediately change the variation display.
+
+Changing:
+
+```text
+Border Radius → 5px
+```
+
+should immediately update the preview.
+
+Changing:
+
+```text
+Alignment → Center
+```
+
+should immediately update the preview.
+
+The widget should be designed specifically to work properly inside the Elementor editor, not only on the final frontend.
+
+---
+
+# 32. Editor vs Frontend Product Context
+
+The widget must handle both:
+
+### Elementor Editor
+
+When editing the widget:
+
+* Detect current product where possible.
+* Allow manual product selection.
+* Load selected product data for preview.
+* Render representative variation/checkout UI.
+
+### Frontend
+
+Use the actual current/selected WooCommerce product and real customer/session data.
+
+Do not expose sensitive customer/order information in the editor preview.
+
+---
+
+# 33. Performance
+
+The plugin must remain lightweight.
+
+Do not use React.
+
+Do not load unnecessary libraries.
+
+Only load plugin CSS/JS when the widget is actually used.
+
+Avoid unnecessary AJAX requests.
+
+Avoid unnecessary WooCommerce checkout initialization.
+
+Do not duplicate WooCommerce checkout functionality.
+
+The checkout should render as quickly as possible.
+
+---
+
+# 34. Checkout Loading Issue
+
+The checkout must not remain stuck in a loading state after the page loads.
+
+Avoid unnecessary loading screens such as:
+
+```text
+Loading checkout...
+```
+
+for an extended period.
+
+Use WooCommerce's existing checkout scripts and initialization process correctly.
+
+Do not initialize the checkout multiple times.
+
+Do not trigger unnecessary checkout update requests during initial page load.
+
+The customer should see the checkout as quickly as possible.
+
+---
+
+# 35. Security
+
+Follow WordPress and WooCommerce security standards.
+
+Use:
+
+* Nonces where required
+* Sanitization
+* Validation
+* Escaping
+* Capability checks
+* WooCommerce server-side validation
+
+Never trust frontend-submitted:
+
+* Price
+* Variation ID
+* Quantity
+* Shipping cost
+* Order total
+
+WooCommerce must perform final server-side validation and calculation.
+
+---
+
+# 36. Recommended Plugin Structure
+
+Keep the plugin simple and modular.
+
+Example:
+
+```text
+wc-smart-checkout-builder/
+│
+├── wc-smart-checkout-builder.php
+│
+├── includes/
+│   ├── class-plugin.php
+│   ├── class-elementor-widget.php
+│   ├── class-product-handler.php
+│   ├── class-variation-handler.php
+│   └── class-checkout-handler.php
+│
+├── assets/
+│   ├── css/
+│   │   └── widget.css
+│   │
+│   └── js/
+│       └── widget.js
+│
+├── templates/
+│   └── checkout/
+│
+└── languages/
+```
+
+Do not over-engineer the plugin.
+
+---
+
+# 37. Core Development Principle
+
+The plugin should be a **lightweight Elementor widget for WooCommerce**, not a new WooCommerce platform.
+
+Architecture:
+
+```text
+WordPress
+    ↓
+WooCommerce
+    ↓
+Custom Elementor Widget
+    ↓
+Product Selection
+    ↓
+Variation Selection
+    ↓
+Native WooCommerce Checkout
+    ↓
+Native WooCommerce Payment
+    ↓
+Native WooCommerce Order
+    ↓
+WooCommerce Thank You Page
+```
+
+WooCommerce remains the source of truth for:
+
+* Product
+* Variation
+* Price
+* Stock
+* Cart
+* Checkout
+* Shipping
+* Payment
+* Order
+* Thank You page
+
+The custom plugin only provides the UI and Elementor integration.
+
+---
+
+# 38. Final Expected User Experience
+
+The Elementor user should be able to:
+
+1. Drag **Product Variation & Checkout** widget onto any Elementor page.
+2. Keep **Current Product = ON** by default.
+3. Or turn it OFF.
+4. Search and select any WooCommerce product.
+5. If the product is Simple:
+
+   * Show title
+   * Show image
+   * Show price
+   * Show quantity
+   * Show checkout
+6. If the product is Variable:
+
+   * Automatically detect its attributes.
+   * Select Image or Button display for each attribute.
+   * Select variation options.
+   * Update product image/price according to the selected variation.
+7. Show/hide:
+
+   * Title
+   * Image
+   * Price
+   * Quantity
+   * Variations
+   * Checkout
+8. Fully style every section using Elementor.
+9. Configure responsive settings.
+10. See all changes live inside the Elementor editor.
+11. Customer completes the native WooCommerce checkout.
+12. Customer clicks **Order Now**.
+13. WooCommerce processes the order.
+14. Customer is redirected to the normal WooCommerce Thank You page.
+
+The final product should feel like a **native Elementor WooCommerce widget**, while keeping WooCommerce responsible for all actual commerce functionality.
