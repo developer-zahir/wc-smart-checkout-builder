@@ -61,6 +61,11 @@ class Updater {
 		add_filter( 'pre_set_site_transient_update_plugins', array( $this, 'check_for_plugin_update' ) );
 		add_filter( 'plugins_api', array( $this, 'plugin_popup_information' ), 20, 3 );
 		add_filter( 'upgrader_post_install', array( $this, 'rename_github_folder_after_update' ), 10, 3 );
+		
+		// Add manual update check link and handlers
+		add_filter( 'plugin_row_meta', array( $this, 'add_check_update_link' ), 10, 2 );
+		add_action( 'admin_init', array( $this, 'handle_manual_update_check' ) );
+		add_action( 'admin_notices', array( $this, 'display_update_notices' ) );
 	}
 
 	/**
@@ -252,5 +257,79 @@ class Updater {
 		}
 
 		return $result;
+	}
+
+	/**
+	 * Add "Check Update" link to plugin row meta.
+	 *
+	 * @param array  $links
+	 * @param string $file
+	 * @return array
+	 */
+	public function add_check_update_link( $links, $file ) {
+		if ( $file === $this->plugin_basename ) {
+			$check_url = wp_nonce_url( admin_url( 'plugins.php?action=wcsc_check_update' ), 'wcsc_check_update_nonce' );
+			$links[] = '<a href="' . esc_url( $check_url ) . '" style="color: #2271b1; font-weight: 600;">' . esc_html__( 'Check Update', 'wc-smart-checkout-builder' ) . '</a>';
+		}
+		return $links;
+	}
+
+	/**
+	 * Handle the manual update check action.
+	 */
+	public function handle_manual_update_check() {
+		if ( isset( $_GET['action'] ) && 'wcsc_check_update' === $_GET['action'] ) {
+			if ( isset( $_GET['_wpnonce'] ) && wp_verify_nonce( sanitize_key( $_GET['_wpnonce'] ), 'wcsc_check_update_nonce' ) ) {
+				// Clear update transients to force a fresh check
+				delete_site_transient( 'update_plugins' );
+				delete_site_transient( $this->cache_key );
+				
+				// Force a new fetch
+				$release = $this->get_github_release( true );
+				
+				$status = 'checked';
+				if ( $release ) {
+					$new_version = ltrim( $release->tag_name, 'v' );
+					if ( version_compare( $new_version, $this->version, '>' ) ) {
+						$status = 'available';
+					} else {
+						$status = 'latest';
+					}
+				}
+				
+				// Redirect back to plugins page with message
+				wp_safe_redirect( admin_url( 'plugins.php?wcsc_update_status=' . $status ) );
+				exit;
+			}
+		}
+	}
+	
+	/**
+	 * Display admin notices based on update check.
+	 */
+	public function display_update_notices() {
+		if ( isset( $_GET['wcsc_update_status'] ) ) {
+			$status = sanitize_text_field( $_GET['wcsc_update_status'] );
+			
+			if ( 'available' === $status ) {
+				?>
+				<div class="notice notice-info is-dismissible">
+					<p><strong>WC Smart Checkout Builder:</strong> A new update is available! Please check the plugin list below to update.</p>
+				</div>
+				<?php
+			} elseif ( 'latest' === $status ) {
+				?>
+				<div class="notice notice-success is-dismissible">
+					<p><strong>WC Smart Checkout Builder:</strong> You are using the latest version.</p>
+				</div>
+				<?php
+			} else {
+				?>
+				<div class="notice notice-success is-dismissible">
+					<p><strong>WC Smart Checkout Builder:</strong> Successfully checked for updates.</p>
+				</div>
+				<?php
+			}
+		}
 	}
 }
