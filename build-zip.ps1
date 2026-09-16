@@ -4,7 +4,15 @@ $ErrorActionPreference = "Stop"
 $pluginSlug = "wc-smart-checkout-builder"
 $rootDir    = $PSScriptRoot
 $distDir    = Join-Path $rootDir "dist"
-$zipFinal   = Join-Path $distDir "$pluginSlug.zip"
+$mainFile = Join-Path $rootDir "$pluginSlug.php"
+$version = "1.0.1" # fallback
+if (Test-Path $mainFile) {
+    $content = Get-Content $mainFile -Raw
+    if ($content -match "\*\s*Version:\s+([0-9\.]+)") {
+        $version = $matches[1]
+    }
+}
+$zipFinal   = Join-Path $distDir "$pluginSlug-$version.zip"
 
 if (-not (Test-Path $distDir)) {
     New-Item -ItemType Directory -Path $distDir -Force | Out-Null
