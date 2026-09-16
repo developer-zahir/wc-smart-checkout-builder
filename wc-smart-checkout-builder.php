@@ -1,11 +1,11 @@
 <?php
 /**
- * Plugin Name:       WooCommerce Product Variation & Checkout Elementor Widget
- * Plugin URI:        https://example.com/wc-smart-checkout-builder
+ * Plugin Name:       WC Smart Checkout Builder
+ * Plugin URI:        https://github.com/developer-zahir/wc-smart-checkout-builder
  * Description:       A lightweight Elementor widget for selecting WooCommerce simple or variable products, choosing variation attributes with buttons or images, and completing native WooCommerce checkout in-place.
  * Version:           1.0.0
- * Author:            Antigravity Team
- * Author URI:        https://example.com
+ * Author:            Developer Zahir
+ * Author URI:        https://developerzahir.com
  * Text Domain:       wc-smart-checkout-builder
  * Domain Path:       /languages
  * Requires at least: 5.8
