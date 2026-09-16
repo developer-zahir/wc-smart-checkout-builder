@@ -1492,6 +1492,18 @@ class Elementor_Widget extends Widget_Base {
 		);
 
 		$this->add_responsive_control(
+			'shipping_card_margin',
+			array(
+				'label'      => esc_html__( 'Margin', 'wc-smart-checkout-builder' ),
+				'type'       => Controls_Manager::DIMENSIONS,
+				'size_units' => array( 'px', 'em', '%' ),
+				'selectors'  => array(
+					'{{WRAPPER}} .wcsc-shipping-card' => 'margin: {{TOP}}{{UNIT}} {{RIGHT}}{{UNIT}} {{BOTTOM}}{{UNIT}} {{LEFT}}{{UNIT}};',
+				),
+			)
+		);
+
+		$this->add_responsive_control(
 			'shipping_card_border_radius',
 			array(
 				'label'      => esc_html__( 'Border Radius', 'wc-smart-checkout-builder' ),
@@ -1619,6 +1631,18 @@ class Elementor_Widget extends Widget_Base {
 				'size_units' => array( 'px', 'em' ),
 				'selectors'  => array(
 					'{{WRAPPER}} #place_order, {{WRAPPER}} .wcsc-order-now-btn' => 'padding: {{TOP}}{{UNIT}} {{RIGHT}}{{UNIT}} {{BOTTOM}}{{UNIT}} {{LEFT}}{{UNIT}};',
+				),
+			)
+		);
+
+		$this->add_responsive_control(
+			'order_button_margin',
+			array(
+				'label'      => esc_html__( 'Margin', 'wc-smart-checkout-builder' ),
+				'type'       => Controls_Manager::DIMENSIONS,
+				'size_units' => array( 'px', 'em', '%' ),
+				'selectors'  => array(
+					'{{WRAPPER}} #place_order, {{WRAPPER}} .wcsc-order-now-btn, {{WRAPPER}} .wcsc-custom-btn-container' => 'margin: {{TOP}}{{UNIT}} {{RIGHT}}{{UNIT}} {{BOTTOM}}{{UNIT}} {{LEFT}}{{UNIT}};',
 				),
 			)
 		);

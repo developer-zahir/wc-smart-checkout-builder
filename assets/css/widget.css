@@ -381,18 +381,26 @@
 }
 
 /* 1 Column Layout Option */
-.wcsc-layout-1-col .col2-set,
-.wcsc-layout-1-col.col2-set {
-	display: block !important;
+.wcsc-product-checkout-widget .woocommerce form.checkout.wcsc-layout-1-col #customer_details.col2-set,
+.wcsc-product-checkout-widget .woocommerce form.checkout.wcsc-layout-1-col .col2-set,
+body .wcsc-product-checkout-widget form.checkout.wcsc-layout-1-col #customer_details.col2-set,
+body .wcsc-product-checkout-widget form.checkout.wcsc-layout-1-col .col2-set {
+	display: flex !important;
+	flex-direction: column !important;
+	width: 100% !important;
+	margin: 0 !important;
 }
 
-.wcsc-layout-1-col .col-1,
-.wcsc-layout-1-col .col-2,
-.wcsc-col-fullwidth {
+.wcsc-product-checkout-widget .woocommerce form.checkout.wcsc-layout-1-col .col-1,
+.wcsc-product-checkout-widget .woocommerce form.checkout.wcsc-layout-1-col .col-2,
+body .wcsc-product-checkout-widget form.checkout.wcsc-layout-1-col .col-1,
+body .wcsc-product-checkout-widget form.checkout.wcsc-layout-1-col .col-2,
+.wcsc-product-checkout-widget .wcsc-col-fullwidth {
 	width: 100% !important;
 	max-width: 100% !important;
-	flex: none !important;
+	flex: 1 1 100% !important;
 	float: none !important;
+	margin: 0 0 20px 0 !important;
 }
 
 /* Hide Individual Checkout Sections */
@@ -740,20 +748,21 @@
 	gap: 12px;
 }
 .wcsc-custom-shipping-container ul#shipping_method li.wcsc-shipping-card {
+	display: flex !important;
+	align-items: center;
 	background: #ffffff;
 	border: 1px solid #e2e8f0;
 	border-radius: 6px;
 	padding: 12px 16px;
 	cursor: pointer;
 	transition: all 0.2s ease;
-	display: block;
 }
 .wcsc-custom-shipping-container ul#shipping_method li.wcsc-shipping-card.is-active {
 	border-color: #2b6cb0;
 	box-shadow: 0 0 0 1px #2b6cb0;
 }
-.wcsc-custom-shipping-container ul#shipping_method li.wcsc-shipping-card label {
-	display: flex;
+.wcsc-custom-shipping-container ul#shipping_method li.wcsc-shipping-card > label {
+	display: flex !important;
 	align-items: center;
 	justify-content: space-between;
 	width: 100%;
@@ -762,8 +771,10 @@
 	font-weight: 600;
 	color: #2d3748;
 }
-.wcsc-custom-shipping-container ul#shipping_method li.wcsc-shipping-card label input[type="radio"] {
+.wcsc-custom-shipping-container ul#shipping_method li.wcsc-shipping-card > input[type="radio"] {
 	margin-right: 12px;
+	margin-top: 0;
+	margin-bottom: 0;
 	appearance: none;
 	-webkit-appearance: none;
 	width: 18px;
@@ -776,11 +787,11 @@
 	cursor: pointer;
 	flex-shrink: 0;
 }
-.wcsc-custom-shipping-container ul#shipping_method li.wcsc-shipping-card label input[type="radio"]:checked {
+.wcsc-custom-shipping-container ul#shipping_method li.wcsc-shipping-card > input[type="radio"]:checked {
 	border-color: #2b6cb0;
 	background: #2b6cb0;
 }
-.wcsc-custom-shipping-container ul#shipping_method li.wcsc-shipping-card label input[type="radio"]:checked::after {
+.wcsc-custom-shipping-container ul#shipping_method li.wcsc-shipping-card > input[type="radio"]:checked::after {
 	content: "";
 	position: absolute;
 	top: 4px;
@@ -790,7 +801,7 @@
 	border-radius: 50%;
 	background: #fff;
 }
-.wcsc-custom-shipping-container ul#shipping_method li.wcsc-shipping-card label .amount {
+.wcsc-custom-shipping-container ul#shipping_method li.wcsc-shipping-card > label .amount {
 	margin-left: auto;
 }
 

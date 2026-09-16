@@ -262,7 +262,10 @@
 					var $btnContainer = $wrapper.find('.wcsc-custom-btn-container');
 					if (!$btnContainer.length) {
 						$btnContainer = $('<div class="wcsc-custom-btn-container"></div>');
-						if ($wrapper.find('#customer_details').length) {
+						var $existingShipping = $wrapper.find('.wcsc-custom-shipping-container');
+						if ($existingShipping.length) {
+							$existingShipping.after($btnContainer);
+						} else if ($wrapper.find('#customer_details').length) {
 							$wrapper.find('#customer_details').after($btnContainer);
 						} else {
 							$wrapper.find('#order_review').before($btnContainer);
