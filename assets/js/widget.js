@@ -74,7 +74,18 @@
 				$group.find('.wcsc-swatch').removeClass('is-selected');
 				$swatch.addClass('is-selected');
 				$group.find('.wcsc-attribute-input').val(val);
-				$group.find('.wcsc-selected-value-label').text(label);
+
+				var template = $group.find('.wcsc-attribute-header').attr('data-label-template');
+				if (template) {
+					if (template.indexOf('{{value}}') !== -1) {
+						$group.find('.wcsc-attribute-label').text(template.replace('{{value}}', label));
+					} else {
+						$group.find('.wcsc-attribute-label').text(template);
+					}
+					$group.find('.wcsc-selected-value-label').text('');
+				} else {
+					$group.find('.wcsc-selected-value-label').text(label);
+				}
 
 				self.onAttributeChange();
 			});
@@ -176,7 +187,18 @@
 					}
 				}
 				if ($selected.length) {
-					$group.find('.wcsc-selected-value-label').text($selected.data('label') || $selected.data('value'));
+					var valLabel = $selected.data('label') || $selected.data('value');
+					var template = $group.find('.wcsc-attribute-header').attr('data-label-template');
+					if (template) {
+						if (template.indexOf('{{value}}') !== -1) {
+							$group.find('.wcsc-attribute-label').text(template.replace('{{value}}', valLabel));
+						} else {
+							$group.find('.wcsc-attribute-label').text(template);
+						}
+						$group.find('.wcsc-selected-value-label').text('');
+					} else {
+						$group.find('.wcsc-selected-value-label').text(valLabel);
+					}
 				}
 			});
 

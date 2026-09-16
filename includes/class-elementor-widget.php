@@ -112,7 +112,6 @@ class Elementor_Widget extends Widget_Base {
 				'label_off'    => esc_html__( 'No', 'wc-smart-checkout-builder' ),
 				'return_value' => 'yes',
 				'default'      => 'yes',
-				'description'  => esc_html__( 'Automatically detect the product on single product pages or templates.', 'wc-smart-checkout-builder' ),
 			)
 		);
 
@@ -127,7 +126,6 @@ class Elementor_Widget extends Widget_Base {
 				'condition'   => array(
 					'use_current_product!' => 'yes',
 				),
-				'description' => esc_html__( 'Choose the WooCommerce product to display.', 'wc-smart-checkout-builder' ),
 			)
 		);
 
@@ -272,7 +270,6 @@ class Elementor_Widget extends Widget_Base {
 				'type'        => Controls_Manager::TEXT,
 				'placeholder' => esc_html__( 'e.g. কালার সিলেক্ট করুন, সাইজ সিলেক্ট করুন', 'wc-smart-checkout-builder' ),
 				'label_block' => true,
-				'description' => esc_html__( 'Optional custom label to display instead of the default attribute title.', 'wc-smart-checkout-builder' ),
 			)
 		);
 
@@ -297,7 +294,6 @@ class Elementor_Widget extends Widget_Base {
 				'fields'        => $repeater->get_controls(),
 				'title_field'   => '{{{ attribute_name }}} — {{{ custom_label ? custom_label : display_type }}}',
 				'prevent_empty' => false,
-				'description'   => esc_html__( 'Set custom titles or display types for specific attributes (e.g. Color, Size).', 'wc-smart-checkout-builder' ),
 			)
 		);
 
@@ -340,7 +336,7 @@ class Elementor_Widget extends Widget_Base {
 		$this->add_control(
 			'show_checkout_billing',
 			array(
-				'label'        => esc_html__( 'Show Billing & Shipping Fields', 'wc-smart-checkout-builder' ),
+				'label'        => esc_html__( 'Show Billing, Shipping Fields', 'wc-smart-checkout-builder' ),
 				'type'         => Controls_Manager::SWITCHER,
 				'label_on'     => esc_html__( 'Show', 'wc-smart-checkout-builder' ),
 				'label_off'    => esc_html__( 'Hide', 'wc-smart-checkout-builder' ),
@@ -352,7 +348,7 @@ class Elementor_Widget extends Widget_Base {
 		$this->add_control(
 			'show_checkout_order_review',
 			array(
-				'label'        => esc_html__( 'Show Order Review (Your Order)', 'wc-smart-checkout-builder' ),
+				'label'        => esc_html__( 'Show Order Review', 'wc-smart-checkout-builder' ),
 				'type'         => Controls_Manager::SWITCHER,
 				'label_on'     => esc_html__( 'Show', 'wc-smart-checkout-builder' ),
 				'label_off'    => esc_html__( 'Hide', 'wc-smart-checkout-builder' ),
@@ -471,13 +467,12 @@ class Elementor_Widget extends Widget_Base {
 		$this->add_control(
 			'show_button_price',
 			array(
-				'label'        => esc_html__( 'Show Live Price in Button', 'wc-smart-checkout-builder' ),
+				'label'        => esc_html__( 'Show Price in Button', 'wc-smart-checkout-builder' ),
 				'type'         => Controls_Manager::SWITCHER,
 				'label_on'     => esc_html__( 'Yes', 'wc-smart-checkout-builder' ),
 				'label_off'    => esc_html__( 'No', 'wc-smart-checkout-builder' ),
 				'return_value' => 'yes',
 				'default'      => 'yes',
-				'description'  => esc_html__( 'Displays dynamic price next to button text (e.g. Order Now — $50).', 'wc-smart-checkout-builder' ),
 			)
 		);
 
@@ -531,13 +526,13 @@ class Elementor_Widget extends Widget_Base {
 				'type'        => Controls_Manager::SELECT,
 				'default'     => 'border_run',
 				'options'     => array(
-					'border_run' => esc_html__( 'Rotating Border (Running Beams)', 'wc-smart-checkout-builder' ),
-					'bounce'     => esc_html__( 'Gentle Bounce (No Scaling)', 'wc-smart-checkout-builder' ),
-					'tada'       => esc_html__( 'Tada / Wobble (No Scaling)', 'wc-smart-checkout-builder' ),
-					'pulse'      => esc_html__( 'Glow Pulse (No Scaling)', 'wc-smart-checkout-builder' ),
-					'none'       => esc_html__( 'None', 'wc-smart-checkout-builder' ),
+					'border_run'          => esc_html__( 'Rotating Border', 'wc-smart-checkout-builder' ),
+					'codflow_style_popup' => esc_html__( 'Codflow Style Popup', 'wc-smart-checkout-builder' ),
+					'bounce'              => esc_html__( 'Gentle Bounce', 'wc-smart-checkout-builder' ),
+					'tada'                => esc_html__( 'Tada / Wobble', 'wc-smart-checkout-builder' ),
+					'pulse'               => esc_html__( 'Glow Pulse', 'wc-smart-checkout-builder' ),
+					'none'                => esc_html__( 'None', 'wc-smart-checkout-builder' ),
 				),
-				'description' => esc_html__( 'Select an attention-grabbing animation that does not distort button scale.', 'wc-smart-checkout-builder' ),
 			)
 		);
 
@@ -1508,15 +1503,46 @@ class Elementor_Widget extends Widget_Base {
 		$this->add_control(
 			'order_button_beam_color',
 			array(
-				'label'     => esc_html__( 'Rotating Beam Color', 'wc-smart-checkout-builder' ),
+				'label'     => esc_html__( 'Animation Color 1', 'wc-smart-checkout-builder' ),
 				'type'      => Controls_Manager::COLOR,
 				'default'   => '#ffffff',
 				'selectors' => array(
 					'{{WRAPPER}} .wcsc-btn-beam-top'    => 'background: linear-gradient(90deg, transparent, {{VALUE}}, transparent) !important;',
 					'{{WRAPPER}} .wcsc-btn-beam-bottom' => 'background: linear-gradient(270deg, transparent, {{VALUE}}, transparent) !important;',
+					'{{WRAPPER}} .wcsc-anim-codflow-style-popup:before' => 'background: conic-gradient(from 0deg,transparent 0deg,transparent 65deg,{{VALUE}} 90deg,var(--wcsc-codflow-color2, #ffb300) 120deg,transparent 150deg,transparent 245deg,{{VALUE}} 270deg,var(--wcsc-codflow-color2, #ffb300) 300deg,transparent 330deg)!important;',
 				),
 				'condition' => array(
-					'order_button_animation' => 'border_run',
+					'order_button_animation' => array( 'border_run', 'codflow_style_popup' ),
+				),
+			)
+		);
+
+		$this->add_control(
+			'order_button_anim_color_2',
+			array(
+				'label'     => esc_html__( 'Animation Color 2', 'wc-smart-checkout-builder' ),
+				'type'      => Controls_Manager::COLOR,
+				'default'   => '#ffb300',
+				'selectors' => array(
+					'{{WRAPPER}} .wcsc-anim-codflow-style-popup' => '--wcsc-codflow-color2: {{VALUE}};',
+				),
+				'condition' => array(
+					'order_button_animation' => 'codflow_style_popup',
+				),
+			)
+		);
+
+		$this->add_control(
+			'order_button_anim_bg',
+			array(
+				'label'     => esc_html__( 'Animation Overlay Layer', 'wc-smart-checkout-builder' ),
+				'type'      => Controls_Manager::COLOR,
+				'default'   => '#111111',
+				'selectors' => array(
+					'{{WRAPPER}} .wcsc-anim-codflow-style-popup:after' => 'background: {{VALUE}} !important;',
+				),
+				'condition' => array(
+					'order_button_animation' => 'codflow_style_popup',
 				),
 			)
 		);
@@ -1690,10 +1716,24 @@ class Elementor_Widget extends Widget_Base {
 								$attr_label  = $attr['label'];
 								$disp_type   = $attr['display_type'];
 								$default_val = $attr['default_value'];
+
+								$custom_label = '';
+								if ( ! empty( $settings['attribute_types'] ) && is_array( $settings['attribute_types'] ) ) {
+									foreach ( $settings['attribute_types'] as $item ) {
+										if ( ! empty( $item['attribute_name'] ) && ( strtolower( trim( $item['attribute_name'] ) ) === strtolower( trim( $attr_name ) ) || sanitize_title( $item['attribute_name'] ) === sanitize_title( $attr_name ) ) ) {
+											if ( ! empty( $item['custom_label'] ) ) {
+												$custom_label = trim( $item['custom_label'] );
+											}
+											break;
+										}
+									}
+								}
+								$label_template_attr = $custom_label ? ' data-label-template="' . esc_attr( $custom_label ) . '"' : '';
+								$display_label = $custom_label ? str_replace( '{{value}}', '', $custom_label ) : $attr_label;
 							?>
 								<div class="wcsc-attribute-group" data-attribute-name="<?php echo esc_attr( $attr_name ); ?>" data-display-type="<?php echo esc_attr( $disp_type ); ?>">
-									<div class="wcsc-attribute-header">
-										<span class="wcsc-attribute-label"><?php echo esc_html( $attr_label ); ?>:</span>
+									<div class="wcsc-attribute-header"<?php echo $label_template_attr; ?>>
+										<span class="wcsc-attribute-label"><?php echo esc_html( $display_label ); ?><?php echo $custom_label ? '' : ':'; ?></span>
 										<span class="wcsc-selected-value-label"></span>
 									</div>
 

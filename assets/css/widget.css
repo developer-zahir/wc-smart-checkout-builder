@@ -711,6 +711,44 @@
 	}
 }
 
+/* 5. Codflow Style Popup (No Scaling) */
+.wcsc-anim-codflow-style-popup {
+	z-index: 1;
+}
+
+.wcsc-anim-codflow-style-popup::after {
+	content: "" !important;
+	position: absolute !important;
+	top: 3px !important;
+	right: 3px !important;
+	bottom: 3px !important;
+	left: 3px !important;
+	background: #111111 !important;
+	border-radius: inherit !important;
+	pointer-events: none !important;
+	z-index: -1 !important;
+}
+
+.wcsc-anim-codflow-style-popup::before {
+	content: "" !important;
+	position: absolute !important;
+	top: -3px !important;
+	right: -3px !important;
+	bottom: -3px !important;
+	left: -3px !important;
+	border-radius: inherit !important;
+	background: conic-gradient(from 0deg,transparent 0deg,transparent 65deg,#ffffff 90deg,#ffb300 120deg,transparent 150deg,transparent 245deg,#ffffff 270deg,#ffb300 300deg,transparent 330deg) !important;
+	animation: wcscCodflowBorderRotate 2.5s linear infinite !important;
+	pointer-events: none !important;
+	z-index: -2 !important;
+}
+
+@keyframes wcscCodflowBorderRotate {
+	100% {
+		transform: rotate(1turn);
+	}
+}
+
 /* Notice box for warning in editor */
 .wcsc-notice-warning {
 	background-color: #fffaf0;
