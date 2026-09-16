@@ -2,8 +2,8 @@
 /**
  * Plugin Name:       WC Smart Checkout Builder
  * Plugin URI:        https://github.com/developer-zahir/wc-smart-checkout-builder
- * Description:       A lightweight Elementor widget for selecting WooCommerce simple or variable products, choosing variation attributes with buttons or images, and completing native WooCommerce checkout in-place.
- * Version:           1.1.3
+ * Description:       A lightweight Elementor widget for selecting WooCommerce products and checking out.
+ * Version:           1.1.4
  * Author:            Developer Zahir
  * Author URI:        https://developerzahir.com
  * Text Domain:       wc-smart-checkout-builder
@@ -20,7 +20,7 @@ if ( ! defined( 'ABSPATH' ) ) {
 	exit; // Exit if accessed directly.
 }
 
-define( 'WCSC_VERSION', '1.1.3' );
+define( 'WCSC_VERSION', '1.1.4' );
 define( 'WCSC_FILE', __FILE__ );
 define( 'WCSC_PATH', plugin_dir_path( __FILE__ ) );
 define( 'WCSC_URL', plugin_dir_url( __FILE__ ) );

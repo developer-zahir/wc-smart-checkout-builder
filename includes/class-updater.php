@@ -226,7 +226,7 @@ class Updater {
 			'requires_php'  => '7.4',
 			'download_link' => $download_package,
 			'sections'      => array(
-				'description' => esc_html__( 'A lightweight Elementor widget for selecting WooCommerce simple or variable products, choosing variation attributes with buttons or images, and completing native WooCommerce checkout in-place.', 'wc-smart-checkout-builder' ),
+				'description' => esc_html__( 'A lightweight Elementor widget for selecting WooCommerce products and checking out.', 'wc-smart-checkout-builder' ),
 				'changelog'   => $changelog,
 			),
 		);

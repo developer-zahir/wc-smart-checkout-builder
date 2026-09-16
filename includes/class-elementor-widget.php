@@ -580,7 +580,6 @@ class Elementor_Widget extends Widget_Base {
 				'default'     => 'border_run',
 				'options'     => array(
 					'border_run'          => esc_html__( 'Rotating Border', 'wc-smart-checkout-builder' ),
-					'codflow_style_popup' => esc_html__( 'Codflow Style Popup', 'wc-smart-checkout-builder' ),
 					'bounce'              => esc_html__( 'Gentle Bounce', 'wc-smart-checkout-builder' ),
 					'tada'                => esc_html__( 'Tada / Wobble', 'wc-smart-checkout-builder' ),
 					'pulse'               => esc_html__( 'Glow Pulse', 'wc-smart-checkout-builder' ),
@@ -1653,40 +1652,9 @@ class Elementor_Widget extends Widget_Base {
 				'selectors' => array(
 					'{{WRAPPER}} .wcsc-btn-beam-top'    => 'background: linear-gradient(90deg, transparent, {{VALUE}}, transparent) !important;',
 					'{{WRAPPER}} .wcsc-btn-beam-bottom' => 'background: linear-gradient(270deg, transparent, {{VALUE}}, transparent) !important;',
-					'{{WRAPPER}} .wcsc-anim-codflow-style-popup:before' => 'background: conic-gradient(from 0deg,transparent 0deg,transparent 65deg,{{VALUE}} 90deg,var(--wcsc-codflow-color2, #ffb300) 120deg,transparent 150deg,transparent 245deg,{{VALUE}} 270deg,var(--wcsc-codflow-color2, #ffb300) 300deg,transparent 330deg)!important;',
 				),
 				'condition' => array(
-					'order_button_animation' => array( 'border_run', 'codflow_style_popup' ),
-				),
-			)
-		);
-
-		$this->add_control(
-			'order_button_anim_color_2',
-			array(
-				'label'     => esc_html__( 'Animation Color 2', 'wc-smart-checkout-builder' ),
-				'type'      => Controls_Manager::COLOR,
-				'default'   => '#ffb300',
-				'selectors' => array(
-					'{{WRAPPER}} .wcsc-anim-codflow-style-popup' => '--wcsc-codflow-color2: {{VALUE}};',
-				),
-				'condition' => array(
-					'order_button_animation' => 'codflow_style_popup',
-				),
-			)
-		);
-
-		$this->add_control(
-			'order_button_anim_bg',
-			array(
-				'label'     => esc_html__( 'Animation Overlay Layer', 'wc-smart-checkout-builder' ),
-				'type'      => Controls_Manager::COLOR,
-				'default'   => '#111111',
-				'selectors' => array(
-					'{{WRAPPER}} .wcsc-anim-codflow-style-popup:after' => 'background: {{VALUE}} !important;',
-				),
-				'condition' => array(
-					'order_button_animation' => 'codflow_style_popup',
+					'order_button_animation' => array( 'border_run' ),
 				),
 			)
 		);

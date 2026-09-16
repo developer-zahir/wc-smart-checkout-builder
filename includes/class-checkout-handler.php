@@ -321,31 +321,24 @@ class Checkout_Handler {
 
 		$product_id = $product->get_id();
 		$cart       = WC()->cart;
-		$found      = false;
+		
+		// Clear cart to ensure only the selected product is checked out.
+		$cart->empty_cart();
 
-		foreach ( $cart->get_cart() as $cart_item_key => $cart_item ) {
-			if ( (int) $cart_item['product_id'] === $product_id ) {
-				$found = true;
-				break;
+		// If variable product, find default variation or first available variation.
+		if ( $product->is_type( 'variable' ) ) {
+			$available_variations = $product->get_available_variations();
+			if ( ! empty( $available_variations ) ) {
+				$first_variation = $available_variations[0];
+				$cart->add_to_cart(
+					$product_id,
+					1,
+					$first_variation['variation_id'],
+					$first_variation['attributes']
+				);
 			}
-		}
-
-		if ( ! $found ) {
-			// If variable product, find default variation or first available variation.
-			if ( $product->is_type( 'variable' ) ) {
-				$available_variations = $product->get_available_variations();
-				if ( ! empty( $available_variations ) ) {
-					$first_variation = $available_variations[0];
-					$cart->add_to_cart(
-						$product_id,
-						1,
-						$first_variation['variation_id'],
-						$first_variation['attributes']
-					);
-				}
-			} else {
-				$cart->add_to_cart( $product_id, 1 );
-			}
+		} else {
+			$cart->add_to_cart( $product_id, 1 );
 		}
 	}
 
@@ -371,32 +364,11 @@ class Checkout_Handler {
 
 		$cart = WC()->cart;
 
-		// Find existing item in cart.
-		$cart_item_key_to_update = null;
-		foreach ( $cart->get_cart() as $key => $item ) {
-			if ( (int) $item['product_id'] === $product_id ) {
-				$cart_item_key_to_update = $key;
-				break;
-			}
-		}
+		// Clear cart to prevent extra products from mixing.
+		$cart->empty_cart();
 
-		// If variation changed or new item, remove existing product instance and re-add.
-		if ( $cart_item_key_to_update ) {
-			$existing_item = $cart->get_cart_item( $cart_item_key_to_update );
-			$existing_variation_id = isset( $existing_item['variation_id'] ) ? (int) $existing_item['variation_id'] : 0;
-
-			if ( $existing_variation_id === $variation_id ) {
-				// Same variation: simply update quantity.
-				$cart->set_quantity( $cart_item_key_to_update, $quantity, true );
-			} else {
-				// Different variation: remove old item and add new one.
-				$cart->remove_cart_item( $cart_item_key_to_update );
-				$cart->add_to_cart( $product_id, $quantity, $variation_id, $attributes );
-			}
-		} else {
-			// Add new item to cart.
-			$cart->add_to_cart( $product_id, $quantity, $variation_id, $attributes );
-		}
+		// Add item to cart.
+		$cart->add_to_cart( $product_id, $quantity, $variation_id, $attributes );
 
 		$cart->calculate_totals();
 

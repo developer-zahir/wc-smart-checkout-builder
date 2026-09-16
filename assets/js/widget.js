@@ -237,15 +237,22 @@
 			}
 
 			// Shipping Cards styling & active state
-			$wrapper.find('#shipping_method li').each(function() {
-				var $li = $(this);
-				$li.addClass('wcsc-shipping-card');
-				if ($li.find('input[type="radio"]').is(':checked')) {
-					$li.addClass('is-active');
-				} else {
-					$li.removeClass('is-active');
+			var $methods = $wrapper.find('#shipping_method li');
+			if ($methods.length) {
+				if (!$methods.find('input[type="radio"]:checked').length) {
+					// Select first by default if none selected
+					$methods.first().find('input[type="radio"]').prop('checked', true).trigger('change');
 				}
-			});
+				$methods.each(function() {
+					var $li = $(this);
+					$li.addClass('wcsc-shipping-card');
+					if ($li.find('input[type="radio"]').is(':checked')) {
+						$li.addClass('is-active');
+					} else {
+						$li.removeClass('is-active');
+					}
+				});
+			}
 
 			// Move Order Button
 			if (buttonPos === 'below_form') {
