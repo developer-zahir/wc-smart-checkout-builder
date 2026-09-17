@@ -43,7 +43,7 @@ class Elementor_Widget extends Widget_Base {
 	 * @return string
 	 */
 	public function get_icon() {
-		return 'eicon-cart-check';
+		return 'eicon-cart-medium';
 	}
 
 	/**
@@ -2190,7 +2190,16 @@ class Elementor_Widget extends Widget_Base {
 		$product  = Product_Handler::get_product_from_settings( $settings );
 
 		if ( ! $product ) {
-			if ( class_exists( '\Elementor\Plugin' ) && isset( \Elementor\Plugin::$instance->editor ) && \Elementor\Plugin::$instance->editor->is_edit_mode() ) {
+			$is_elementor = false;
+			if ( class_exists( '\Elementor\Plugin' ) ) {
+				if ( ( isset( \Elementor\Plugin::$instance->editor ) && \Elementor\Plugin::$instance->editor->is_edit_mode() ) || ( isset( \Elementor\Plugin::$instance->preview ) && \Elementor\Plugin::$instance->preview->is_preview_mode() ) ) {
+					$is_elementor = true;
+				} elseif ( wp_doing_ajax() && isset( $_REQUEST['action'] ) && 'elementor_ajax' === $_REQUEST['action'] ) {
+					$is_elementor = true;
+				}
+			}
+
+			if ( $is_elementor ) {
 				?>
 				<div class="wcsc-notice-warning">
 					<p><?php esc_html_e( 'No product found. Please select a product from the widget panel.', 'wc-smart-checkout-builder' ); ?></p>

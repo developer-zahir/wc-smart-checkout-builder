@@ -60,7 +60,16 @@ class Product_Handler {
 		}
 
 		// 3. Fallback in Elementor Editor / preview mode: fetch the latest published product so preview works immediately.
-		if ( class_exists( '\Elementor\Plugin' ) && ( ( isset( \Elementor\Plugin::$instance->editor ) && \Elementor\Plugin::$instance->editor->is_edit_mode() ) || ( isset( \Elementor\Plugin::$instance->preview ) && \Elementor\Plugin::$instance->preview->is_preview_mode() ) ) ) {
+		$is_elementor_editor = false;
+		if ( class_exists( '\Elementor\Plugin' ) ) {
+			if ( ( isset( \Elementor\Plugin::$instance->editor ) && \Elementor\Plugin::$instance->editor->is_edit_mode() ) || ( isset( \Elementor\Plugin::$instance->preview ) && \Elementor\Plugin::$instance->preview->is_preview_mode() ) ) {
+				$is_elementor_editor = true;
+			} elseif ( wp_doing_ajax() && isset( $_REQUEST['action'] ) && 'elementor_ajax' === $_REQUEST['action'] ) {
+				$is_elementor_editor = true;
+			}
+		}
+
+		if ( $is_elementor_editor ) {
 			$sample_products = wc_get_products( array(
 				'limit'   => 1,
 				'status'  => 'publish',

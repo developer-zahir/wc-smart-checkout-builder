@@ -78,14 +78,14 @@ class Plugin {
 			'menu_name'          => _x( 'Landing Pages', 'admin menu', 'wc-smart-checkout-builder' ),
 			'name_admin_bar'     => _x( 'Landing Page', 'add new on admin bar', 'wc-smart-checkout-builder' ),
 			'add_new'            => _x( 'Add New', 'landing page', 'wc-smart-checkout-builder' ),
-			'add_new_item'       => __( 'Add New Landing Page', 'wc-smart-checkout-builder' ),
-			'new_item'           => __( 'New Landing Page', 'wc-smart-checkout-builder' ),
-			'edit_item'          => __( 'Edit Landing Page', 'wc-smart-checkout-builder' ),
-			'view_item'          => __( 'View Landing Page', 'wc-smart-checkout-builder' ),
-			'all_items'          => __( 'All Landing Pages', 'wc-smart-checkout-builder' ),
-			'search_items'       => __( 'Search Landing Pages', 'wc-smart-checkout-builder' ),
-			'not_found'          => __( 'No landing pages found.', 'wc-smart-checkout-builder' ),
-			'not_found_in_trash' => __( 'No landing pages found in Trash.', 'wc-smart-checkout-builder' )
+			'add_new_item'       => __( 'Add New Page', 'wc-smart-checkout-builder' ),
+			'new_item'           => __( 'New Page', 'wc-smart-checkout-builder' ),
+			'edit_item'          => __( 'Edit Page', 'wc-smart-checkout-builder' ),
+			'view_item'          => __( 'View Page', 'wc-smart-checkout-builder' ),
+			'all_items'          => __( 'All Pages', 'wc-smart-checkout-builder' ),
+			'search_items'       => __( 'Search Pages', 'wc-smart-checkout-builder' ),
+			'not_found'          => __( 'No pages found.', 'wc-smart-checkout-builder' ),
+			'not_found_in_trash' => __( 'No pages found in Trash.', 'wc-smart-checkout-builder' )
 		);
 
 		$args = array(
@@ -138,7 +138,7 @@ class Plugin {
 		$elements_manager->add_category(
 			'wcsc-category',
 			array(
-				'title' => esc_html__( 'Smart Checkout', 'wc-smart-checkout-builder' ),
+				'title' => esc_html__( 'WC Smart Checkout', 'wc-smart-checkout-builder' ),
 				'icon'  => 'fa fa-shopping-cart',
 			)
 		);
