@@ -212,18 +212,6 @@ class Elementor_Widget extends Widget_Base {
 			)
 		);
 
-		$this->add_control(
-			'show_checkout',
-			array(
-				'label'        => esc_html__( 'Show Checkout Form', 'wc-smart-checkout-builder' ),
-				'type'         => Controls_Manager::SWITCHER,
-				'label_on'     => esc_html__( 'Show', 'wc-smart-checkout-builder' ),
-				'label_off'    => esc_html__( 'Hide', 'wc-smart-checkout-builder' ),
-				'return_value' => 'yes',
-				'default'      => 'yes',
-			)
-		);
-
 		$this->end_controls_section();
 
 		// --- Section: Variation Settings ---
@@ -299,15 +287,12 @@ class Elementor_Widget extends Widget_Base {
 
 		$this->end_controls_section();
 
-		// --- Section: Checkout Settings & Layout ---
+		// --- Section: Checkout Layout ---
 		$this->start_controls_section(
-			'section_checkout_settings',
+			'section_checkout_layout',
 			array(
-				'label'     => esc_html__( 'Checkout Settings & Layout', 'wc-smart-checkout-builder' ),
-				'tab'       => Controls_Manager::TAB_CONTENT,
-				'condition' => array(
-					'show_checkout' => 'yes',
-				),
+				'label' => esc_html__( 'Checkout Layout', 'wc-smart-checkout-builder' ),
+				'tab'   => Controls_Manager::TAB_CONTENT,
 			)
 		);
 
@@ -321,6 +306,42 @@ class Elementor_Widget extends Widget_Base {
 					'1_column'  => esc_html__( '1 Column (Stacked)', 'wc-smart-checkout-builder' ),
 				),
 				'default' => '2_columns',
+			)
+		);
+
+		$this->add_responsive_control(
+			'checkout_col_gap',
+			array(
+				'label'      => esc_html__( 'Column Gap', 'wc-smart-checkout-builder' ),
+				'type'       => Controls_Manager::SLIDER,
+				'size_units' => array( 'px', '%', 'em', 'rem' ),
+				'range'      => array(
+					'px' => array(
+						'min' => 0,
+						'max' => 100,
+					),
+				),
+				'selectors'  => array(
+					'{{WRAPPER}} .wcsc-product-checkout-widget' => '--wcsc-col-gap: {{SIZE}}{{UNIT}};',
+				),
+			)
+		);
+
+		$this->add_responsive_control(
+			'checkout_row_gap',
+			array(
+				'label'      => esc_html__( 'Row Gap', 'wc-smart-checkout-builder' ),
+				'type'       => Controls_Manager::SLIDER,
+				'size_units' => array( 'px', '%', 'em', 'rem' ),
+				'range'      => array(
+					'px' => array(
+						'min' => 0,
+						'max' => 100,
+					),
+				),
+				'selectors'  => array(
+					'{{WRAPPER}} .wcsc-product-checkout-widget' => '--wcsc-row-gap: {{SIZE}}{{UNIT}};',
+				),
 			)
 		);
 
@@ -424,13 +445,14 @@ class Elementor_Widget extends Widget_Base {
 			)
 		);
 
-		// Custom Text Customization
-		$this->add_control(
-			'heading_checkout_custom_texts',
+		$this->end_controls_section();
+
+		// --- Section: Checkout Translation ---
+		$this->start_controls_section(
+			'section_checkout_translation',
 			array(
-				'label'     => esc_html__( 'Text & Labels Customization', 'wc-smart-checkout-builder' ),
-				'type'      => Controls_Manager::HEADING,
-				'separator' => 'before',
+				'label' => esc_html__( 'Checkout Translation', 'wc-smart-checkout-builder' ),
+				'tab'   => Controls_Manager::TAB_CONTENT,
 			)
 		);
 
@@ -461,40 +483,55 @@ class Elementor_Widget extends Widget_Base {
 			)
 		);
 
-		$this->add_control(
-			'subtotal_label_text',
-			array(
-				'label'   => esc_html__( 'Subtotal Label', 'wc-smart-checkout-builder' ),
-				'type'    => Controls_Manager::TEXT,
-				'default' => esc_html__( 'Subtotal', 'wc-smart-checkout-builder' ),
-			)
+		// Translation Fields
+		$translations = array(
+			'trans_billing_details'    => esc_html__( 'Billing Details', 'wc-smart-checkout-builder' ),
+			'trans_shipping_details'   => esc_html__( 'Shipping Details', 'wc-smart-checkout-builder' ),
+			'trans_additional_info'    => esc_html__( 'Additional Information', 'wc-smart-checkout-builder' ),
+			'trans_order_notes'        => esc_html__( 'Order Notes', 'wc-smart-checkout-builder' ),
+			'trans_country'            => esc_html__( 'Country / Region', 'wc-smart-checkout-builder' ),
+			'trans_state'              => esc_html__( 'State / County', 'wc-smart-checkout-builder' ),
+			'trans_postcode'           => esc_html__( 'Postcode / ZIP', 'wc-smart-checkout-builder' ),
+			'trans_email'              => esc_html__( 'Email address', 'wc-smart-checkout-builder' ),
+			'trans_phone'              => esc_html__( 'Phone', 'wc-smart-checkout-builder' ),
+			'trans_first_name'         => esc_html__( 'First name', 'wc-smart-checkout-builder' ),
+			'trans_last_name'          => esc_html__( 'Last name', 'wc-smart-checkout-builder' ),
+			'trans_address'            => esc_html__( 'Street address', 'wc-smart-checkout-builder' ),
+			'trans_apartment'          => esc_html__( 'Apartment, suite, unit, etc.', 'wc-smart-checkout-builder' ),
+			'trans_city'               => esc_html__( 'Town / City', 'wc-smart-checkout-builder' ),
+			'trans_company'            => esc_html__( 'Company name', 'wc-smart-checkout-builder' ),
+			'trans_ship_different'     => esc_html__( 'Ship to a different address?', 'wc-smart-checkout-builder' ),
+			'trans_payment'            => esc_html__( 'Payment', 'wc-smart-checkout-builder' ),
+			'trans_cod'                => esc_html__( 'Cash on delivery', 'wc-smart-checkout-builder' ),
+			'trans_coupon'             => esc_html__( 'Coupon code', 'wc-smart-checkout-builder' ),
+			'trans_apply_coupon'       => esc_html__( 'Apply coupon', 'wc-smart-checkout-builder' ),
+			'trans_returning_customer' => esc_html__( 'Returning customer?', 'wc-smart-checkout-builder' ),
+			'trans_login'              => esc_html__( 'Click here to login', 'wc-smart-checkout-builder' ),
+			'product_label_text'       => esc_html__( 'Product Column Label', 'wc-smart-checkout-builder' ),
+			'subtotal_label_text'      => esc_html__( 'Subtotal Label', 'wc-smart-checkout-builder' ),
+			'shipping_label_text'      => esc_html__( 'Shipping Label', 'wc-smart-checkout-builder' ),
+			'total_label_text'         => esc_html__( 'Total Label', 'wc-smart-checkout-builder' ),
 		);
 
-		$this->add_control(
-			'shipping_label_text',
-			array(
-				'label'   => esc_html__( 'Shipping Label', 'wc-smart-checkout-builder' ),
-				'type'    => Controls_Manager::TEXT,
-				'default' => esc_html__( 'Shipping', 'wc-smart-checkout-builder' ),
-			)
-		);
+		foreach ( $translations as $key => $label ) {
+			$this->add_control(
+				$key,
+				array(
+					'label'       => $label,
+					'type'        => Controls_Manager::TEXT,
+					'placeholder' => $label,
+				)
+			);
+		}
 
-		$this->add_control(
-			'total_label_text',
-			array(
-				'label'   => esc_html__( 'Total Label', 'wc-smart-checkout-builder' ),
-				'type'    => Controls_Manager::TEXT,
-				'default' => esc_html__( 'Total', 'wc-smart-checkout-builder' ),
-			)
-		);
+		$this->end_controls_section();
 
-		// Order Button Customization
-		$this->add_control(
-			'heading_order_button_content',
+		// --- Section: Order Button ---
+		$this->start_controls_section(
+			'section_order_button',
 			array(
-				'label'     => esc_html__( 'Order Button', 'wc-smart-checkout-builder' ),
-				'type'      => Controls_Manager::HEADING,
-				'separator' => 'before',
+				'label' => esc_html__( 'Order Button', 'wc-smart-checkout-builder' ),
+				'tab'   => Controls_Manager::TAB_CONTENT,
 			)
 		);
 
@@ -512,32 +549,12 @@ class Elementor_Widget extends Widget_Base {
 		);
 
 		$this->add_control(
-			'heading_order_button_effects',
-			array(
-				'label'     => esc_html__( 'Order Now Button Content & Effects', 'wc-smart-checkout-builder' ),
-				'type'      => Controls_Manager::HEADING,
-				'separator' => 'before',
-			)
-		);
-
-		$this->add_control(
 			'order_button_text',
 			array(
-				'label'   => esc_html__( 'Button Text', 'wc-smart-checkout-builder' ),
-				'type'    => Controls_Manager::TEXT,
-				'default' => esc_html__( 'Order Now', 'wc-smart-checkout-builder' ),
-			)
-		);
-
-		$this->add_control(
-			'show_button_price',
-			array(
-				'label'        => esc_html__( 'Show Price in Button', 'wc-smart-checkout-builder' ),
-				'type'         => Controls_Manager::SWITCHER,
-				'label_on'     => esc_html__( 'Yes', 'wc-smart-checkout-builder' ),
-				'label_off'    => esc_html__( 'No', 'wc-smart-checkout-builder' ),
-				'return_value' => 'yes',
-				'default'      => 'yes',
+				'label'       => esc_html__( 'Button Text', 'wc-smart-checkout-builder' ),
+				'type'        => Controls_Manager::TEXT,
+				'default'     => esc_html__( 'Order Now', 'wc-smart-checkout-builder' ),
+				'description' => esc_html__( 'Use {total_price} to display the dynamic total price inside the button.', 'wc-smart-checkout-builder' ),
 			)
 		);
 
@@ -1660,6 +1677,48 @@ class Elementor_Widget extends Widget_Base {
 		);
 
 		$this->add_responsive_control(
+			'order_button_width',
+			array(
+				'label'      => esc_html__( 'Width', 'wc-smart-checkout-builder' ),
+				'type'       => Controls_Manager::SLIDER,
+				'size_units' => array( 'px', '%', 'vw' ),
+				'range'      => array(
+					'px' => array( 'min' => 0, 'max' => 1000 ),
+					'%'  => array( 'min' => 0, 'max' => 100 ),
+				),
+				'selectors'  => array(
+					'{{WRAPPER}} #place_order, {{WRAPPER}} .wcsc-order-now-btn' => 'width: {{SIZE}}{{UNIT}};',
+				),
+			)
+		);
+
+		$this->add_responsive_control(
+			'order_button_alignment',
+			array(
+				'label'   => esc_html__( 'Alignment', 'wc-smart-checkout-builder' ),
+				'type'    => Controls_Manager::CHOOSE,
+				'options' => array(
+					'left'   => array(
+						'title' => esc_html__( 'Left', 'wc-smart-checkout-builder' ),
+						'icon'  => 'eicon-text-align-left',
+					),
+					'center' => array(
+						'title' => esc_html__( 'Center', 'wc-smart-checkout-builder' ),
+						'icon'  => 'eicon-text-align-center',
+					),
+					'right'  => array(
+						'title' => esc_html__( 'Right', 'wc-smart-checkout-builder' ),
+						'icon'  => 'eicon-text-align-right',
+					),
+				),
+				'selectors' => array(
+					'{{WRAPPER}} .form-row.place-order' => 'text-align: {{VALUE}};',
+					'{{WRAPPER}} .wcsc-custom-btn-container' => 'text-align: {{VALUE}};',
+				),
+			)
+		);
+
+		$this->add_responsive_control(
 			'order_button_border_radius',
 			array(
 				'label'      => esc_html__( 'Border Radius', 'wc-smart-checkout-builder' ),
@@ -1758,6 +1817,355 @@ class Elementor_Widget extends Widget_Base {
 		$this->end_controls_tabs();
 
 		$this->end_controls_section();
+
+		// --- 8. Checkout Blocks Style ---
+		$blocks = array(
+			'billing'       => array( 'label' => esc_html__( 'Billing Block', 'wc-smart-checkout-builder' ), 'selector' => '{{WRAPPER}} .woocommerce-checkout #customer_details .col-1' ),
+			'shipping'      => array( 'label' => esc_html__( 'Shipping Block', 'wc-smart-checkout-builder' ), 'selector' => '{{WRAPPER}} .woocommerce-checkout #customer_details .col-2' ),
+			'order_summary' => array( 'label' => esc_html__( 'Order Summary Block', 'wc-smart-checkout-builder' ), 'selector' => '{{WRAPPER}} .woocommerce-checkout #order_review' ),
+			'payment'       => array( 'label' => esc_html__( 'Payment Block', 'wc-smart-checkout-builder' ), 'selector' => '{{WRAPPER}} .woocommerce-checkout #payment' ),
+		);
+
+		foreach ( $blocks as $key => $block ) {
+			$this->start_controls_section(
+				'section_style_block_' . $key,
+				array(
+					'label' => $block['label'],
+					'tab'   => Controls_Manager::TAB_STYLE,
+				)
+			);
+
+			$this->add_group_control(
+				Group_Control_Background::get_type(),
+				array(
+					'name'     => 'block_bg_' . $key,
+					'label'    => esc_html__( 'Background', 'wc-smart-checkout-builder' ),
+					'types'    => array( 'classic', 'gradient' ),
+					'selector' => $block['selector'],
+				)
+			);
+
+			$this->add_responsive_control(
+				'block_padding_' . $key,
+				array(
+					'label'      => esc_html__( 'Padding', 'wc-smart-checkout-builder' ),
+					'type'       => Controls_Manager::DIMENSIONS,
+					'size_units' => array( 'px', 'em', '%' ),
+					'selectors'  => array(
+						$block['selector'] => 'padding: {{TOP}}{{UNIT}} {{RIGHT}}{{UNIT}} {{BOTTOM}}{{UNIT}} {{LEFT}}{{UNIT}};',
+					),
+				)
+			);
+
+			$this->add_responsive_control(
+				'block_margin_' . $key,
+				array(
+					'label'      => esc_html__( 'Margin', 'wc-smart-checkout-builder' ),
+					'type'       => Controls_Manager::DIMENSIONS,
+					'size_units' => array( 'px', 'em', '%' ),
+					'selectors'  => array(
+						$block['selector'] => 'margin: {{TOP}}{{UNIT}} {{RIGHT}}{{UNIT}} {{BOTTOM}}{{UNIT}} {{LEFT}}{{UNIT}};',
+					),
+				)
+			);
+
+			$this->add_group_control(
+				Group_Control_Border::get_type(),
+				array(
+					'name'     => 'block_border_' . $key,
+					'label'    => esc_html__( 'Border', 'wc-smart-checkout-builder' ),
+					'selector' => $block['selector'],
+				)
+			);
+
+			$this->add_responsive_control(
+				'block_border_radius_' . $key,
+				array(
+					'label'      => esc_html__( 'Border Radius', 'wc-smart-checkout-builder' ),
+					'type'       => Controls_Manager::DIMENSIONS,
+					'size_units' => array( 'px', '%' ),
+					'selectors'  => array(
+						$block['selector'] => 'border-radius: {{TOP}}{{UNIT}} {{RIGHT}}{{UNIT}} {{BOTTOM}}{{UNIT}} {{LEFT}}{{UNIT}};',
+					),
+				)
+			);
+			
+			$this->add_group_control(
+				Group_Control_Typography::get_type(),
+				array(
+					'name'     => 'block_typography_' . $key,
+					'label'    => esc_html__( 'Typography', 'wc-smart-checkout-builder' ),
+					'selector' => $block['selector'] . ', ' . $block['selector'] . ' .wcsc-section-title',
+				)
+			);
+
+			$this->end_controls_section();
+		}
+
+		// --- 9. Checkout Fields Style ---
+		$this->start_controls_section(
+			'section_style_checkout_fields',
+			array(
+				'label' => esc_html__( 'Checkout Input Fields', 'wc-smart-checkout-builder' ),
+				'tab'   => Controls_Manager::TAB_STYLE,
+			)
+		);
+
+		$this->start_controls_tabs( 'tabs_checkout_fields_style' );
+
+		// Normal Tab
+		$this->start_controls_tab(
+			'tab_fields_normal',
+			array( 'label' => esc_html__( 'Normal', 'wc-smart-checkout-builder' ) )
+		);
+
+		$this->add_group_control(
+			Group_Control_Typography::get_type(),
+			array(
+				'name'     => 'checkout_fields_typography',
+				'label'    => esc_html__( 'Typography', 'wc-smart-checkout-builder' ),
+				'selector' => '{{WRAPPER}} .woocommerce form .form-row input.input-text, {{WRAPPER}} .woocommerce form .form-row textarea, {{WRAPPER}} .woocommerce form .form-row select',
+			)
+		);
+
+		$this->add_control(
+			'checkout_fields_text_color',
+			array(
+				'label'     => esc_html__( 'Text Color', 'wc-smart-checkout-builder' ),
+				'type'      => Controls_Manager::COLOR,
+				'selectors' => array(
+					'{{WRAPPER}} .woocommerce form .form-row input.input-text' => 'color: {{VALUE}};',
+					'{{WRAPPER}} .woocommerce form .form-row textarea'         => 'color: {{VALUE}};',
+					'{{WRAPPER}} .woocommerce form .form-row select'           => 'color: {{VALUE}};',
+				),
+			)
+		);
+
+		$this->add_control(
+			'checkout_fields_placeholder_color',
+			array(
+				'label'     => esc_html__( 'Placeholder Color', 'wc-smart-checkout-builder' ),
+				'type'      => Controls_Manager::COLOR,
+				'selectors' => array(
+					'{{WRAPPER}} .woocommerce form .form-row input.input-text::placeholder' => 'color: {{VALUE}};',
+					'{{WRAPPER}} .woocommerce form .form-row textarea::placeholder'         => 'color: {{VALUE}};',
+				),
+			)
+		);
+
+		$this->add_control(
+			'checkout_fields_bg_color',
+			array(
+				'label'     => esc_html__( 'Background Color', 'wc-smart-checkout-builder' ),
+				'type'      => Controls_Manager::COLOR,
+				'selectors' => array(
+					'{{WRAPPER}} .woocommerce form .form-row input.input-text' => 'background-color: {{VALUE}};',
+					'{{WRAPPER}} .woocommerce form .form-row textarea'         => 'background-color: {{VALUE}};',
+					'{{WRAPPER}} .woocommerce form .form-row select'           => 'background-color: {{VALUE}};',
+				),
+			)
+		);
+
+		$this->add_group_control(
+			Group_Control_Border::get_type(),
+			array(
+				'name'     => 'checkout_fields_border',
+				'label'    => esc_html__( 'Border', 'wc-smart-checkout-builder' ),
+				'selector' => '{{WRAPPER}} .woocommerce form .form-row input.input-text, {{WRAPPER}} .woocommerce form .form-row textarea, {{WRAPPER}} .woocommerce form .form-row select',
+			)
+		);
+
+		$this->add_responsive_control(
+			'checkout_fields_border_radius',
+			array(
+				'label'      => esc_html__( 'Border Radius', 'wc-smart-checkout-builder' ),
+				'type'       => Controls_Manager::DIMENSIONS,
+				'size_units' => array( 'px', '%' ),
+				'selectors'  => array(
+					'{{WRAPPER}} .woocommerce form .form-row input.input-text' => 'border-radius: {{TOP}}{{UNIT}} {{RIGHT}}{{UNIT}} {{BOTTOM}}{{UNIT}} {{LEFT}}{{UNIT}};',
+					'{{WRAPPER}} .woocommerce form .form-row textarea'         => 'border-radius: {{TOP}}{{UNIT}} {{RIGHT}}{{UNIT}} {{BOTTOM}}{{UNIT}} {{LEFT}}{{UNIT}};',
+					'{{WRAPPER}} .woocommerce form .form-row select'           => 'border-radius: {{TOP}}{{UNIT}} {{RIGHT}}{{UNIT}} {{BOTTOM}}{{UNIT}} {{LEFT}}{{UNIT}};',
+				),
+			)
+		);
+
+		$this->add_responsive_control(
+			'checkout_fields_padding',
+			array(
+				'label'      => esc_html__( 'Padding', 'wc-smart-checkout-builder' ),
+				'type'       => Controls_Manager::DIMENSIONS,
+				'size_units' => array( 'px', 'em', '%' ),
+				'selectors'  => array(
+					'{{WRAPPER}} .woocommerce form .form-row input.input-text' => 'padding: {{TOP}}{{UNIT}} {{RIGHT}}{{UNIT}} {{BOTTOM}}{{UNIT}} {{LEFT}}{{UNIT}};',
+					'{{WRAPPER}} .woocommerce form .form-row textarea'         => 'padding: {{TOP}}{{UNIT}} {{RIGHT}}{{UNIT}} {{BOTTOM}}{{UNIT}} {{LEFT}}{{UNIT}};',
+					'{{WRAPPER}} .woocommerce form .form-row select'           => 'padding: {{TOP}}{{UNIT}} {{RIGHT}}{{UNIT}} {{BOTTOM}}{{UNIT}} {{LEFT}}{{UNIT}};',
+				),
+			)
+		);
+		
+		$this->add_responsive_control(
+			'checkout_fields_margin',
+			array(
+				'label'      => esc_html__( 'Margin', 'wc-smart-checkout-builder' ),
+				'type'       => Controls_Manager::DIMENSIONS,
+				'size_units' => array( 'px', 'em', '%' ),
+				'selectors'  => array(
+					'{{WRAPPER}} .woocommerce form .form-row input.input-text' => 'margin: {{TOP}}{{UNIT}} {{RIGHT}}{{UNIT}} {{BOTTOM}}{{UNIT}} {{LEFT}}{{UNIT}};',
+					'{{WRAPPER}} .woocommerce form .form-row textarea'         => 'margin: {{TOP}}{{UNIT}} {{RIGHT}}{{UNIT}} {{BOTTOM}}{{UNIT}} {{LEFT}}{{UNIT}};',
+					'{{WRAPPER}} .woocommerce form .form-row select'           => 'margin: {{TOP}}{{UNIT}} {{RIGHT}}{{UNIT}} {{BOTTOM}}{{UNIT}} {{LEFT}}{{UNIT}};',
+				),
+			)
+		);
+
+		$this->end_controls_tab();
+
+		// Focus Tab
+		$this->start_controls_tab(
+			'tab_fields_focus',
+			array( 'label' => esc_html__( 'Focus', 'wc-smart-checkout-builder' ) )
+		);
+
+		$this->add_control(
+			'checkout_fields_focus_text_color',
+			array(
+				'label'     => esc_html__( 'Text Color', 'wc-smart-checkout-builder' ),
+				'type'      => Controls_Manager::COLOR,
+				'selectors' => array(
+					'{{WRAPPER}} .woocommerce form .form-row input.input-text:focus' => 'color: {{VALUE}};',
+					'{{WRAPPER}} .woocommerce form .form-row textarea:focus'         => 'color: {{VALUE}};',
+					'{{WRAPPER}} .woocommerce form .form-row select:focus'           => 'color: {{VALUE}};',
+				),
+			)
+		);
+
+		$this->add_control(
+			'checkout_fields_focus_bg_color',
+			array(
+				'label'     => esc_html__( 'Background Color', 'wc-smart-checkout-builder' ),
+				'type'      => Controls_Manager::COLOR,
+				'selectors' => array(
+					'{{WRAPPER}} .woocommerce form .form-row input.input-text:focus' => 'background-color: {{VALUE}};',
+					'{{WRAPPER}} .woocommerce form .form-row textarea:focus'         => 'background-color: {{VALUE}};',
+					'{{WRAPPER}} .woocommerce form .form-row select:focus'           => 'background-color: {{VALUE}};',
+				),
+			)
+		);
+
+		$this->add_control(
+			'checkout_fields_active_border_color',
+			array(
+				'label'     => esc_html__( 'Active Border Color', 'wc-smart-checkout-builder' ),
+				'type'      => Controls_Manager::COLOR,
+				'selectors' => array(
+					'{{WRAPPER}} .woocommerce form .form-row input.input-text:focus' => 'border-color: {{VALUE}}; outline-color: {{VALUE}}; box-shadow: 0 0 0 1px {{VALUE}};',
+					'{{WRAPPER}} .woocommerce form .form-row textarea:focus'         => 'border-color: {{VALUE}}; outline-color: {{VALUE}}; box-shadow: 0 0 0 1px {{VALUE}};',
+					'{{WRAPPER}} .woocommerce form .form-row select:focus'           => 'border-color: {{VALUE}}; outline-color: {{VALUE}}; box-shadow: 0 0 0 1px {{VALUE}};',
+				),
+			)
+		);
+
+		$this->end_controls_tab();
+
+		// Error Tab
+		$this->start_controls_tab(
+			'tab_fields_error',
+			array( 'label' => esc_html__( 'Error', 'wc-smart-checkout-builder' ) )
+		);
+
+		$this->add_control(
+			'checkout_fields_error_text_color',
+			array(
+				'label'     => esc_html__( 'Error Text Color', 'wc-smart-checkout-builder' ),
+				'type'      => Controls_Manager::COLOR,
+				'selectors' => array(
+					'{{WRAPPER}} .woocommerce form .form-row.woocommerce-invalid input.input-text' => 'color: {{VALUE}} !important;',
+					'{{WRAPPER}} .woocommerce form .form-row.woocommerce-invalid textarea'         => 'color: {{VALUE}} !important;',
+					'{{WRAPPER}} .woocommerce form .form-row.woocommerce-invalid select'           => 'color: {{VALUE}} !important;',
+				),
+			)
+		);
+
+		$this->add_control(
+			'checkout_fields_error_bg_color',
+			array(
+				'label'     => esc_html__( 'Error Background Color', 'wc-smart-checkout-builder' ),
+				'type'      => Controls_Manager::COLOR,
+				'selectors' => array(
+					'{{WRAPPER}} .woocommerce form .form-row.woocommerce-invalid input.input-text' => 'background-color: {{VALUE}} !important;',
+					'{{WRAPPER}} .woocommerce form .form-row.woocommerce-invalid textarea'         => 'background-color: {{VALUE}} !important;',
+					'{{WRAPPER}} .woocommerce form .form-row.woocommerce-invalid select'           => 'background-color: {{VALUE}} !important;',
+				),
+			)
+		);
+
+		$this->add_control(
+			'checkout_fields_error_border_color',
+			array(
+				'label'     => esc_html__( 'Error Border Color', 'wc-smart-checkout-builder' ),
+				'type'      => Controls_Manager::COLOR,
+				'selectors' => array(
+					'{{WRAPPER}} .woocommerce form .form-row.woocommerce-invalid input.input-text' => 'border-color: {{VALUE}} !important;',
+					'{{WRAPPER}} .woocommerce form .form-row.woocommerce-invalid textarea'         => 'border-color: {{VALUE}} !important;',
+					'{{WRAPPER}} .woocommerce form .form-row.woocommerce-invalid select'           => 'border-color: {{VALUE}} !important;',
+				),
+			)
+		);
+
+		$this->end_controls_tab();
+
+		// Labels Tab
+		$this->start_controls_tab(
+			'tab_fields_labels',
+			array( 'label' => esc_html__( 'Labels', 'wc-smart-checkout-builder' ) )
+		);
+
+		$this->add_group_control(
+			Group_Control_Typography::get_type(),
+			array(
+				'name'     => 'checkout_fields_label_typography',
+				'label'    => esc_html__( 'Label Typography', 'wc-smart-checkout-builder' ),
+				'selector' => '{{WRAPPER}} .woocommerce form .form-row label',
+			)
+		);
+
+		$this->add_control(
+			'checkout_fields_label_color',
+			array(
+				'label'     => esc_html__( 'Label Color', 'wc-smart-checkout-builder' ),
+				'type'      => Controls_Manager::COLOR,
+				'selectors' => array(
+					'{{WRAPPER}} .woocommerce form .form-row label' => 'color: {{VALUE}};',
+				),
+			)
+		);
+
+		$this->add_control(
+			'checkout_fields_required_color',
+			array(
+				'label'     => esc_html__( 'Required Indicator (*) Color', 'wc-smart-checkout-builder' ),
+				'type'      => Controls_Manager::COLOR,
+				'selectors' => array(
+					'{{WRAPPER}} .woocommerce form .form-row label .required' => 'color: {{VALUE}};',
+				),
+			)
+		);
+
+		$this->add_responsive_control(
+			'checkout_fields_label_spacing',
+			array(
+				'label'      => esc_html__( 'Label Spacing', 'wc-smart-checkout-builder' ),
+				'type'       => Controls_Manager::SLIDER,
+				'size_units' => array( 'px', 'em' ),
+				'selectors'  => array(
+					'{{WRAPPER}} .woocommerce form .form-row label' => 'margin-bottom: {{SIZE}}{{UNIT}};',
+				),
+			)
+		);
+
+		$this->end_controls_tab();
+		$this->end_controls_tabs();
+
+		$this->end_controls_section();
 	}
 
 	/**
@@ -1800,7 +2208,7 @@ class Elementor_Widget extends Widget_Base {
 		$show_stock           = isset( $settings['show_stock'] ) ? 'yes' === $settings['show_stock'] : true;
 		$show_quantity        = 'yes' === $settings['show_quantity'];
 		$show_variations      = 'yes' === $settings['show_variations'] && $is_variable;
-		$show_checkout        = 'yes' === $settings['show_checkout'];
+
 
 		$image_id             = $product->get_image_id();
 		$image_url            = $image_id ? wp_get_attachment_image_url( $image_id, 'large' ) : wc_placeholder_img_src( 'woocommerce_single' );
@@ -1820,7 +2228,6 @@ class Elementor_Widget extends Widget_Base {
 			'data-txt-subtotal'     => ! empty( $settings['subtotal_label_text'] ) ? $settings['subtotal_label_text'] : '',
 			'data-txt-shipping'     => ! empty( $settings['shipping_label_text'] ) ? $settings['shipping_label_text'] : '',
 			'data-txt-total'        => ! empty( $settings['total_label_text'] ) ? $settings['total_label_text'] : '',
-			'data-show-btn-price'   => isset( $settings['show_button_price'] ) && 'yes' === $settings['show_button_price'] ? 'yes' : 'no',
 		);
 
 		$data_string = '';
@@ -1832,6 +2239,7 @@ class Elementor_Widget extends Widget_Base {
 		?>
 		<div class="wcsc-product-checkout-widget"<?php echo $data_string; // phpcs:ignore WordPress.Security.EscapeOutput.OutputNotEscaped ?>>
 
+			<?php if ( $show_image || $show_title || $show_price || $show_stock || $show_variations || $show_quantity ) : ?>
 			<div class="wcsc-product-summary-section">
 				<?php if ( $show_image ) : ?>
 					<div class="wcsc-product-image">
@@ -1842,6 +2250,7 @@ class Elementor_Widget extends Widget_Base {
 					</div>
 				<?php endif; ?>
 
+				<?php if ( $show_title || $show_price || $show_stock || $show_variations || $show_quantity ) : ?>
 				<div class="wcsc-product-details">
 					<?php if ( $show_title ) : ?>
 						<h2 class="wcsc-product-title"><?php echo esc_html( $product->get_name() ); ?></h2>
@@ -1939,13 +2348,21 @@ class Elementor_Widget extends Widget_Base {
 					<?php endif; ?>
 
 				</div>
+				<?php else: ?>
+					<?php if ( ! $show_quantity ) : ?>
+						<input type="hidden" class="wcsc-qty-input" name="quantity" value="1" />
+					<?php endif; ?>
+				<?php endif; ?>
 			</div>
-
-			<?php if ( $show_checkout ) : ?>
-				<div class="wcsc-checkout-section">
-					<?php Checkout_Handler::render_checkout_section( $product, $settings ); ?>
-				</div>
+			<?php else: ?>
+				<?php if ( ! $show_quantity ) : ?>
+					<input type="hidden" class="wcsc-qty-input" name="quantity" value="1" />
+				<?php endif; ?>
 			<?php endif; ?>
+
+			<div class="wcsc-checkout-section">
+				<?php Checkout_Handler::render_checkout_section( $product, $settings ); ?>
+			</div>
 
 		</div>
 		<?php

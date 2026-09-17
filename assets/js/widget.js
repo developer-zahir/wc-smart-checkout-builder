@@ -147,18 +147,11 @@
 		},
 
 		showLoading: function () {
-			if (this.$loadingOverlay.length) {
-				this.$loadingOverlay.addClass('is-active');
-			}
-			// Localized loading (no full blur)
-			this.$container.find('form.checkout').addClass('wcsc-is-loading');
+			// Removed visual loading overlay as requested
 		},
 
 		hideLoading: function () {
-			if (this.$loadingOverlay.length) {
-				this.$loadingOverlay.removeClass('is-active');
-			}
-			this.$container.find('form.checkout').removeClass('wcsc-is-loading');
+			// Removed visual loading overlay as requested
 		},
 
 		applyCustomTexts: function () {

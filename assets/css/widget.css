@@ -331,6 +331,15 @@
 	pointer-events: auto;
 }
 
+/* Remove WooCommerce native blockUI overlay during checkout update to make it seamless */
+.wcsc-product-checkout-widget form.checkout .blockUI.blockOverlay,
+.wcsc-product-checkout-widget form.checkout.wcsc-is-loading::before,
+.wcsc-product-checkout-widget form.checkout.wcsc-is-loading::after {
+	display: none !important;
+	opacity: 0 !important;
+	background: transparent !important;
+}
+
 .wcsc-spinner {
 	width: 44px;
 	height: 44px;
@@ -360,8 +369,12 @@
 	border-bottom: 2px solid #edf2f7;
 }
 
-/* Native Checkout Columns & Fields */
+/* Neutralize theme checkout layouts (e.g., Blocksy's .ct-woocommerce-checkout) */
+.wcsc-product-checkout-widget form.checkout.ct-woocommerce-checkout,
+body .wcsc-product-checkout-widget form.checkout.ct-woocommerce-checkout,
 .wcsc-product-checkout-widget .woocommerce form.checkout {
+	display: block !important;
+	grid-template-columns: none !important;
 	margin: 0;
 }
 
@@ -369,8 +382,8 @@
 body .wcsc-product-checkout-widget form.checkout .col2-set {
 	display: flex !important;
 	flex-wrap: wrap;
-	gap: 28px;
-	margin: 0 0 20px 0;
+	gap: var(--wcsc-col-gap, 28px);
+	margin: 0 0 var(--wcsc-row-gap, 20px) 0;
 }
 
 .wcsc-product-checkout-widget .woocommerce form.checkout .col-1,
@@ -384,26 +397,28 @@ body .wcsc-product-checkout-widget form.checkout .col-2 {
 }
 
 /* 1 Column Layout Option */
-.wcsc-product-checkout-widget .woocommerce form.checkout.wcsc-layout-1-col #customer_details.col2-set,
-.wcsc-product-checkout-widget .woocommerce form.checkout.wcsc-layout-1-col .col2-set,
-body .wcsc-product-checkout-widget form.checkout.wcsc-layout-1-col #customer_details.col2-set,
-body .wcsc-product-checkout-widget form.checkout.wcsc-layout-1-col .col2-set {
+.wcsc-product-checkout-widget .wcsc-layout-1-col form.checkout #customer_details.col2-set,
+.wcsc-product-checkout-widget .wcsc-layout-1-col form.checkout .col2-set,
+body .wcsc-product-checkout-widget .wcsc-layout-1-col form.checkout #customer_details.col2-set,
+body .wcsc-product-checkout-widget .wcsc-layout-1-col form.checkout .col2-set,
+.wcsc-product-checkout-widget .wcsc-layout-1-col form.checkout {
 	display: flex !important;
 	flex-direction: column !important;
 	width: 100% !important;
 	margin: 0 !important;
+	gap: var(--wcsc-row-gap, 20px) !important;
 }
 
-.wcsc-product-checkout-widget .woocommerce form.checkout.wcsc-layout-1-col .col-1,
-.wcsc-product-checkout-widget .woocommerce form.checkout.wcsc-layout-1-col .col-2,
-body .wcsc-product-checkout-widget form.checkout.wcsc-layout-1-col .col-1,
-body .wcsc-product-checkout-widget form.checkout.wcsc-layout-1-col .col-2,
+.wcsc-product-checkout-widget .wcsc-layout-1-col form.checkout .col-1,
+.wcsc-product-checkout-widget .wcsc-layout-1-col form.checkout .col-2,
+body .wcsc-product-checkout-widget .wcsc-layout-1-col form.checkout .col-1,
+body .wcsc-product-checkout-widget .wcsc-layout-1-col form.checkout .col-2,
 .wcsc-product-checkout-widget .wcsc-col-fullwidth {
 	width: 100% !important;
 	max-width: 100% !important;
 	flex: 1 1 100% !important;
 	float: none !important;
-	margin: 0 0 20px 0 !important;
+	margin: 0 !important;
 }
 
 /* Hide Individual Checkout Sections */

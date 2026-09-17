@@ -34,6 +34,7 @@ class Checkout_Handler {
 		add_filter( 'woocommerce_order_button_text', array( __CLASS__, 'filter_order_button_text' ), 20 );
 		add_filter( 'woocommerce_order_button_html', array( __CLASS__, 'filter_order_button_html' ), 20 );
 		add_filter( 'gettext', array( __CLASS__, 'filter_checkout_gettext' ), 20, 3 );
+		add_filter( 'woocommerce_checkout_fields', array( __CLASS__, 'filter_checkout_fields' ), 9999 );
 		add_filter( 'woocommerce_cart_item_name', array( __CLASS__, 'filter_cart_item_name' ), 10, 3 );
 
 		// AJAX endpoints for cart synchronization.
@@ -97,18 +98,19 @@ class Checkout_Handler {
 		$animation  = ! empty( $settings['order_button_animation'] ) ? sanitize_html_class( $settings['order_button_animation'] ) : 'border_run';
 		$anim_class = 'wcsc-anim-' . str_replace( '_', '-', $animation );
 
-		// Price in button
-		$price_html = '';
-		$show_price = isset( $settings['show_button_price'] ) && 'yes' === $settings['show_button_price'];
-		if ( $show_price ) {
-			$current_total = '';
-			if ( function_exists( 'WC' ) && WC()->cart ) {
-				$current_total = WC()->cart->get_total();
-			}
-			if ( empty( $current_total ) && self::$active_product ) {
-				$current_total = wc_price( self::$active_product->get_price() );
-			}
-			$price_html = '<span class="wcsc-btn-price-wrap"> &mdash; <span class="wcsc-btn-price">' . wp_strip_all_tags( $current_total ) . '</span></span>';
+		// Price replacement for {{total}}
+		$current_total = '';
+		if ( function_exists( 'WC' ) && WC()->cart ) {
+			$current_total = WC()->cart->get_total();
+		}
+		if ( empty( $current_total ) && self::$active_product ) {
+			$current_total = wc_price( self::$active_product->get_price() );
+		}
+		$price_html = '<span class="wcsc-btn-price-wrap"><span class="wcsc-btn-price">' . wp_strip_all_tags( $current_total ) . '</span></span>';
+
+		// Replace {total_price} in the button text
+		if ( strpos( $btn_text, '{total_price}' ) !== false ) {
+			$btn_text = str_replace( '{total_price}', $price_html, $btn_text );
 		}
 
 		// Icon
@@ -128,10 +130,10 @@ class Checkout_Handler {
 		if ( 'left' === $icon_align && $icon_html ) {
 			$content_inner .= $icon_html . ' ';
 		}
-		$content_inner .= '<span class="wcsc-btn-text">' . esc_html( $btn_text ) . '</span>';
-		if ( $price_html ) {
-			$content_inner .= $price_html;
-		}
+		
+		// The button text may already contain the price HTML now
+		$content_inner .= '<span class="wcsc-btn-text">' . $btn_text . '</span>';
+
 		if ( 'right' === $icon_align && $icon_html ) {
 			$content_inner .= ' ' . $icon_html;
 		}
@@ -144,7 +146,7 @@ class Checkout_Handler {
 			'<span class="wcsc-btn-content">%3$s</span>' .
 			'</button>',
 			esc_attr( $anim_class ),
-			esc_attr( $btn_text ),
+			esc_attr( wp_strip_all_tags( $btn_text ) ), // keep value clean
 			$content_inner
 		);
 
@@ -166,31 +168,89 @@ class Checkout_Handler {
 
 		$settings = self::$active_widget_settings;
 
-		if ( ! empty( $settings['order_review_heading_text'] ) && in_array( strtolower( $text ), array( 'your order', 'your orders' ), true ) ) {
-			return esc_html( $settings['order_review_heading_text'] );
-		}
+		$mapping = array(
+			'billing details'                => 'trans_billing_details',
+			'billing & shipping'             => 'trans_billing_details',
+			'shipping details'               => 'trans_shipping_details',
+			'additional information'         => 'trans_additional_info',
+			'your order'                     => 'order_review_heading_text',
+			'your orders'                    => 'order_review_heading_text',
+			'payment'                        => 'trans_payment',
+			'cash on delivery'               => 'trans_cod',
+			'coupon code'                    => 'trans_coupon',
+			'apply coupon'                   => 'trans_apply_coupon',
+			'returning customer?'            => 'trans_returning_customer',
+			'click here to login'            => 'trans_login',
+			'product'                        => 'product_label_text',
+			'subtotal'                       => 'subtotal_label_text',
+			'shipping'                       => 'shipping_label_text',
+			'total'                          => 'total_label_text',
+		);
 
-		if ( ! empty( $settings['billing_heading_text'] ) && in_array( strtolower( $text ), array( 'billing details', 'billing & shipping' ), true ) ) {
-			return esc_html( $settings['billing_heading_text'] );
-		}
+		$lower_text = strtolower( $text );
 
-		if ( ! empty( $settings['product_label_text'] ) && 'product' === strtolower( $text ) ) {
-			return esc_html( $settings['product_label_text'] );
-		}
-
-		if ( ! empty( $settings['subtotal_label_text'] ) && 'subtotal' === strtolower( $text ) ) {
-			return esc_html( $settings['subtotal_label_text'] );
-		}
-
-		if ( ! empty( $settings['shipping_label_text'] ) && 'shipping' === strtolower( $text ) ) {
-			return esc_html( $settings['shipping_label_text'] );
-		}
-
-		if ( ! empty( $settings['total_label_text'] ) && 'total' === strtolower( $text ) ) {
-			return esc_html( $settings['total_label_text'] );
+		if ( isset( $mapping[ $lower_text ] ) && ! empty( $settings[ $mapping[ $lower_text ] ] ) ) {
+			return esc_html( $settings[ $mapping[ $lower_text ] ] );
 		}
 
 		return $translated_text;
+	}
+
+	/**
+	 * Filter checkout form fields to translate labels and placeholders.
+	 *
+	 * @param array $fields
+	 * @return array
+	 */
+	public static function filter_checkout_fields( $fields ) {
+		if ( empty( self::$active_widget_settings ) ) {
+			return $fields;
+		}
+
+		$settings = self::$active_widget_settings;
+
+		$field_mapping = array(
+			'billing_country'    => 'trans_country',
+			'shipping_country'   => 'trans_country',
+			'billing_state'      => 'trans_state',
+			'shipping_state'     => 'trans_state',
+			'billing_postcode'   => 'trans_postcode',
+			'shipping_postcode'  => 'trans_postcode',
+			'billing_email'      => 'trans_email',
+			'billing_phone'      => 'trans_phone',
+			'billing_first_name' => 'trans_first_name',
+			'shipping_first_name'=> 'trans_first_name',
+			'billing_last_name'  => 'trans_last_name',
+			'shipping_last_name' => 'trans_last_name',
+			'billing_address_1'  => 'trans_address',
+			'shipping_address_1' => 'trans_address',
+			'billing_address_2'  => 'trans_apartment',
+			'shipping_address_2' => 'trans_apartment',
+			'billing_city'       => 'trans_city',
+			'shipping_city'      => 'trans_city',
+			'billing_company'    => 'trans_company',
+			'shipping_company'   => 'trans_company',
+			'order_comments'     => 'trans_order_notes',
+		);
+
+		foreach ( $field_mapping as $field_key => $setting_key ) {
+			if ( ! empty( $settings[ $setting_key ] ) ) {
+				if ( isset( $fields['billing'][ $field_key ] ) ) {
+					$fields['billing'][ $field_key ]['label']       = esc_html( $settings[ $setting_key ] );
+					$fields['billing'][ $field_key ]['placeholder'] = esc_html( $settings[ $setting_key ] );
+				}
+				if ( isset( $fields['shipping'][ $field_key ] ) ) {
+					$fields['shipping'][ $field_key ]['label']       = esc_html( $settings[ $setting_key ] );
+					$fields['shipping'][ $field_key ]['placeholder'] = esc_html( $settings[ $setting_key ] );
+				}
+				if ( isset( $fields['order'][ $field_key ] ) ) {
+					$fields['order'][ $field_key ]['label']       = esc_html( $settings[ $setting_key ] );
+					$fields['order'][ $field_key ]['placeholder'] = esc_html( $settings[ $setting_key ] );
+				}
+			}
+		}
+
+		return $fields;
 	}
 
 	/**

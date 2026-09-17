@@ -51,6 +51,67 @@ class Plugin {
 
 		// AJAX search products endpoint for Elementor controls.
 		add_action( 'wp_ajax_wcsc_search_products', array( $this, 'ajax_search_products' ) );
+
+		// Register Custom Post Type for Smart Pages.
+		add_action( 'init', array( $this, 'register_post_type' ) );
+		// Ensure Elementor support is enabled for the new CPT.
+		add_action( 'init', array( $this, 'add_elementor_support' ), 999 );
+	}
+
+	/**
+	 * Register custom post type 'wcsc_page' for Smart Checkout Pages.
+	 */
+	public function register_post_type() {
+		$labels = array(
+			'name'               => _x( 'Smart Pages', 'post type general name', 'wc-smart-checkout-builder' ),
+			'singular_name'      => _x( 'Smart Page', 'post type singular name', 'wc-smart-checkout-builder' ),
+			'menu_name'          => _x( 'Smart Pages', 'admin menu', 'wc-smart-checkout-builder' ),
+			'name_admin_bar'     => _x( 'Smart Page', 'add new on admin bar', 'wc-smart-checkout-builder' ),
+			'add_new'            => _x( 'Add New', 'smart page', 'wc-smart-checkout-builder' ),
+			'add_new_item'       => __( 'Add New Smart Page', 'wc-smart-checkout-builder' ),
+			'new_item'           => __( 'New Smart Page', 'wc-smart-checkout-builder' ),
+			'edit_item'          => __( 'Edit Smart Page', 'wc-smart-checkout-builder' ),
+			'view_item'          => __( 'View Smart Page', 'wc-smart-checkout-builder' ),
+			'all_items'          => __( 'All Smart Pages', 'wc-smart-checkout-builder' ),
+			'search_items'       => __( 'Search Smart Pages', 'wc-smart-checkout-builder' ),
+			'not_found'          => __( 'No smart pages found.', 'wc-smart-checkout-builder' ),
+			'not_found_in_trash' => __( 'No smart pages found in Trash.', 'wc-smart-checkout-builder' )
+		);
+
+		$args = array(
+			'labels'             => $labels,
+			'description'        => __( 'Custom pages for Smart Checkout Builder.', 'wc-smart-checkout-builder' ),
+			'public'             => true,
+			'publicly_queryable' => true,
+			'show_ui'            => true,
+			'show_in_menu'       => true,
+			'query_var'          => true,
+			'rewrite'            => array( 'slug' => 'smart-page' ),
+			'capability_type'    => 'post',
+			'has_archive'        => false,
+			'hierarchical'       => true,
+			'menu_position'      => 58,
+			'menu_icon'          => 'dashicons-cart',
+			'supports'           => array( 'title', 'editor', 'elementor', 'thumbnail', 'page-attributes' ),
+		);
+
+		register_post_type( 'wcsc_page', $args );
+	}
+
+	/**
+	 * Enable Elementor support for 'wcsc_page' by default.
+	 */
+	public function add_elementor_support() {
+		$cpt_support = get_option( 'elementor_cpt_support' );
+
+		if ( ! $cpt_support ) {
+			$cpt_support = array( 'page', 'post' );
+		}
+
+		if ( ! in_array( 'wcsc_page', $cpt_support ) ) {
+			$cpt_support[] = 'wcsc_page';
+			update_option( 'elementor_cpt_support', $cpt_support );
+		}
 	}
 
 	/**

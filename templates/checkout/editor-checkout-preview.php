@@ -30,7 +30,13 @@ $total_label_text          = ! empty( $settings['total_label_text'] ) ? esc_html
 // Button Icon & Price
 $animation   = ! empty( $settings['order_button_animation'] ) ? sanitize_html_class( $settings['order_button_animation'] ) : 'border_run';
 $anim_class  = 'wcsc-anim-' . str_replace( '_', '-', $animation );
-$show_price  = isset( $settings['show_button_price'] ) && 'yes' === $settings['show_button_price'];
+
+// Replace {total_price} in the button text
+if ( strpos( $order_button_text, '{total_price}' ) !== false ) {
+	$price_span = '<span class="wcsc-btn-price-wrap"><span class="wcsc-btn-price">' . esc_html( $raw_price_text ) . '</span></span>';
+	$order_button_text = str_replace( '{total_price}', $price_span, $order_button_text );
+}
+
 $icon_align  = ! empty( $settings['order_button_icon_align'] ) ? $settings['order_button_icon_align'] : 'left';
 
 $icon_html = '';
@@ -178,10 +184,7 @@ if ( '1_column' === $checkout_layout ) {
 									<?php if ( 'left' === $icon_align && $icon_html ) : ?>
 										<?php echo $icon_html; // phpcs:ignore WordPress.Security.EscapeOutput.OutputNotEscaped ?>
 									<?php endif; ?>
-									<span class="wcsc-btn-text"><?php echo esc_html( $order_button_text ); ?></span>
-									<?php if ( $show_price ) : ?>
-										<span class="wcsc-btn-price-wrap"> &mdash; <span class="wcsc-btn-price"><?php echo esc_html( $raw_price_text ); ?></span></span>
-									<?php endif; ?>
+									<span class="wcsc-btn-text"><?php echo wp_kses_post( $order_button_text ); ?></span>
 									<?php if ( 'right' === $icon_align && $icon_html ) : ?>
 										<?php echo $icon_html; // phpcs:ignore WordPress.Security.EscapeOutput.OutputNotEscaped ?>
 									<?php endif; ?>
