@@ -824,17 +824,23 @@ body .wcsc-product-checkout-widget .wcsc-layout-1-col form.checkout .col-2,
 }
 
 /* Localized Loading Override */
-.wcsc-product-checkout-widget .woocommerce form.checkout.wcsc-is-loading {
+.wcsc-product-checkout-widget .woocommerce form.checkout.wcsc-is-loading,
+.wcsc-product-checkout-widget .woocommerce form.checkout.processing {
 	opacity: 1 !important;
 }
 .wcsc-product-checkout-widget .woocommerce form.checkout.wcsc-is-loading .wcsc-custom-shipping-container,
-.wcsc-product-checkout-widget .woocommerce form.checkout.wcsc-is-loading .woocommerce-checkout-review-order-table {
+.wcsc-product-checkout-widget .woocommerce form.checkout.wcsc-is-loading .woocommerce-checkout-review-order-table,
+.wcsc-product-checkout-widget .woocommerce form.checkout.processing .wcsc-custom-shipping-container,
+.wcsc-product-checkout-widget .woocommerce form.checkout.processing .woocommerce-checkout-review-order-table {
 	opacity: 0.5;
 	pointer-events: none;
 	transition: opacity 0.2s;
 }
 .wcsc-product-checkout-widget .woocommerce form.checkout.wcsc-is-loading::before,
-.wcsc-product-checkout-widget .woocommerce form.checkout.wcsc-is-loading::after {
+.wcsc-product-checkout-widget .woocommerce form.checkout.wcsc-is-loading::after,
+.wcsc-product-checkout-widget .woocommerce form.checkout.processing::before,
+.wcsc-product-checkout-widget .woocommerce form.checkout.processing::after,
+.wcas-checkout-wrapper .blockUI.blockOverlay {
 	display: none !important;
 }
 

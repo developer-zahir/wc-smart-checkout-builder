@@ -2237,7 +2237,7 @@ class Elementor_Widget extends Widget_Base {
 			}
 		}
 		?>
-		<div class="wcsc-product-checkout-widget"<?php echo $data_string; // phpcs:ignore WordPress.Security.EscapeOutput.OutputNotEscaped ?>>
+		<div class="wcsc-product-checkout-widget wcas-checkout-wrapper"<?php echo $data_string; // phpcs:ignore WordPress.Security.EscapeOutput.OutputNotEscaped ?>>
 
 			<?php if ( $show_image || $show_title || $show_price || $show_stock || $show_variations || $show_quantity ) : ?>
 			<div class="wcsc-product-summary-section">
