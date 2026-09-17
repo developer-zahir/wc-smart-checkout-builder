@@ -63,6 +63,9 @@ class Plugin {
 
 		// Custom Thank You Redirect
 		add_action( 'template_redirect', array( $this, 'custom_thank_you_redirect' ) );
+
+		// Add template fallback for Landing Pages
+		add_filter( 'template_include', array( $this, 'landing_page_template_fallback' ), 99 );
 	}
 
 	/**
@@ -97,11 +100,17 @@ class Plugin {
 			'capability_type'    => 'post',
 			'has_archive'        => false,
 			'hierarchical'       => true,
+			'show_in_rest'       => true,
 			'menu_icon'          => 'dashicons-cart',
-			'supports'           => array( 'title', 'editor', 'elementor', 'thumbnail', 'page-attributes' ),
+			'supports'           => array( 'title', 'editor', 'thumbnail', 'page-attributes' ),
 		);
 
 		register_post_type( 'wcsc_page', $args );
+
+		if ( get_option( 'wcsc_flush_rewrite_rules_v130' ) !== 'yes' ) {
+			flush_rewrite_rules();
+			update_option( 'wcsc_flush_rewrite_rules_v130', 'yes' );
+		}
 	}
 
 	/**
@@ -378,5 +387,30 @@ class Plugin {
 		
 		wp_redirect( $redirect_url );
 		exit;
+	}
+
+	/**
+	 * Provide a fallback template for Landing Pages if the theme doesn't handle them.
+	 * This ensures the_content() is called so Elementor can load successfully.
+	 */
+	public function landing_page_template_fallback( $template ) {
+		if ( is_singular( 'wcsc_page' ) ) {
+			$page_template = get_post_meta( get_the_ID(), '_wp_page_template', true );
+			if ( in_array( $page_template, array( 'elementor_canvas', 'elementor_header_footer', 'elementor_theme' ) ) ) {
+				return $template;
+			}
+			
+			// If no custom template is selected, default to Elementor Canvas
+			// to guarantee a blank canvas that doesn't conflict with theme wrappers
+			if ( empty( $page_template ) || 'default' === $page_template ) {
+				if ( defined( 'ELEMENTOR_PATH' ) ) {
+					$canvas_template = ELEMENTOR_PATH . '/modules/page-templates/templates/canvas.php';
+					if ( file_exists( $canvas_template ) ) {
+						return $canvas_template;
+					}
+				}
+			}
+		}
+		return $template;
 	}
 }
