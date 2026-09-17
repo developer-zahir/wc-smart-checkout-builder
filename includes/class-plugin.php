@@ -94,7 +94,7 @@ class Plugin {
 			'public'             => true,
 			'publicly_queryable' => true,
 			'show_ui'            => true,
-			'show_in_menu'       => 'wc-smart-checkout',
+			'show_in_menu'       => true,
 			'query_var'          => true,
 			'rewrite'            => array( 'slug' => 'landing-page' ),
 			'capability_type'    => 'post',
@@ -196,7 +196,7 @@ class Plugin {
 			array(
 				'ajax_url'        => admin_url( 'admin-ajax.php' ),
 				'nonce'           => wp_create_nonce( 'wcsc_checkout_nonce' ),
-				'is_elementor_edit' => class_exists( '\Elementor\Plugin' ) && \Elementor\Plugin::$instance->editor->is_edit_mode(),
+				'is_elementor_edit' => class_exists( '\Elementor\Plugin' ) && isset( \Elementor\Plugin::$instance->editor ) && \Elementor\Plugin::$instance->editor->is_edit_mode(),
 				'i18n'            => array(
 					'select_variation' => esc_html__( 'Please select a variation option.', 'wc-smart-checkout-builder' ),
 					'out_of_stock'     => esc_html__( 'Out of stock', 'wc-smart-checkout-builder' ),
@@ -241,27 +241,8 @@ class Plugin {
 	 * Register admin menu for plugin.
 	 */
 	public function register_admin_menu() {
-		add_menu_page(
-			__( 'WC Smart Checkout', 'wc-smart-checkout-builder' ),
-			__( 'Smart Checkout', 'wc-smart-checkout-builder' ),
-			'manage_options',
-			'wc-smart-checkout',
-			array( $this, 'settings_page_html' ),
-			'dashicons-cart',
-			58
-		);
-
 		add_submenu_page(
-			'wc-smart-checkout',
-			__( 'General Settings', 'wc-smart-checkout-builder' ),
-			__( 'General', 'wc-smart-checkout-builder' ),
-			'manage_options',
-			'wc-smart-checkout',
-			array( $this, 'settings_page_html' )
-		);
-
-		add_submenu_page(
-			'wc-smart-checkout',
+			'edit.php?post_type=wcsc_page',
 			__( 'Thank You Page', 'wc-smart-checkout-builder' ),
 			__( 'Thank You Page', 'wc-smart-checkout-builder' ),
 			'manage_options',
@@ -276,21 +257,6 @@ class Plugin {
 	public function register_settings() {
 		register_setting( 'wcsc_thank_you_settings', 'wcsc_enable_thank_you' );
 		register_setting( 'wcsc_thank_you_settings', 'wcsc_thank_you_page_id' );
-	}
-
-	/**
-	 * HTML for General Settings (placeholder for now).
-	 */
-	public function settings_page_html() {
-		if ( ! current_user_can( 'manage_options' ) ) {
-			return;
-		}
-		?>
-		<div class="wrap">
-			<h1><?php esc_html_e( 'WC Smart Checkout Builder', 'wc-smart-checkout-builder' ); ?></h1>
-			<p><?php esc_html_e( 'Welcome to WC Smart Checkout Builder. Please use the Landing Pages menu to create your custom checkout pages.', 'wc-smart-checkout-builder' ); ?></p>
-		</div>
-		<?php
 	}
 
 	/**

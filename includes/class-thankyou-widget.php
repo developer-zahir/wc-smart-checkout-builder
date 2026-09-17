@@ -147,7 +147,7 @@ class ThankYou_Widget extends Widget_Base {
 	}
 
 	protected function render() {
-		$is_editor = \Elementor\Plugin::$instance->editor->is_edit_mode();
+		$is_editor = class_exists( '\Elementor\Plugin' ) && isset( \Elementor\Plugin::$instance->editor ) && \Elementor\Plugin::$instance->editor->is_edit_mode();
 		$order_id = isset( $_GET['order_id'] ) ? absint( $_GET['order_id'] ) : 0;
 		$order_key = isset( $_GET['key'] ) ? sanitize_text_field( wp_unslash( $_GET['key'] ) ) : '';
 		$order = false;

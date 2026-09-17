@@ -51,7 +51,7 @@ class Checkout_Handler {
 	 */
 	public static function is_editor_environment() {
 		if ( class_exists( '\Elementor\Plugin' ) ) {
-			if ( \Elementor\Plugin::$instance->editor->is_edit_mode() || \Elementor\Plugin::$instance->preview->is_preview_mode() ) {
+			if ( ( isset( \Elementor\Plugin::$instance->editor ) && \Elementor\Plugin::$instance->editor->is_edit_mode() ) || ( isset( \Elementor\Plugin::$instance->preview ) && \Elementor\Plugin::$instance->preview->is_preview_mode() ) ) {
 				return true;
 			}
 		}

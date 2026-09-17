@@ -2190,7 +2190,7 @@ class Elementor_Widget extends Widget_Base {
 		$product  = Product_Handler::get_product_from_settings( $settings );
 
 		if ( ! $product ) {
-			if ( class_exists( '\Elementor\Plugin' ) && \Elementor\Plugin::$instance->editor->is_edit_mode() ) {
+			if ( class_exists( '\Elementor\Plugin' ) && isset( \Elementor\Plugin::$instance->editor ) && \Elementor\Plugin::$instance->editor->is_edit_mode() ) {
 				?>
 				<div class="wcsc-notice-warning">
 					<p><?php esc_html_e( 'No product found. Please select a product from the widget panel.', 'wc-smart-checkout-builder' ); ?></p>
