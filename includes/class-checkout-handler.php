@@ -460,9 +460,15 @@ class Checkout_Handler {
 			echo '<input type="hidden" name="wcsc_show_cart_item_image" value="' . esc_attr( ( ! isset( $settings['show_cart_item_image'] ) || 'yes' === $settings['show_cart_item_image'] ) ? 'yes' : 'no' ) . '" />';
 			echo '<input type="hidden" name="wcsc_is_smart_checkout" value="yes" />';
 
-			$sticky_enabled = ! isset( $settings['enable_mobile_sticky_button'] ) || 'yes' === $settings['enable_mobile_sticky_button'];
+			$sticky_enabled = true;
+			if ( isset( $settings['style_enable_mobile_sticky_button'] ) ) {
+				$sticky_enabled = ( 'yes' === $settings['style_enable_mobile_sticky_button'] );
+			} elseif ( isset( $settings['enable_mobile_sticky_button'] ) ) {
+				$sticky_enabled = ( 'yes' === $settings['enable_mobile_sticky_button'] );
+			}
+
 			if ( $sticky_enabled ) {
-				$sticky_text = ! empty( $settings['mobile_sticky_button_text'] ) ? $settings['mobile_sticky_button_text'] : __( 'অর্ডার করুন', 'wc-smart-checkout-builder' );
+				$sticky_text = ! empty( $settings['style_mobile_sticky_button_text'] ) ? $settings['style_mobile_sticky_button_text'] : ( ! empty( $settings['mobile_sticky_button_text'] ) ? $settings['mobile_sticky_button_text'] : __( 'অর্ডার করুন', 'wc-smart-checkout-builder' ) );
 				self::render_mobile_sticky_button_html( $sticky_text );
 			}
 			?>

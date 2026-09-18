@@ -463,9 +463,15 @@ if ( '1_column' === $checkout_layout ) {
 	</div>
 
 	<?php
-	$sticky_enabled = ! isset( $settings['enable_mobile_sticky_button'] ) || 'yes' === $settings['enable_mobile_sticky_button'];
+	$sticky_enabled = true;
+	if ( isset( $settings['style_enable_mobile_sticky_button'] ) ) {
+		$sticky_enabled = ( 'yes' === $settings['style_enable_mobile_sticky_button'] );
+	} elseif ( isset( $settings['enable_mobile_sticky_button'] ) ) {
+		$sticky_enabled = ( 'yes' === $settings['enable_mobile_sticky_button'] );
+	}
+
 	if ( $sticky_enabled ) :
-		$sticky_text = ! empty( $settings['mobile_sticky_button_text'] ) ? $settings['mobile_sticky_button_text'] : __( 'অর্ডার করুন', 'wc-smart-checkout-builder' );
+		$sticky_text = ! empty( $settings['style_mobile_sticky_button_text'] ) ? $settings['style_mobile_sticky_button_text'] : ( ! empty( $settings['mobile_sticky_button_text'] ) ? $settings['mobile_sticky_button_text'] : __( 'অর্ডার করুন', 'wc-smart-checkout-builder' ) );
 		?>
 		<div class="wcsc-mobile-sticky-bar" id="wcsc-mobile-sticky-bar">
 			<button type="button" class="wcsc-mobile-sticky-btn">

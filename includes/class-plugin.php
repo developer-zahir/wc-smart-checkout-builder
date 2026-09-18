@@ -68,6 +68,7 @@ class Plugin {
 		add_action( 'template_redirect', array( $this, 'custom_thank_you_redirect' ) );
 		add_filter( 'woocommerce_get_checkout_order_received_url', array( $this, 'filter_order_received_url' ), 10, 2 );
 		add_filter( 'woocommerce_get_return_url', array( $this, 'filter_order_received_url' ), 10, 2 );
+		add_filter( 'woocommerce_is_order_received_page', array( $this, 'filter_is_order_received_page' ) );
 
 		// Elementor Editor Top-Level Panel Script (Collapsing Accordions by Default)
 		add_action( 'elementor/editor/after_enqueue_scripts', array( $this, 'enqueue_editor_panel_scripts' ) );
@@ -80,6 +81,12 @@ class Plugin {
 	 * Register custom post type 'wcsc_page' for Landing Pages.
 	 */
 	public function register_post_type() {
+		$cpt_slug = get_option( 'wcsc_cpt_slug', 'landing-page' );
+		$cpt_slug = sanitize_title( trim( $cpt_slug ) );
+		if ( empty( $cpt_slug ) ) {
+			$cpt_slug = 'landing-page';
+		}
+
 		$labels = array(
 			'name'               => _x( 'Landing Pages', 'post type general name', 'wc-smart-checkout-builder' ),
 			'singular_name'      => _x( 'Landing Page', 'post type singular name', 'wc-smart-checkout-builder' ),
@@ -104,7 +111,7 @@ class Plugin {
 			'show_ui'            => true,
 			'show_in_menu'       => true,
 			'query_var'          => true,
-			'rewrite'            => array( 'slug' => 'landing-page' ),
+			'rewrite'            => array( 'slug' => $cpt_slug, 'with_front' => false ),
 			'capability_type'    => 'post',
 			'has_archive'        => false,
 			'hierarchical'       => true,
@@ -115,9 +122,9 @@ class Plugin {
 
 		register_post_type( 'wcsc_page', $args );
 
-		if ( get_option( 'wcsc_flush_rewrite_rules_v130' ) !== 'yes' ) {
-			flush_rewrite_rules();
-			update_option( 'wcsc_flush_rewrite_rules_v130', 'yes' );
+		if ( 'yes' === get_option( 'wcsc_flush_rewrite_rules' ) ) {
+			flush_rewrite_rules( false );
+			delete_option( 'wcsc_flush_rewrite_rules' );
 		}
 	}
 
@@ -276,9 +283,52 @@ class Plugin {
 	 * Register settings fields.
 	 */
 	public function register_settings() {
+		register_setting( 'wcsc_settings_group', 'wcsc_cpt_slug', array(
+			'type'              => 'string',
+			'sanitize_callback' => array( $this, 'sanitize_cpt_slug' ),
+			'default'           => 'landing-page',
+		) );
 		register_setting( 'wcsc_settings_group', 'wcsc_enable_thank_you' );
 		register_setting( 'wcsc_settings_group', 'wcsc_thank_you_page_id' );
 		register_setting( 'wcsc_settings_group', 'wcsc_custom_css' );
+	}
+
+	/**
+	 * Sanitize custom post type URL slug and mark rewrite rules for flush if changed.
+	 *
+	 * @param string $slug
+	 * @return string
+	 */
+	public function sanitize_cpt_slug( $slug ) {
+		$slug = sanitize_title( trim( $slug ) );
+		if ( empty( $slug ) ) {
+			$slug = 'landing-page';
+		}
+		$old_slug = get_option( 'wcsc_cpt_slug', 'landing-page' );
+		if ( $old_slug !== $slug ) {
+			update_option( 'wcsc_flush_rewrite_rules', 'yes' );
+		}
+		return $slug;
+	}
+
+	/**
+	 * Filter WooCommerce is_order_received_page condition to recognize custom thank you page.
+	 *
+	 * @param bool $is_order_received
+	 * @return bool
+	 */
+	public function filter_is_order_received_page( $is_order_received ) {
+		if ( $is_order_received ) {
+			return true;
+		}
+		$enable_thank_you   = get_option( 'wcsc_enable_thank_you' );
+		$thank_you_page_id = get_option( 'wcsc_thank_you_page_id' );
+		if ( $enable_thank_you && $thank_you_page_id && is_page( $thank_you_page_id ) ) {
+			if ( ! empty( $_GET['order_id'] ) || ! empty( $_GET['order-received'] ) ) {
+				return true;
+			}
+		}
+		return $is_order_received;
 	}
 
 	/**
@@ -303,7 +353,26 @@ class Plugin {
 				do_settings_sections( 'wcsc_settings_group' );
 				?>
 				
-				<h2 class="title"><?php esc_html_e( 'Thank You Page Settings', 'wc-smart-checkout-builder' ); ?></h2>
+				<h2 class="title"><?php esc_html_e( 'Landing Page URL Slug / Permalink Settings', 'wc-smart-checkout-builder' ); ?></h2>
+				<table class="form-table">
+					<tr valign="top">
+						<th scope="row">
+							<label for="wcsc_cpt_slug"><?php esc_html_e( 'Landing Page URL Slug', 'wc-smart-checkout-builder' ); ?></label>
+						</th>
+						<td>
+							<div style="display: flex; align-items: center; gap: 4px; font-family: monospace; font-size: 14px; flex-wrap: wrap;">
+								<span><?php echo esc_html( home_url( '/' ) ); ?></span>
+								<input type="text" name="wcsc_cpt_slug" id="wcsc_cpt_slug" value="<?php echo esc_attr( get_option( 'wcsc_cpt_slug', 'landing-page' ) ); ?>" class="regular-text" style="max-width: 180px; font-weight: 600;" placeholder="landing-page" />
+								<span>/my-landing-page/</span>
+							</div>
+							<p class="description" style="margin-top: 6px;">
+								<?php esc_html_e( 'Change the URL base slug for your Landing Pages (e.g. "offer", "deal", "order"). Rewrite rules update automatically upon saving without 404 errors.', 'wc-smart-checkout-builder' ); ?>
+							</p>
+						</td>
+					</tr>
+				</table>
+
+				<h2 class="title" style="margin-top: 30px;"><?php esc_html_e( 'Thank You Page Settings', 'wc-smart-checkout-builder' ); ?></h2>
 				<table class="form-table">
 					<tr valign="top">
 						<th scope="row"><?php esc_html_e( 'Enable Custom Thank You Page', 'wc-smart-checkout-builder' ); ?></th>

@@ -14,49 +14,39 @@
 			return;
 		}
 
-		// Hook into opening the widget settings panel
-		elementor.hooks.addAction('panel/open_editor/widget/wcsc_product_checkout', function (panel, model, view) {
-			var collapseAllSections = function () {
-				if (!panel || !panel.$el) {
-					return;
+		var collapseSections = function (panel) {
+			var $container = (panel && panel.$el && panel.$el.length) ? panel.$el : $('#elementor-panel');
+			var $openSections = $container.find('.elementor-control-section.elementor-open');
+			$openSections.removeClass('elementor-open');
+			$openSections.find('.elementor-section-content').hide();
+		};
+
+		var hookWidget = function (widgetName) {
+			elementor.hooks.addAction('panel/open_editor/widget/' + widgetName, function (panel, model, view) {
+				if (view && typeof view.activateFirstSection === 'function') {
+					view.activateFirstSection = function () {};
 				}
-				var $openSections = panel.$el.find('.elementor-control-section.elementor-open');
-				$openSections.removeClass('elementor-open');
-				$openSections.find('.elementor-section-content').hide();
-			};
 
-			// Collapse upon initial panel render
-			setTimeout(collapseAllSections, 20);
-			setTimeout(collapseAllSections, 80);
-			setTimeout(collapseAllSections, 200);
+				// Staggered collapse executions to guarantee closed state upon rendering
+				collapseSections(panel);
+				setTimeout(function () { collapseSections(panel); }, 10);
+				setTimeout(function () { collapseSections(panel); }, 50);
+				setTimeout(function () { collapseSections(panel); }, 150);
+				setTimeout(function () { collapseSections(panel); }, 350);
 
-			// Collapse upon tab navigation (Content, Style, Advanced)
-			panel.$el.off('click.wcscTabSwitch').on('click.wcscTabSwitch', '.elementor-panel-navigation-tab, .elementor-tab-control', function () {
-				setTimeout(collapseAllSections, 20);
-				setTimeout(collapseAllSections, 80);
-			});
-		});
-
-		// Also apply to Thank You widget panel
-		elementor.hooks.addAction('panel/open_editor/widget/wcsc_thank_you', function (panel, model, view) {
-			var collapseAllSections = function () {
-				if (!panel || !panel.$el) {
-					return;
+				// Collapse upon tab navigation (Content, Style, Advanced)
+				if (panel && panel.$el) {
+					panel.$el.off('click.wcscTabCollapse').on('click.wcscTabCollapse', '.elementor-panel-navigation-tab, .elementor-tab-control', function () {
+						setTimeout(function () { collapseSections(panel); }, 20);
+						setTimeout(function () { collapseSections(panel); }, 80);
+						setTimeout(function () { collapseSections(panel); }, 200);
+					});
 				}
-				var $openSections = panel.$el.find('.elementor-control-section.elementor-open');
-				$openSections.removeClass('elementor-open');
-				$openSections.find('.elementor-section-content').hide();
-			};
-
-			setTimeout(collapseAllSections, 20);
-			setTimeout(collapseAllSections, 80);
-			setTimeout(collapseAllSections, 200);
-
-			panel.$el.off('click.wcscTabSwitch').on('click.wcscTabSwitch', '.elementor-panel-navigation-tab, .elementor-tab-control', function () {
-				setTimeout(collapseAllSections, 20);
-				setTimeout(collapseAllSections, 80);
 			});
-		});
+		};
+
+		hookWidget('wcsc_product_checkout');
+		hookWidget('wcsc_thank_you');
 	}
 
 	if (window.elementor && window.elementor.hooks) {

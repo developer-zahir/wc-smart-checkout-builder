@@ -2096,7 +2096,7 @@ class Elementor_Widget extends Widget_Base {
 			Group_Control_Typography::get_type(),
 			array(
 				'name'     => 'order_button_typography',
-				'selector' => '{{WRAPPER}} #place_order, {{WRAPPER}} .wcsc-order-now-btn',
+				'selector' => '{{WRAPPER}} .wcas-checkout-wrapper .wcas-block-order-button #place_order, {{WRAPPER}} .wcas-checkout-wrapper .wcas-block-order-button .wcsc-order-now-btn, {{WRAPPER}} #place_order, {{WRAPPER}} .wcsc-order-now-btn, {{WRAPPER}} .wcsc-btn-text',
 			)
 		);
 
@@ -2107,7 +2107,7 @@ class Elementor_Widget extends Widget_Base {
 				'type'       => Controls_Manager::DIMENSIONS,
 				'size_units' => array( 'px', 'em' ),
 				'selectors'  => array(
-					'{{WRAPPER}} #place_order, {{WRAPPER}} .wcsc-order-now-btn' => 'padding: {{TOP}}{{UNIT}} {{RIGHT}}{{UNIT}} {{BOTTOM}}{{UNIT}} {{LEFT}}{{UNIT}};',
+					'{{WRAPPER}} .wcas-checkout-wrapper .wcas-block-order-button #place_order, {{WRAPPER}} .wcas-checkout-wrapper .wcas-block-order-button .wcsc-order-now-btn, {{WRAPPER}} #place_order, {{WRAPPER}} .wcsc-order-now-btn' => 'padding: {{TOP}}{{UNIT}} {{RIGHT}}{{UNIT}} {{BOTTOM}}{{UNIT}} {{LEFT}}{{UNIT}} !important;',
 				),
 			)
 		);
@@ -2119,7 +2119,7 @@ class Elementor_Widget extends Widget_Base {
 				'type'       => Controls_Manager::DIMENSIONS,
 				'size_units' => array( 'px', 'em', '%' ),
 				'selectors'  => array(
-					'{{WRAPPER}} #place_order, {{WRAPPER}} .wcsc-order-now-btn, {{WRAPPER}} .wcas-block-order-button' => 'margin: {{TOP}}{{UNIT}} {{RIGHT}}{{UNIT}} {{BOTTOM}}{{UNIT}} {{LEFT}}{{UNIT}};',
+					'{{WRAPPER}} .wcas-checkout-wrapper .wcas-block-order-button, {{WRAPPER}} .wcas-checkout-wrapper .wcas-block-order-button #place_order, {{WRAPPER}} .wcas-checkout-wrapper .wcas-block-order-button .wcsc-order-now-btn, {{WRAPPER}} #place_order, {{WRAPPER}} .wcsc-order-now-btn' => 'margin: {{TOP}}{{UNIT}} {{RIGHT}}{{UNIT}} {{BOTTOM}}{{UNIT}} {{LEFT}}{{UNIT}} !important;',
 				),
 			)
 		);
@@ -2135,7 +2135,7 @@ class Elementor_Widget extends Widget_Base {
 					'%'  => array( 'min' => 0, 'max' => 100 ),
 				),
 				'selectors'  => array(
-					'{{WRAPPER}} #place_order, {{WRAPPER}} .wcsc-order-now-btn' => 'width: {{SIZE}}{{UNIT}};',
+					'{{WRAPPER}} .wcas-checkout-wrapper .wcas-block-order-button #place_order, {{WRAPPER}} .wcas-checkout-wrapper .wcas-block-order-button .wcsc-order-now-btn, {{WRAPPER}} #place_order, {{WRAPPER}} .wcsc-order-now-btn' => 'width: {{SIZE}}{{UNIT}} !important;',
 				),
 			)
 		);
@@ -2150,7 +2150,7 @@ class Elementor_Widget extends Widget_Base {
 					'px' => array( 'min' => 30, 'max' => 120 ),
 				),
 				'selectors'  => array(
-					'{{WRAPPER}} #place_order, {{WRAPPER}} .wcsc-order-now-btn' => 'min-height: {{SIZE}}{{UNIT}};',
+					'{{WRAPPER}} .wcas-checkout-wrapper .wcas-block-order-button #place_order, {{WRAPPER}} .wcas-checkout-wrapper .wcas-block-order-button .wcsc-order-now-btn, {{WRAPPER}} #place_order, {{WRAPPER}} .wcsc-order-now-btn' => 'min-height: {{SIZE}}{{UNIT}} !important; line-height: {{SIZE}}{{UNIT}};',
 				),
 			)
 		);
@@ -2176,7 +2176,7 @@ class Elementor_Widget extends Widget_Base {
 				),
 				'selectors' => array(
 					'{{WRAPPER}} .form-row.place-order' => 'text-align: {{VALUE}};',
-					'{{WRAPPER}} .wcas-block-order-button' => 'text-align: {{VALUE}};',
+					'{{WRAPPER}} .wcas-checkout-wrapper .wcas-block-order-button' => 'text-align: {{VALUE}};',
 				),
 			)
 		);
@@ -2185,7 +2185,7 @@ class Elementor_Widget extends Widget_Base {
 			Group_Control_Border::get_type(),
 			array(
 				'name'     => 'order_button_border',
-				'selector' => '{{WRAPPER}} #place_order, {{WRAPPER}} .wcsc-order-now-btn',
+				'selector' => '{{WRAPPER}} .wcas-checkout-wrapper .wcas-block-order-button #place_order, {{WRAPPER}} .wcas-checkout-wrapper .wcas-block-order-button .wcsc-order-now-btn, {{WRAPPER}} #place_order, {{WRAPPER}} .wcsc-order-now-btn',
 			)
 		);
 
@@ -2204,7 +2204,7 @@ class Elementor_Widget extends Widget_Base {
 					'isLinked' => true,
 				),
 				'selectors'  => array(
-					'{{WRAPPER}} #place_order, {{WRAPPER}} .wcsc-order-now-btn' => 'border-radius: {{TOP}}{{UNIT}} {{RIGHT}}{{UNIT}} {{BOTTOM}}{{UNIT}} {{LEFT}}{{UNIT}};',
+					'{{WRAPPER}} .wcas-checkout-wrapper .wcas-block-order-button #place_order, {{WRAPPER}} .wcas-checkout-wrapper .wcas-block-order-button .wcsc-order-now-btn, {{WRAPPER}} #place_order, {{WRAPPER}} .wcsc-order-now-btn' => 'border-radius: {{TOP}}{{UNIT}} {{RIGHT}}{{UNIT}} {{BOTTOM}}{{UNIT}} {{LEFT}}{{UNIT}} !important;',
 				),
 			)
 		);
@@ -2213,7 +2213,7 @@ class Elementor_Widget extends Widget_Base {
 			Group_Control_Box_Shadow::get_type(),
 			array(
 				'name'     => 'order_button_box_shadow',
-				'selector' => '{{WRAPPER}} #place_order, {{WRAPPER}} .wcsc-order-now-btn',
+				'selector' => '{{WRAPPER}} .wcas-checkout-wrapper .wcas-block-order-button #place_order, {{WRAPPER}} .wcas-checkout-wrapper .wcas-block-order-button .wcsc-order-now-btn, {{WRAPPER}} #place_order, {{WRAPPER}} .wcsc-order-now-btn',
 			)
 		);
 
@@ -2246,7 +2246,7 @@ class Elementor_Widget extends Widget_Base {
 				'label'     => esc_html__( 'Text Color', 'wc-smart-checkout-builder' ),
 				'type'      => Controls_Manager::COLOR,
 				'selectors' => array(
-					'{{WRAPPER}} #place_order, {{WRAPPER}} .wcsc-order-now-btn, {{WRAPPER}} .wcsc-btn-price, {{WRAPPER}} .wcsc-btn-text' => 'color: {{VALUE}} !important;',
+					'{{WRAPPER}} .wcas-checkout-wrapper .wcas-block-order-button #place_order, {{WRAPPER}} .wcas-checkout-wrapper .wcas-block-order-button .wcsc-order-now-btn, {{WRAPPER}} #place_order, {{WRAPPER}} .wcsc-order-now-btn, {{WRAPPER}} .wcsc-btn-price, {{WRAPPER}} .wcsc-btn-text' => 'color: {{VALUE}} !important;',
 				),
 			)
 		);
@@ -2256,7 +2256,7 @@ class Elementor_Widget extends Widget_Base {
 			array(
 				'name'     => 'order_button_bg',
 				'types'    => array( 'classic', 'gradient' ),
-				'selector' => '{{WRAPPER}} #place_order, {{WRAPPER}} .wcsc-order-now-btn',
+				'selector' => '{{WRAPPER}} .wcas-checkout-wrapper .wcas-block-order-button #place_order, {{WRAPPER}} .wcas-checkout-wrapper .wcas-block-order-button .wcsc-order-now-btn, {{WRAPPER}} #place_order, {{WRAPPER}} .wcsc-order-now-btn',
 			)
 		);
 
@@ -2273,7 +2273,7 @@ class Elementor_Widget extends Widget_Base {
 				'label'     => esc_html__( 'Text Color', 'wc-smart-checkout-builder' ),
 				'type'      => Controls_Manager::COLOR,
 				'selectors' => array(
-					'{{WRAPPER}} #place_order:hover, {{WRAPPER}} .wcsc-order-now-btn:hover, {{WRAPPER}} #place_order:hover .wcsc-btn-text, {{WRAPPER}} .wcsc-order-now-btn:hover .wcsc-btn-text' => 'color: {{VALUE}} !important;',
+					'{{WRAPPER}} .wcas-checkout-wrapper .wcas-block-order-button #place_order:hover, {{WRAPPER}} .wcas-checkout-wrapper .wcas-block-order-button .wcsc-order-now-btn:hover, {{WRAPPER}} #place_order:hover, {{WRAPPER}} .wcsc-order-now-btn:hover, {{WRAPPER}} #place_order:hover .wcsc-btn-text, {{WRAPPER}} .wcsc-order-now-btn:hover .wcsc-btn-text' => 'color: {{VALUE}} !important;',
 				),
 			)
 		);
@@ -2283,7 +2283,7 @@ class Elementor_Widget extends Widget_Base {
 			array(
 				'name'     => 'order_button_bg_hover',
 				'types'    => array( 'classic', 'gradient' ),
-				'selector' => '{{WRAPPER}} #place_order:hover, {{WRAPPER}} .wcsc-order-now-btn:hover',
+				'selector' => '{{WRAPPER}} .wcas-checkout-wrapper .wcas-block-order-button #place_order:hover, {{WRAPPER}} .wcas-checkout-wrapper .wcas-block-order-button .wcsc-order-now-btn:hover, {{WRAPPER}} #place_order:hover, {{WRAPPER}} .wcsc-order-now-btn:hover',
 			)
 		);
 
@@ -2293,7 +2293,7 @@ class Elementor_Widget extends Widget_Base {
 				'label'     => esc_html__( 'Border Color', 'wc-smart-checkout-builder' ),
 				'type'      => Controls_Manager::COLOR,
 				'selectors' => array(
-					'{{WRAPPER}} #place_order:hover, {{WRAPPER}} .wcsc-order-now-btn:hover' => 'border-color: {{VALUE}} !important;',
+					'{{WRAPPER}} .wcas-checkout-wrapper .wcas-block-order-button #place_order:hover, {{WRAPPER}} .wcas-checkout-wrapper .wcas-block-order-button .wcsc-order-now-btn:hover, {{WRAPPER}} #place_order:hover, {{WRAPPER}} .wcsc-order-now-btn:hover' => 'border-color: {{VALUE}} !important;',
 				),
 			)
 		);
@@ -2302,7 +2302,7 @@ class Elementor_Widget extends Widget_Base {
 			Group_Control_Box_Shadow::get_type(),
 			array(
 				'name'     => 'order_button_hover_box_shadow',
-				'selector' => '{{WRAPPER}} #place_order:hover, {{WRAPPER}} .wcsc-order-now-btn:hover',
+				'selector' => '{{WRAPPER}} .wcas-checkout-wrapper .wcas-block-order-button #place_order:hover, {{WRAPPER}} .wcas-checkout-wrapper .wcas-block-order-button .wcsc-order-now-btn:hover, {{WRAPPER}} #place_order:hover, {{WRAPPER}} .wcsc-order-now-btn:hover',
 			)
 		);
 
@@ -2315,7 +2315,7 @@ class Elementor_Widget extends Widget_Base {
 					'px' => array( 'min' => 0.1, 'max' => 2, 'step' => 0.1 ),
 				),
 				'selectors' => array(
-					'{{WRAPPER}} #place_order, {{WRAPPER}} .wcsc-order-now-btn' => 'transition: all {{SIZE}}s ease;',
+					'{{WRAPPER}} .wcas-checkout-wrapper .wcas-block-order-button #place_order, {{WRAPPER}} .wcas-checkout-wrapper .wcas-block-order-button .wcsc-order-now-btn, {{WRAPPER}} #place_order, {{WRAPPER}} .wcsc-order-now-btn' => 'transition: all {{SIZE}}s ease;',
 				),
 			)
 		);
@@ -2493,15 +2493,21 @@ class Elementor_Widget extends Widget_Base {
 				'label'       => esc_html__( 'Button Text', 'wc-smart-checkout-builder' ),
 				'type'        => Controls_Manager::TEXT,
 				'default'     => esc_html__( 'অর্ডার করুন', 'wc-smart-checkout-builder' ),
+				'condition'   => array(
+					'style_enable_mobile_sticky_button' => 'yes',
+				),
 			)
 		);
 
 		$this->add_group_control(
 			Group_Control_Typography::get_type(),
 			array(
-				'name'     => 'mobile_sticky_typography',
-				'label'    => esc_html__( 'Typography', 'wc-smart-checkout-builder' ),
-				'selector' => '{{WRAPPER}} .wcsc-mobile-sticky-btn',
+				'name'      => 'mobile_sticky_typography',
+				'label'     => esc_html__( 'Typography', 'wc-smart-checkout-builder' ),
+				'selector'  => '{{WRAPPER}} .wcsc-mobile-sticky-btn, {{WRAPPER}} .wcsc-mobile-sticky-btn .wcsc-sticky-text',
+				'condition' => array(
+					'style_enable_mobile_sticky_button' => 'yes',
+				),
 			)
 		);
 
@@ -2515,7 +2521,10 @@ class Elementor_Widget extends Widget_Base {
 					'px' => array( 'min' => 35, 'max' => 90 ),
 				),
 				'selectors'  => array(
-					'{{WRAPPER}} .wcsc-mobile-sticky-btn' => 'min-height: {{SIZE}}{{UNIT}};',
+					'{{WRAPPER}} .wcsc-mobile-sticky-btn' => 'min-height: {{SIZE}}{{UNIT}} !important; line-height: {{SIZE}}{{UNIT}};',
+				),
+				'condition'  => array(
+					'style_enable_mobile_sticky_button' => 'yes',
 				),
 			)
 		);
@@ -2527,7 +2536,10 @@ class Elementor_Widget extends Widget_Base {
 				'type'       => Controls_Manager::DIMENSIONS,
 				'size_units' => array( 'px', 'em' ),
 				'selectors'  => array(
-					'{{WRAPPER}} .wcsc-mobile-sticky-btn' => 'padding: {{TOP}}{{UNIT}} {{RIGHT}}{{UNIT}} {{BOTTOM}}{{UNIT}} {{LEFT}}{{UNIT}};',
+					'{{WRAPPER}} .wcsc-mobile-sticky-btn' => 'padding: {{TOP}}{{UNIT}} {{RIGHT}}{{UNIT}} {{BOTTOM}}{{UNIT}} {{LEFT}}{{UNIT}} !important;',
+				),
+				'condition'  => array(
+					'style_enable_mobile_sticky_button' => 'yes',
 				),
 			)
 		);
@@ -2539,7 +2551,10 @@ class Elementor_Widget extends Widget_Base {
 				'type'       => Controls_Manager::DIMENSIONS,
 				'size_units' => array( 'px', 'em' ),
 				'selectors'  => array(
-					'{{WRAPPER}} .wcsc-mobile-sticky-bar' => 'margin: {{TOP}}{{UNIT}} {{RIGHT}}{{UNIT}} {{BOTTOM}}{{UNIT}} {{LEFT}}{{UNIT}};',
+					'{{WRAPPER}} .wcsc-mobile-sticky-bar, {{WRAPPER}} .wcsc-mobile-sticky-btn' => 'margin: {{TOP}}{{UNIT}} {{RIGHT}}{{UNIT}} {{BOTTOM}}{{UNIT}} {{LEFT}}{{UNIT}} !important;',
+				),
+				'condition'  => array(
+					'style_enable_mobile_sticky_button' => 'yes',
 				),
 			)
 		);
@@ -2547,8 +2562,11 @@ class Elementor_Widget extends Widget_Base {
 		$this->add_group_control(
 			Group_Control_Border::get_type(),
 			array(
-				'name'     => 'mobile_sticky_border',
-				'selector' => '{{WRAPPER}} .wcsc-mobile-sticky-btn',
+				'name'      => 'mobile_sticky_border',
+				'selector'  => '{{WRAPPER}} .wcsc-mobile-sticky-btn',
+				'condition' => array(
+					'style_enable_mobile_sticky_button' => 'yes',
+				),
 			)
 		);
 
@@ -2559,7 +2577,10 @@ class Elementor_Widget extends Widget_Base {
 				'type'       => Controls_Manager::DIMENSIONS,
 				'size_units' => array( 'px', '%' ),
 				'selectors'  => array(
-					'{{WRAPPER}} .wcsc-mobile-sticky-btn' => 'border-radius: {{TOP}}{{UNIT}} {{RIGHT}}{{UNIT}} {{BOTTOM}}{{UNIT}} {{LEFT}}{{UNIT}};',
+					'{{WRAPPER}} .wcsc-mobile-sticky-btn' => 'border-radius: {{TOP}}{{UNIT}} {{RIGHT}}{{UNIT}} {{BOTTOM}}{{UNIT}} {{LEFT}}{{UNIT}} !important;',
+				),
+				'condition'  => array(
+					'style_enable_mobile_sticky_button' => 'yes',
 				),
 			)
 		);
@@ -2567,12 +2588,22 @@ class Elementor_Widget extends Widget_Base {
 		$this->add_group_control(
 			Group_Control_Box_Shadow::get_type(),
 			array(
-				'name'     => 'mobile_sticky_box_shadow',
-				'selector' => '{{WRAPPER}} .wcsc-mobile-sticky-bar, {{WRAPPER}} .wcsc-mobile-sticky-btn',
+				'name'      => 'mobile_sticky_box_shadow',
+				'selector'  => '{{WRAPPER}} .wcsc-mobile-sticky-bar, {{WRAPPER}} .wcsc-mobile-sticky-btn',
+				'condition' => array(
+					'style_enable_mobile_sticky_button' => 'yes',
+				),
 			)
 		);
 
-		$this->start_controls_tabs( 'tabs_mobile_sticky_states' );
+		$this->start_controls_tabs(
+			'tabs_mobile_sticky_states',
+			array(
+				'condition' => array(
+					'style_enable_mobile_sticky_button' => 'yes',
+				),
+			)
+		);
 
 		$this->start_controls_tab(
 			'tab_mobile_sticky_normal',
@@ -2586,7 +2617,7 @@ class Elementor_Widget extends Widget_Base {
 				'type'      => Controls_Manager::COLOR,
 				'default'   => '#ffffff',
 				'selectors' => array(
-					'{{WRAPPER}} .wcsc-mobile-sticky-btn' => 'color: {{VALUE}} !important;',
+					'{{WRAPPER}} .wcsc-mobile-sticky-btn, {{WRAPPER}} .wcsc-mobile-sticky-btn .wcsc-sticky-text' => 'color: {{VALUE}} !important;',
 				),
 			)
 		);
@@ -2613,7 +2644,7 @@ class Elementor_Widget extends Widget_Base {
 				'label'     => esc_html__( 'Text Color', 'wc-smart-checkout-builder' ),
 				'type'      => Controls_Manager::COLOR,
 				'selectors' => array(
-					'{{WRAPPER}} .wcsc-mobile-sticky-btn:hover' => 'color: {{VALUE}} !important;',
+					'{{WRAPPER}} .wcsc-mobile-sticky-btn:hover, {{WRAPPER}} .wcsc-mobile-sticky-btn:hover .wcsc-sticky-text' => 'color: {{VALUE}} !important;',
 				),
 			)
 		);

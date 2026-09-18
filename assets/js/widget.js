@@ -215,7 +215,7 @@
 			});
 
 			// Intercept checkout submit for client-side required field validation & phone validation
-			this.$container.on('click', '#place_order, .wcsc-order-now-btn', function (e) {
+			var validateCheckoutForm = function (e) {
 				var $form = self.$container.find('form.checkout');
 				if ($form.length) {
 					var hasInvalid = false;
@@ -227,7 +227,7 @@
 					$form.find('.form-row.woocommerce-invalid').removeClass('woocommerce-invalid');
 
 					// Validate all visible required fields
-					$form.find('input[required], textarea[required], select[required], .validate-required input.input-text, .validate-required textarea, .validate-required select').each(function () {
+					$form.find('input[required], textarea[required], select[required], .validate-required input.input-text, .validate-required textarea, .validate-required select, .validate-required input').each(function () {
 						var $field = $(this);
 						if (!$field.is(':visible') || $field.is(':disabled')) {
 							return;
@@ -283,8 +283,10 @@
 					}
 
 					if (hasInvalid && missingFields.length > 0) {
-						e.preventDefault();
-						e.stopImmediatePropagation();
+						if (e) {
+							e.preventDefault();
+							e.stopImmediatePropagation();
+						}
 
 						var $modal = $('#wcsc-validation-modal, #wcsc-phone-modal');
 						if ($modal.length) {
@@ -306,6 +308,19 @@
 						}
 						return false;
 					}
+				}
+				return true;
+			};
+
+			this.$container.on('click', '#place_order, .wcsc-order-now-btn', function (e) {
+				if (!validateCheckoutForm(e)) {
+					return false;
+				}
+			});
+
+			this.$container.on('submit', 'form.checkout', function (e) {
+				if (!validateCheckoutForm(e)) {
+					return false;
 				}
 			});
 
@@ -597,7 +612,7 @@
 		initMobileStickyObserver: function () {
 			var self = this;
 			var stickyBar = self.$container.find('.wcsc-mobile-sticky-bar')[0] || document.getElementById('wcsc-mobile-sticky-bar');
-			var targetEl = self.$container[0] || self.$container.find('.wcas-checkout-wrapper')[0];
+			var targetEl = self.$container.find('.wcas-checkout-wrapper')[0] || document.querySelector('.wcas-checkout-wrapper') || self.$container[0];
 
 			if (stickyBar && targetEl && 'IntersectionObserver' in window) {
 				var observer = new IntersectionObserver(function (entries) {

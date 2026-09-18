@@ -825,8 +825,8 @@
 	padding: 15px 24px;
 	font-size: 1.1rem;
 	font-weight: 700;
-	color: #ffffff !important;
-	background-color: #2b6cb0 !important;
+	color: #ffffff;
+	background-color: #2b6cb0;
 	border: none;
 	border-radius: 4px;
 	cursor: pointer;
@@ -842,7 +842,7 @@
 
 .wcas-checkout-wrapper .wcas-block-order-button #place_order:hover,
 .wcas-checkout-wrapper .wcas-block-order-button .wcsc-order-now-btn:hover {
-	background-color: #2c5282 !important;
+	background-color: #2c5282;
 	box-shadow: 0 4px 12px rgba(43, 108, 176, 0.35);
 }
 
@@ -1190,13 +1190,13 @@
 	bottom: 0;
 	left: 0;
 	right: 0;
-	width: 100% !important;
+	width: 100%;
 	z-index: 99999;
-	background: transparent !important;
+	background: transparent;
 	box-shadow: 0 -4px 16px rgba(0, 0, 0, 0.15);
-	padding: 0 !important;
-	margin: 0 !important;
-	border: none !important;
+	padding: 0;
+	margin: 0;
+	border: none;
 	box-sizing: border-box;
 	transition: transform 0.3s cubic-bezier(0.16, 1, 0.3, 1), opacity 0.3s ease;
 }
@@ -1220,16 +1220,16 @@ body.elementor-editor-active .wcsc-mobile-sticky-bar {
 .wcsc-mobile-sticky-btn {
 	position: relative;
 	overflow: hidden;
-	width: 100% !important;
-	max-width: 100% !important;
+	width: 100%;
+	max-width: 100%;
 	display: flex;
 	align-items: center;
 	justify-content: center;
 	background: #e53e3e;
 	color: #ffffff;
-	border: none !important;
-	border-radius: 0 !important;
-	margin: 0 !important;
+	border: none;
+	border-radius: 0;
+	margin: 0;
 	padding: 16px 20px;
 	font-size: 1.15rem;
 	font-weight: 700;
