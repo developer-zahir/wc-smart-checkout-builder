@@ -368,18 +368,6 @@ class Elementor_Widget extends Widget_Base {
 		);
 
 		$this->add_control(
-			'show_checkout_billing',
-			array(
-				'label'        => esc_html__( 'Show Billing, Shipping Fields', 'wc-smart-checkout-builder' ),
-				'type'         => Controls_Manager::SWITCHER,
-				'label_on'     => esc_html__( 'Show', 'wc-smart-checkout-builder' ),
-				'label_off'    => esc_html__( 'Hide', 'wc-smart-checkout-builder' ),
-				'return_value' => 'yes',
-				'default'      => 'yes',
-			)
-		);
-
-		$this->add_control(
 			'show_checkout_order_review',
 			array(
 				'label'        => esc_html__( 'Show Order Review', 'wc-smart-checkout-builder' ),
@@ -418,21 +406,6 @@ class Elementor_Widget extends Widget_Base {
 			)
 		);
 
-		$this->add_control(
-			'shipping_method_position',
-			array(
-				'label'   => esc_html__( 'Shipping Section Position', 'wc-smart-checkout-builder' ),
-				'type'    => Controls_Manager::SELECT,
-				'options' => array(
-					'inside_form'   => esc_html__( 'Inside Checkout Form', 'wc-smart-checkout-builder' ),
-					'order_review'  => esc_html__( 'Inside Order Review (Default)', 'wc-smart-checkout-builder' ),
-				),
-				'default' => 'inside_form',
-				'condition' => array(
-					'show_checkout_shipping' => 'yes',
-				),
-			)
-		);
 
 		$this->add_control(
 			'show_checkout_payment',
@@ -448,7 +421,7 @@ class Elementor_Widget extends Widget_Base {
 
 		$this->end_controls_section();
 
-		// --- Section: Checkout Translation ---
+		// --- Section: Checkout Translation (trimmed to 6 keys — req 40) ---
 		$this->start_controls_section(
 			'section_checkout_translation',
 			array(
@@ -460,7 +433,7 @@ class Elementor_Widget extends Widget_Base {
 		$this->add_control(
 			'billing_heading_text',
 			array(
-				'label'   => esc_html__( 'Billing Section Title', 'wc-smart-checkout-builder' ),
+				'label'   => esc_html__( 'Billing & Shipping Title', 'wc-smart-checkout-builder' ),
 				'type'    => Controls_Manager::TEXT,
 				'default' => esc_html__( 'Billing & Shipping', 'wc-smart-checkout-builder' ),
 			)
@@ -484,56 +457,53 @@ class Elementor_Widget extends Widget_Base {
 			)
 		);
 
-		// Translation Fields
-		$translations = array(
-			'trans_billing_details'    => esc_html__( 'Billing Details', 'wc-smart-checkout-builder' ),
-			'trans_shipping_details'   => esc_html__( 'Shipping Details', 'wc-smart-checkout-builder' ),
-			'trans_additional_info'    => esc_html__( 'Additional Information', 'wc-smart-checkout-builder' ),
-			'trans_order_notes'        => esc_html__( 'Order Notes', 'wc-smart-checkout-builder' ),
-			'trans_ship_different'     => esc_html__( 'Ship to a different address?', 'wc-smart-checkout-builder' ),
-			'trans_payment'            => esc_html__( 'Payment', 'wc-smart-checkout-builder' ),
-			'trans_cod'                => esc_html__( 'Cash on delivery', 'wc-smart-checkout-builder' ),
-			'trans_coupon'             => esc_html__( 'Coupon code', 'wc-smart-checkout-builder' ),
-			'trans_apply_coupon'       => esc_html__( 'Apply coupon', 'wc-smart-checkout-builder' ),
-			'trans_returning_customer' => esc_html__( 'Returning customer?', 'wc-smart-checkout-builder' ),
-			'trans_login'              => esc_html__( 'Click here to login', 'wc-smart-checkout-builder' ),
-			'subtotal_label_text'      => esc_html__( 'Subtotal Label', 'wc-smart-checkout-builder' ),
-			'shipping_label_text'      => esc_html__( 'Shipping Label', 'wc-smart-checkout-builder' ),
-			'total_label_text'         => esc_html__( 'Total Label', 'wc-smart-checkout-builder' ),
-		);
-
-		foreach ( $translations as $key => $label ) {
-			$this->add_control(
-				$key,
-				array(
-					'label'       => $label,
-					'type'        => Controls_Manager::TEXT,
-					'placeholder' => $label,
-				)
-			);
-		}
-
-		$this->end_controls_section();
-
-		// --- Section: Order Button ---
-		$this->start_controls_section(
-			'section_order_button',
+		$this->add_control(
+			'subtotal_label_text',
 			array(
-				'label' => esc_html__( 'Order Button', 'wc-smart-checkout-builder' ),
-				'tab'   => Controls_Manager::TAB_CONTENT,
+				'label'   => esc_html__( 'Subtotal Label', 'wc-smart-checkout-builder' ),
+				'type'    => Controls_Manager::TEXT,
+				'default' => esc_html__( 'Subtotal', 'wc-smart-checkout-builder' ),
 			)
 		);
 
 		$this->add_control(
-			'order_button_position',
+			'shipping_label_text',
 			array(
-				'label'   => esc_html__( 'Button Position', 'wc-smart-checkout-builder' ),
-				'type'    => Controls_Manager::SELECT,
-				'options' => array(
-					'below_form'   => esc_html__( 'Below Checkout Form', 'wc-smart-checkout-builder' ),
-					'order_review' => esc_html__( 'Inside Order Review (Default)', 'wc-smart-checkout-builder' ),
-				),
-				'default' => 'below_form',
+				'label'   => esc_html__( 'Shipping Label', 'wc-smart-checkout-builder' ),
+				'type'    => Controls_Manager::TEXT,
+				'default' => esc_html__( 'Shipping', 'wc-smart-checkout-builder' ),
+			)
+		);
+
+		$this->add_control(
+			'total_label_text',
+			array(
+				'label'   => esc_html__( 'Total Label', 'wc-smart-checkout-builder' ),
+				'type'    => Controls_Manager::TEXT,
+				'default' => esc_html__( 'Total', 'wc-smart-checkout-builder' ),
+			)
+		);
+
+$this->end_controls_section();
+
+	// --- Section: Order Button ---
+	$this->start_controls_section(
+		'section_order_button',
+		array(
+			'label' => esc_html__( 'Order Button', 'wc-smart-checkout-builder' ),
+			'tab'   => Controls_Manager::TAB_CONTENT,
+		)
+	);
+
+	$this->add_control(
+		'show_checkout_order_button',
+			array(
+				'label'        => esc_html__( 'Show Order Button', 'wc-smart-checkout-builder' ),
+				'type'         => Controls_Manager::SWITCHER,
+				'label_on'     => esc_html__( 'Show', 'wc-smart-checkout-builder' ),
+				'label_off'    => esc_html__( 'Hide', 'wc-smart-checkout-builder' ),
+				'return_value' => 'yes',
+				'default'      => 'yes',
 			)
 		);
 
@@ -1708,7 +1678,7 @@ class Elementor_Widget extends Widget_Base {
 				'type'       => Controls_Manager::DIMENSIONS,
 				'size_units' => array( 'px', 'em', '%' ),
 				'selectors'  => array(
-					'{{WRAPPER}} #place_order, {{WRAPPER}} .wcsc-order-now-btn, {{WRAPPER}} .wcsc-custom-btn-container' => 'margin: {{TOP}}{{UNIT}} {{RIGHT}}{{UNIT}} {{BOTTOM}}{{UNIT}} {{LEFT}}{{UNIT}};',
+					'{{WRAPPER}} #place_order, {{WRAPPER}} .wcsc-order-now-btn, {{WRAPPER}} .wcas-block-order-button' => 'margin: {{TOP}}{{UNIT}} {{RIGHT}}{{UNIT}} {{BOTTOM}}{{UNIT}} {{LEFT}}{{UNIT}};',
 				),
 			)
 		);
@@ -1750,7 +1720,7 @@ class Elementor_Widget extends Widget_Base {
 				),
 				'selectors' => array(
 					'{{WRAPPER}} .form-row.place-order' => 'text-align: {{VALUE}};',
-					'{{WRAPPER}} .wcsc-custom-btn-container' => 'text-align: {{VALUE}};',
+					'{{WRAPPER}} .wcas-block-order-button' => 'text-align: {{VALUE}};',
 				),
 			)
 		);
@@ -2281,10 +2251,10 @@ class Elementor_Widget extends Widget_Base {
 				$data_string .= ' ' . esc_attr( $k ) . '="' . esc_attr( $v ) . '"';
 			}
 		}
-		$checkout_layout_val = ! empty( $settings['checkout_layout'] ) ? $settings['checkout_layout'] : '2_columns';
+	$checkout_layout_val = ! empty( $settings['checkout_layout'] ) ? $settings['checkout_layout'] : '2_columns';
 		$layout_class_name   = ( '1_column' === $checkout_layout_val ) ? 'wcsc-layout-1-col wcas-layout-one-column' : 'wcsc-layout-2-col wcas-layout-two-column';
 		?>
-		<div class="wcsc-product-checkout-widget wcas-checkout-wrapper <?php echo esc_attr( $layout_class_name ); ?>"<?php echo $data_string; // phpcs:ignore WordPress.Security.EscapeOutput.OutputNotEscaped ?>>
+		<div class="wcsc-product-checkout-widget <?php echo esc_attr( $layout_class_name ); ?>"<?php echo $data_string; // phpcs:ignore WordPress.Security.EscapeOutput.OutputNotEscaped ?>>
 
 			<?php if ( $show_image || $show_title || $show_price || $show_stock || $show_variations || $show_quantity ) : ?>
 			<div class="wcsc-product-summary-section">

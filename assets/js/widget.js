@@ -43,6 +43,7 @@
 		init: function () {
 			this.bindEvents();
 			this.applyCustomTexts();
+			this.styleShippingMethods();
 
 			// Match default or initial variation on load
 			if (this.productType === 'variable') {
@@ -53,7 +54,6 @@
 					this.updateButtonPrice(this.rawPriceText);
 				}
 			}
-			this.rearrangeCheckoutLayout();
 		},
 
 		bindEvents: function () {
@@ -124,12 +124,12 @@
 			$(document.body).on('updated_checkout', function () {
 				self.hideLoading();
 				self.applyCustomTexts();
-				self.rearrangeCheckoutLayout();
+				self.styleShippingMethods();
 			});
 
 			$(document.body).on('checkout_error', function () {
 				self.hideLoading();
-				self.rearrangeCheckoutLayout();
+				self.styleShippingMethods();
 			});
 
 			// Make shipping cards clickable
@@ -142,7 +142,7 @@
 				}
 			});
 			this.$container.on('change', 'input.shipping_method', function () {
-				self.rearrangeCheckoutLayout();
+				self.styleShippingMethods();
 			});
 		},
 
@@ -184,62 +184,33 @@
 			}
 		},
 
-		showErrorModal: function (errorHtml) {
-			var text = errorHtml || 'অনুগ্রহ করে নাম এবং ফোন নাম্বার দিন।';
-			var modalHtml = '<div class="wcsc-error-icon"><svg xmlns="http://www.w3.org/2000/svg" viewBox="0 0 24 24" width="48" height="48" fill="none" stroke="#e53e3e" stroke-width="2" stroke-linecap="round" stroke-linejoin="round"><circle cx="12" cy="12" r="10"></circle><line x1="12" y1="8" x2="12" y2="12"></line><line x1="12" y1="16" x2="12.01" y2="16"></line></svg></div>';
-			modalHtml += '<div class="wcsc-error-title">' + text + '</div>';
-			var $modal = $('<div class="wcsc-error-modal-overlay"><div class="wcsc-error-modal"><span class="wcsc-error-modal-close">&times;</span><div class="wcsc-error-content">' + modalHtml + '</div></div></div>');
-			$('body').append($modal);
-			$modal.find('.wcsc-error-modal-close, .wcsc-error-modal-overlay').on('click', function(e) {
-				if (e.target === this) {
-					$modal.fadeOut(200, function() { $(this).remove(); });
-				}
-			});
-		},
-
-		rearrangeCheckoutLayout: function () {
-			var $wrapper = this.$container.find('.wcsc-native-checkout-wrapper');
+		styleShippingMethods: function () {
+			var $wrapper = this.$container.find('.wcas-checkout-wrapper');
 			if (!$wrapper.length) return;
 
-			var shippingPos = $wrapper.data('shipping-pos');
-			var buttonPos = $wrapper.data('button-pos');
-			var errorDisp = $wrapper.data('error-disp');
-
-			// Move Shipping
-			if (shippingPos === 'inside_form') {
-				var $shippingTotals = $wrapper.find('.woocommerce-shipping-totals');
-				if ($shippingTotals.length) {
-					var $shippingContainer = $wrapper.find('.wcsc-custom-shipping-container');
-					if (!$shippingContainer.length) {
-						$shippingContainer = $('<div class="wcsc-custom-shipping-container"></div>');
-						// Try to append after customer details, fallback to before order review
-						if ($wrapper.find('#customer_details').length) {
-							$wrapper.find('#customer_details').after($shippingContainer);
-						} else {
-							$wrapper.find('#order_review').before($shippingContainer);
-						}
-					}
-					var $methods = $shippingTotals.find('#shipping_method');
-					if ($methods.length) {
-						if (!$shippingContainer.find('.wcsc-shipping-heading').length) {
-							var title = this.$container.data('txt-shipping') || 'Shipping';
-							$shippingContainer.append('<h3 class="wcsc-shipping-heading wcsc-section-title">' + title + '</h3>');
-						}
-						$shippingContainer.find('#shipping_method').remove();
-						$shippingContainer.append($methods);
-						$shippingTotals.hide();
-					}
+			// After WooCommerce AJAX updates, #shipping_method radio list may
+			// have been re-injected into #order_review (which we strip at PHP
+			// level but WooCommerce may re-add via the AJAX fragment). Move it
+			// back to the plugin-owned .wcas-block-shipping container.
+			var $reviewMethods = $wrapper.find('#order_review #shipping_method');
+			if ($reviewMethods.length) {
+				var $shippingBlock = $wrapper.find('.wcas-block-shipping');
+				if ($shippingBlock.length) {
+					$reviewMethods.remove();
+					$shippingBlock.append($reviewMethods);
 				}
 			}
 
-			// Shipping Cards styling & active state
-			var $methods = $wrapper.find('#shipping_method li');
+			// Ship methods are rendered natively inside the plugin-owned
+			// .wcas-block-shipping container by the PHP layer. JS only adds
+			// the interactive card classes (.wcsc-shipping-card / .is-active)
+			// so the CSS styling and click-to-select behaviour work.
+			var $methods = $wrapper.find('.wcas-block-shipping #shipping_method li');
 			if ($methods.length) {
 				if (!$methods.find('input[type="radio"]:checked').length) {
-					// Select first by default if none selected
 					$methods.first().find('input[type="radio"]').prop('checked', true).trigger('change');
 				}
-				$methods.each(function() {
+				$methods.each(function () {
 					var $li = $(this);
 					$li.addClass('wcsc-shipping-card');
 					if ($li.find('input[type="radio"]').is(':checked')) {
@@ -248,42 +219,6 @@
 						$li.removeClass('is-active');
 					}
 				});
-			}
-
-			// Move Order Button
-			if (buttonPos === 'below_form') {
-				var $payment = $wrapper.find('#payment');
-				var $button = $payment.find('#place_order');
-				if ($button.length) {
-					var $btnContainer = $wrapper.find('.wcsc-custom-btn-container');
-					if (!$btnContainer.length) {
-						$btnContainer = $('<div class="wcsc-custom-btn-container"></div>');
-						if ($wrapper.find('#order_review').length) {
-							$wrapper.find('#order_review').append($btnContainer);
-						} else if ($wrapper.find('form.checkout').length) {
-							$wrapper.find('form.checkout').append($btnContainer);
-						} else {
-							$wrapper.append($btnContainer);
-						}
-					}
-					$btnContainer.empty().append($button);
-				}
-			}
-
-			// Move Errors
-			var $errors = $wrapper.find('.woocommerce-error');
-			if ($errors.length && errorDisp) {
-				if (errorDisp === 'modal') {
-					this.showErrorModal($errors.html());
-					$errors.remove();
-				} else {
-					var $errorContainer = $wrapper.find('.wcsc-custom-error-container');
-					if (!$errorContainer.length) {
-						$errorContainer = $('<div class="wcsc-custom-error-container"></div>');
-						this.$container.find('.wcsc-variations-section').after($errorContainer);
-					}
-					$errorContainer.html($errors);
-				}
 			}
 		},
 
