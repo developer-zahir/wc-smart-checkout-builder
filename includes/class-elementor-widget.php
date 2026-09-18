@@ -490,17 +490,6 @@ class Elementor_Widget extends Widget_Base {
 			'trans_shipping_details'   => esc_html__( 'Shipping Details', 'wc-smart-checkout-builder' ),
 			'trans_additional_info'    => esc_html__( 'Additional Information', 'wc-smart-checkout-builder' ),
 			'trans_order_notes'        => esc_html__( 'Order Notes', 'wc-smart-checkout-builder' ),
-			'trans_country'            => esc_html__( 'Country / Region', 'wc-smart-checkout-builder' ),
-			'trans_state'              => esc_html__( 'State / County', 'wc-smart-checkout-builder' ),
-			'trans_postcode'           => esc_html__( 'Postcode / ZIP', 'wc-smart-checkout-builder' ),
-			'trans_email'              => esc_html__( 'Email address', 'wc-smart-checkout-builder' ),
-			'trans_phone'              => esc_html__( 'Phone', 'wc-smart-checkout-builder' ),
-			'trans_first_name'         => esc_html__( 'First name', 'wc-smart-checkout-builder' ),
-			'trans_last_name'          => esc_html__( 'Last name', 'wc-smart-checkout-builder' ),
-			'trans_address'            => esc_html__( 'Street address', 'wc-smart-checkout-builder' ),
-			'trans_apartment'          => esc_html__( 'Apartment, suite, unit, etc.', 'wc-smart-checkout-builder' ),
-			'trans_city'               => esc_html__( 'Town / City', 'wc-smart-checkout-builder' ),
-			'trans_company'            => esc_html__( 'Company name', 'wc-smart-checkout-builder' ),
 			'trans_ship_different'     => esc_html__( 'Ship to a different address?', 'wc-smart-checkout-builder' ),
 			'trans_payment'            => esc_html__( 'Payment', 'wc-smart-checkout-builder' ),
 			'trans_cod'                => esc_html__( 'Cash on delivery', 'wc-smart-checkout-builder' ),
@@ -508,7 +497,6 @@ class Elementor_Widget extends Widget_Base {
 			'trans_apply_coupon'       => esc_html__( 'Apply coupon', 'wc-smart-checkout-builder' ),
 			'trans_returning_customer' => esc_html__( 'Returning customer?', 'wc-smart-checkout-builder' ),
 			'trans_login'              => esc_html__( 'Click here to login', 'wc-smart-checkout-builder' ),
-			'product_label_text'       => esc_html__( 'Product Column Label', 'wc-smart-checkout-builder' ),
 			'subtotal_label_text'      => esc_html__( 'Subtotal Label', 'wc-smart-checkout-builder' ),
 			'shipping_label_text'      => esc_html__( 'Shipping Label', 'wc-smart-checkout-builder' ),
 			'total_label_text'         => esc_html__( 'Total Label', 'wc-smart-checkout-builder' ),
@@ -1037,13 +1025,17 @@ class Elementor_Widget extends Widget_Base {
 			)
 		);
 
-		// Button Swatches
-		$this->add_control(
-			'heading_button_swatch_style',
+		$this->end_controls_section();
+
+		// --- 5B. Button Variant Style ---
+		$this->start_controls_section(
+			'section_style_variations_button',
 			array(
-				'label'     => esc_html__( 'Button / Size Swatches', 'wc-smart-checkout-builder' ),
-				'type'      => Controls_Manager::HEADING,
-				'separator' => 'before',
+				'label'     => esc_html__( 'Button Variant Style', 'wc-smart-checkout-builder' ),
+				'tab'       => Controls_Manager::TAB_STYLE,
+				'condition' => array(
+					'show_variations' => 'yes',
+				),
 			)
 		);
 
@@ -1255,13 +1247,17 @@ class Elementor_Widget extends Widget_Base {
 
 		$this->end_controls_tabs();
 
-		// Image Swatches
-		$this->add_control(
-			'heading_image_swatch_style',
+		$this->end_controls_section();
+
+		// --- 5C. Image Variant Style ---
+		$this->start_controls_section(
+			'section_style_variations_image',
 			array(
-				'label'     => esc_html__( 'Image / Color Swatches', 'wc-smart-checkout-builder' ),
-				'type'      => Controls_Manager::HEADING,
-				'separator' => 'before',
+				'label'     => esc_html__( 'Image Variant Style', 'wc-smart-checkout-builder' ),
+				'tab'       => Controls_Manager::TAB_STYLE,
+				'condition' => array(
+					'show_variations' => 'yes',
+				),
 			)
 		);
 
@@ -1311,27 +1307,67 @@ class Elementor_Widget extends Widget_Base {
 			)
 		);
 
-		$this->add_control(
-			'img_swatch_border_color',
+		$this->add_responsive_control(
+			'img_swatch_gap',
 			array(
-				'label'     => esc_html__( 'Border Color', 'wc-smart-checkout-builder' ),
-				'type'      => Controls_Manager::COLOR,
-				'selectors' => array(
-					'{{WRAPPER}} .wcsc-swatch-image' => 'border-color: {{VALUE}};',
+				'label'      => esc_html__( 'Spacing / Gap', 'wc-smart-checkout-builder' ),
+				'type'       => Controls_Manager::SLIDER,
+				'size_units' => array( 'px' ),
+				'range'      => array( 'px' => array( 'min' => 0, 'max' => 60 ) ),
+				'selectors'  => array(
+					'{{WRAPPER}} .wcsc-swatch-image' => 'margin-right: {{SIZE}}{{UNIT}}; margin-bottom: {{SIZE}}{{UNIT}};',
 				),
 			)
 		);
 
-		$this->add_control(
-			'img_swatch_active_border_color',
+		$this->start_controls_tabs( 'tabs_img_swatch_states' );
+
+		$this->start_controls_tab(
+			'tab_img_swatch_normal',
+			array( 'label' => esc_html__( 'Normal', 'wc-smart-checkout-builder' ) )
+		);
+
+		$this->add_group_control(
+			Group_Control_Border::get_type(),
 			array(
-				'label'     => esc_html__( 'Active Border Color', 'wc-smart-checkout-builder' ),
-				'type'      => Controls_Manager::COLOR,
-				'selectors' => array(
-					'{{WRAPPER}} .wcsc-swatch-image.is-selected' => 'border-color: {{VALUE}}; box-shadow: 0 0 0 2px {{VALUE}};',
-				),
+				'name'     => 'img_swatch_border',
+				'selector' => '{{WRAPPER}} .wcsc-swatch-image',
 			)
 		);
+
+		$this->end_controls_tab();
+
+		$this->start_controls_tab(
+			'tab_img_swatch_hover',
+			array( 'label' => esc_html__( 'Hover', 'wc-smart-checkout-builder' ) )
+		);
+
+		$this->add_group_control(
+			Group_Control_Border::get_type(),
+			array(
+				'name'     => 'img_swatch_border_hover',
+				'selector' => '{{WRAPPER}} .wcsc-swatch-image:hover',
+			)
+		);
+
+		$this->end_controls_tab();
+
+		$this->start_controls_tab(
+			'tab_img_swatch_active',
+			array( 'label' => esc_html__( 'Active', 'wc-smart-checkout-builder' ) )
+		);
+
+		$this->add_group_control(
+			Group_Control_Border::get_type(),
+			array(
+				'name'     => 'img_swatch_border_active',
+				'selector' => '{{WRAPPER}} .wcsc-swatch-image.is-selected',
+			)
+		);
+
+		$this->end_controls_tab();
+
+		$this->end_controls_tabs();
 
 		$this->end_controls_section();
 

@@ -73,21 +73,21 @@ class ThankYou_Widget extends Widget_Base {
 
 		// Styles
 		$this->start_controls_section( 'section_style_success', [ 'label' => 'Success Message', 'tab' => Controls_Manager::TAB_STYLE ] );
-		$this->add_group_control( Group_Control_Typography::get_type(), [ 'name' => 'success_typography', 'selector' => '{{WRAPPER}} .wcsc-ty-success-msg' ] );
-		$this->add_control( 'success_color', [ 'label' => 'Color', 'type' => Controls_Manager::COLOR, 'selectors' => [ '{{WRAPPER}} .wcsc-ty-success-msg' => 'color: {{VALUE}};' ] ] );
-		$this->add_control( 'success_bg', [ 'label' => 'Background', 'type' => Controls_Manager::COLOR, 'selectors' => [ '{{WRAPPER}} .wcsc-ty-success-msg' => 'background-color: {{VALUE}};' ] ] );
-		$this->add_responsive_control( 'success_padding', [ 'label' => 'Padding', 'type' => Controls_Manager::DIMENSIONS, 'selectors' => [ '{{WRAPPER}} .wcsc-ty-success-msg' => 'padding: {{TOP}}{{UNIT}} {{RIGHT}}{{UNIT}} {{BOTTOM}}{{UNIT}} {{LEFT}}{{UNIT}};' ] ] );
-		$this->add_responsive_control( 'success_margin', [ 'label' => 'Margin', 'type' => Controls_Manager::DIMENSIONS, 'selectors' => [ '{{WRAPPER}} .wcsc-ty-success-msg' => 'margin: {{TOP}}{{UNIT}} {{RIGHT}}{{UNIT}} {{BOTTOM}}{{UNIT}} {{LEFT}}{{UNIT}};' ] ] );
-		$this->add_control( 'success_align', [ 'label' => 'Alignment', 'type' => Controls_Manager::CHOOSE, 'options' => [ 'left' => [ 'icon' => 'eicon-text-align-left' ], 'center' => [ 'icon' => 'eicon-text-align-center' ], 'right' => [ 'icon' => 'eicon-text-align-right' ] ], 'selectors' => [ '{{WRAPPER}} .wcsc-ty-success-msg' => 'text-align: {{VALUE}};' ] ] );
+		$this->add_group_control( Group_Control_Typography::get_type(), [ 'name' => 'success_typography', 'selector' => '{{WRAPPER}} .wcsc-ty-success-msg .wcsc-ty-success-title' ] );
+		$this->add_control( 'success_color', [ 'label' => 'Color', 'type' => Controls_Manager::COLOR, 'default' => '#155724', 'selectors' => [ '{{WRAPPER}} .wcsc-ty-success-msg' => 'color: {{VALUE}};' ] ] );
+		$this->add_control( 'success_bg', [ 'label' => 'Background', 'type' => Controls_Manager::COLOR, 'default' => '#d4edda', 'selectors' => [ '{{WRAPPER}} .wcsc-ty-success-msg' => 'background-color: {{VALUE}};' ] ] );
+		$this->add_responsive_control( 'success_padding', [ 'label' => 'Padding', 'type' => Controls_Manager::DIMENSIONS, 'default' => [ 'top' => '30', 'right' => '20', 'bottom' => '30', 'left' => '20', 'unit' => 'px', 'isLinked' => false ], 'selectors' => [ '{{WRAPPER}} .wcsc-ty-success-msg' => 'padding: {{TOP}}{{UNIT}} {{RIGHT}}{{UNIT}} {{BOTTOM}}{{UNIT}} {{LEFT}}{{UNIT}};' ] ] );
+		$this->add_responsive_control( 'success_margin', [ 'label' => 'Margin', 'type' => Controls_Manager::DIMENSIONS, 'default' => [ 'top' => '0', 'right' => 'auto', 'bottom' => '25', 'left' => 'auto', 'unit' => 'px', 'isLinked' => false ], 'selectors' => [ '{{WRAPPER}} .wcsc-ty-success-msg' => 'margin: {{TOP}}{{UNIT}} {{RIGHT}}{{UNIT}} {{BOTTOM}}{{UNIT}} {{LEFT}}{{UNIT}};' ] ] );
+		$this->add_control( 'success_align', [ 'label' => 'Alignment', 'type' => Controls_Manager::CHOOSE, 'default' => 'center', 'options' => [ 'left' => [ 'icon' => 'eicon-text-align-left' ], 'center' => [ 'icon' => 'eicon-text-align-center' ], 'right' => [ 'icon' => 'eicon-text-align-right' ] ], 'selectors' => [ '{{WRAPPER}} .wcsc-ty-success-msg' => 'align-items: flex-start; text-align: left;', '{{WRAPPER}} .wcsc-ty-success-msg.align-center' => 'align-items: center; text-align: center;', '{{WRAPPER}} .wcsc-ty-success-msg.align-right' => 'align-items: flex-end; text-align: right;' ] ] );
 		$this->add_group_control( Group_Control_Border::get_type(), [ 'name' => 'success_border', 'selector' => '{{WRAPPER}} .wcsc-ty-success-msg' ] );
-		$this->add_control( 'success_radius', [ 'label' => 'Border Radius', 'type' => Controls_Manager::DIMENSIONS, 'selectors' => [ '{{WRAPPER}} .wcsc-ty-success-msg' => 'border-radius: {{TOP}}px {{RIGHT}}px {{BOTTOM}}px {{LEFT}}px;' ] ] );
+		$this->add_control( 'success_radius', [ 'label' => 'Border Radius', 'type' => Controls_Manager::DIMENSIONS, 'default' => [ 'top' => '8', 'right' => '8', 'bottom' => '8', 'left' => '8', 'unit' => 'px', 'isLinked' => true ], 'selectors' => [ '{{WRAPPER}} .wcsc-ty-success-msg' => 'border-radius: {{TOP}}px {{RIGHT}}px {{BOTTOM}}px {{LEFT}}px;' ] ] );
 		$this->end_controls_section();
 
 		$this->start_controls_section( 'section_style_order_info', [ 'label' => 'Order Information', 'tab' => Controls_Manager::TAB_STYLE ] );
-		$this->add_group_control( Group_Control_Typography::get_type(), [ 'name' => 'oi_label_typo', 'label' => 'Label Typography', 'selector' => '{{WRAPPER}} .wcsc-ty-order-info dt' ] );
-		$this->add_group_control( Group_Control_Typography::get_type(), [ 'name' => 'oi_value_typo', 'label' => 'Value Typography', 'selector' => '{{WRAPPER}} .wcsc-ty-order-info dd' ] );
-		$this->add_control( 'oi_label_color', [ 'label' => 'Label Color', 'type' => Controls_Manager::COLOR, 'selectors' => [ '{{WRAPPER}} .wcsc-ty-order-info dt' => 'color: {{VALUE}};' ] ] );
-		$this->add_control( 'oi_value_color', [ 'label' => 'Value Color', 'type' => Controls_Manager::COLOR, 'selectors' => [ '{{WRAPPER}} .wcsc-ty-order-info dd' => 'color: {{VALUE}};' ] ] );
+		$this->add_group_control( Group_Control_Typography::get_type(), [ 'name' => 'oi_label_typo', 'label' => 'Label Typography', 'selector' => '{{WRAPPER}} .wcsc-ty-order-info th' ] );
+		$this->add_group_control( Group_Control_Typography::get_type(), [ 'name' => 'oi_value_typo', 'label' => 'Value Typography', 'selector' => '{{WRAPPER}} .wcsc-ty-order-info td' ] );
+		$this->add_control( 'oi_label_color', [ 'label' => 'Label Color', 'type' => Controls_Manager::COLOR, 'selectors' => [ '{{WRAPPER}} .wcsc-ty-order-info th' => 'color: {{VALUE}};' ] ] );
+		$this->add_control( 'oi_value_color', [ 'label' => 'Value Color', 'type' => Controls_Manager::COLOR, 'selectors' => [ '{{WRAPPER}} .wcsc-ty-order-info td' => 'color: {{VALUE}};' ] ] );
 		$this->add_control( 'oi_bg', [ 'label' => 'Background', 'type' => Controls_Manager::COLOR, 'selectors' => [ '{{WRAPPER}} .wcsc-ty-order-info' => 'background-color: {{VALUE}};' ] ] );
 		$this->add_responsive_control( 'oi_padding', [ 'label' => 'Padding', 'type' => Controls_Manager::DIMENSIONS, 'selectors' => [ '{{WRAPPER}} .wcsc-ty-order-info' => 'padding: {{TOP}}{{UNIT}} {{RIGHT}}{{UNIT}} {{BOTTOM}}{{UNIT}} {{LEFT}}{{UNIT}};' ] ] );
 		$this->add_responsive_control( 'oi_margin', [ 'label' => 'Margin', 'type' => Controls_Manager::DIMENSIONS, 'selectors' => [ '{{WRAPPER}} .wcsc-ty-order-info' => 'margin: {{TOP}}{{UNIT}} {{RIGHT}}{{UNIT}} {{BOTTOM}}{{UNIT}} {{LEFT}}{{UNIT}};' ] ] );
@@ -108,7 +108,7 @@ class ThankYou_Widget extends Widget_Base {
 		$this->end_controls_section();
 
 		$this->start_controls_section( 'section_style_items', [ 'label' => 'Product Items', 'tab' => Controls_Manager::TAB_STYLE ] );
-		$this->add_control( 'item_img_width', [ 'label' => 'Image Width', 'type' => Controls_Manager::SLIDER, 'range' => [ 'px' => [ 'min' => 20, 'max' => 200 ] ], 'selectors' => [ '{{WRAPPER}} .wcsc-ty-item-img img' => 'width: {{SIZE}}{{UNIT}}; height: auto;' ] ] );
+		$this->add_control( 'item_img_width', [ 'label' => 'Image Width', 'type' => Controls_Manager::SLIDER, 'default' => [ 'size' => 120, 'unit' => 'px' ], 'range' => [ 'px' => [ 'min' => 20, 'max' => 300 ] ], 'selectors' => [ '{{WRAPPER}} .wcsc-ty-item-img img' => 'max-width: {{SIZE}}{{UNIT}}; height: auto;' ] ] );
 		$this->add_control( 'item_img_radius', [ 'label' => 'Image Radius', 'type' => Controls_Manager::DIMENSIONS, 'selectors' => [ '{{WRAPPER}} .wcsc-ty-item-img img' => 'border-radius: {{TOP}}px {{RIGHT}}px {{BOTTOM}}px {{LEFT}}px;' ] ] );
 		
 		$this->add_group_control( Group_Control_Typography::get_type(), [ 'name' => 'item_name_typo', 'label' => 'Name Typography', 'selector' => '{{WRAPPER}} .wcsc-ty-item-name' ] );
@@ -255,10 +255,21 @@ class ThankYou_Widget extends Widget_Base {
 	private function render_html_output( $settings, $order_num, $date, $status, $payment, $subtotal, $shipping, $total, $items, $billing, $shipping_addr ) {
 		// Custom styles for grid layouts since Elementor doesn't perfectly sandbox all custom layouts
 		echo '<style>
-			.wcsc-ty-order-info { display: flex; flex-wrap: wrap; gap: 20px; list-style: none; padding: 0; }
-			.wcsc-ty-order-info li { display: flex; flex-direction: column; }
-			.wcsc-ty-order-info dt { font-size: 0.8em; text-transform: uppercase; color: #718096; }
-			.wcsc-ty-order-info dd { margin: 0; font-weight: 600; color: #2d3748; }
+			.wcsc-ty-success-msg { max-width: 500px; display: flex; flex-direction: column; line-height: 1.4; }
+			.wcsc-ty-success-icon { margin-bottom: 15px; color: inherit; }
+			.wcsc-ty-success-icon svg { width: 48px; height: 48px; stroke: currentColor; fill: none; stroke-width: 2; stroke-linecap: round; stroke-linejoin: round; }
+			.wcsc-ty-success-title { font-size: 1.5rem; font-weight: 600; margin: 0; }
+			
+			.wcsc-ty-order-info { width: 100%; max-width: 600px; border-collapse: collapse; margin-bottom: 30px; }
+			.wcsc-ty-order-info tr { border-bottom: 1px solid #e2e8f0; }
+			.wcsc-ty-order-info th { padding: 12px 10px 12px 0; text-align: left; font-weight: 600; color: #4a5568; vertical-align: top; width: 40%; }
+			.wcsc-ty-order-info td { padding: 12px 10px 12px 0; text-align: left; font-weight: 700; color: #1a202c; vertical-align: top; }
+			@media (max-width: 480px) {
+				.wcsc-ty-order-info th, .wcsc-ty-order-info td { display: block; width: 100%; padding: 6px 0; }
+				.wcsc-ty-order-info th { padding-top: 12px; border-bottom: none; padding-bottom: 2px; }
+				.wcsc-ty-order-info td { padding-bottom: 12px; font-weight: 600; }
+			}
+			
 			.wcsc-ty-customer-details { display: flex; flex-wrap: wrap; gap: 40px; }
 			.wcsc-ty-address-col { flex: 1; min-width: 250px; }
 			.wcsc-ty-item { display: flex; align-items: center; gap: 15px; border-bottom: 1px solid #e2e8f0; padding: 15px 0; }
@@ -274,16 +285,20 @@ class ThankYou_Widget extends Widget_Base {
 		</style>';
 
 		if ( 'yes' === $settings['show_success_msg'] ) {
-			echo '<div class="wcsc-ty-success-msg">' . esc_html( $settings['success_heading'] ) . '</div>';
+			$align_class = ! empty( $settings['success_align'] ) ? ' align-' . $settings['success_align'] : ' align-center';
+			echo '<div class="wcsc-ty-success-msg' . esc_attr( $align_class ) . '">';
+			echo '<div class="wcsc-ty-success-icon"><svg viewBox="0 0 24 24"><path d="M22 11.08V12a10 10 0 1 1-5.93-9.14"></path><polyline points="22 4 12 14.01 9 11.01"></polyline></svg></div>';
+			echo '<h2 class="wcsc-ty-success-title">' . esc_html( $settings['success_heading'] ) . '</h2>';
+			echo '</div>';
 		}
 
 		if ( 'yes' === $settings['show_order_number'] || 'yes' === $settings['show_order_date'] || 'yes' === $settings['show_order_status'] || 'yes' === $settings['show_payment_method'] ) {
-			echo '<ul class="wcsc-ty-order-info">';
-			if ( 'yes' === $settings['show_order_number'] ) echo '<li><dt>' . esc_html__( 'Order number:', 'wc-smart-checkout-builder' ) . '</dt><dd>' . esc_html( $order_num ) . '</dd></li>';
-			if ( 'yes' === $settings['show_order_date'] ) echo '<li><dt>' . esc_html__( 'Date:', 'wc-smart-checkout-builder' ) . '</dt><dd>' . esc_html( $date ) . '</dd></li>';
-			if ( 'yes' === $settings['show_order_status'] ) echo '<li><dt>' . esc_html__( 'Status:', 'wc-smart-checkout-builder' ) . '</dt><dd>' . esc_html( $status ) . '</dd></li>';
-			if ( 'yes' === $settings['show_payment_method'] ) echo '<li><dt>' . esc_html__( 'Payment method:', 'wc-smart-checkout-builder' ) . '</dt><dd>' . esc_html( $payment ) . '</dd></li>';
-			echo '</ul>';
+			echo '<table class="wcsc-ty-order-info">';
+			if ( 'yes' === $settings['show_order_number'] ) echo '<tr><th>' . esc_html__( 'Order Number', 'wc-smart-checkout-builder' ) . '</th><td>#' . esc_html( $order_num ) . '</td></tr>';
+			if ( 'yes' === $settings['show_order_date'] ) echo '<tr><th>' . esc_html__( 'Order Date', 'wc-smart-checkout-builder' ) . '</th><td>' . esc_html( $date ) . '</td></tr>';
+			if ( 'yes' === $settings['show_order_status'] ) echo '<tr><th>' . esc_html__( 'Order Status', 'wc-smart-checkout-builder' ) . '</th><td>' . esc_html( $status ) . '</td></tr>';
+			if ( 'yes' === $settings['show_payment_method'] ) echo '<tr><th>' . esc_html__( 'Payment Method', 'wc-smart-checkout-builder' ) . '</th><td>' . esc_html( $payment ) . '</td></tr>';
+			echo '</table>';
 		}
 
 		echo '<div class="wcsc-ty-items-list">';

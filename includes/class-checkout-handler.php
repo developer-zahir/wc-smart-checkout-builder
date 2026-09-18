@@ -210,26 +210,6 @@ class Checkout_Handler {
 		$settings = self::$active_widget_settings;
 
 		$field_mapping = array(
-			'billing_country'    => 'trans_country',
-			'shipping_country'   => 'trans_country',
-			'billing_state'      => 'trans_state',
-			'shipping_state'     => 'trans_state',
-			'billing_postcode'   => 'trans_postcode',
-			'shipping_postcode'  => 'trans_postcode',
-			'billing_email'      => 'trans_email',
-			'billing_phone'      => 'trans_phone',
-			'billing_first_name' => 'trans_first_name',
-			'shipping_first_name'=> 'trans_first_name',
-			'billing_last_name'  => 'trans_last_name',
-			'shipping_last_name' => 'trans_last_name',
-			'billing_address_1'  => 'trans_address',
-			'shipping_address_1' => 'trans_address',
-			'billing_address_2'  => 'trans_apartment',
-			'shipping_address_2' => 'trans_apartment',
-			'billing_city'       => 'trans_city',
-			'shipping_city'      => 'trans_city',
-			'billing_company'    => 'trans_company',
-			'shipping_company'   => 'trans_company',
 			'order_comments'     => 'trans_order_notes',
 		);
 
