@@ -54,6 +54,8 @@
 					this.updateButtonPrice(this.rawPriceText);
 				}
 			}
+
+			this.initMobileStickyObserver();
 		},
 
 		bindEvents: function () {
@@ -125,6 +127,9 @@
 				self.hideLoading();
 				self.applyCustomTexts();
 				self.styleShippingMethods();
+
+				// CRITICAL BUG FIX: Ensure secondary duplicate order buttons injected into #payment by native WC AJAX are removed
+				self.$container.find('.wcas-block-payment #place_order, .wcas-block-payment .place-order').remove();
 			});
 
 			$(document.body).on('checkout_error', function () {
@@ -143,6 +148,52 @@
 			});
 			this.$container.on('change', 'input.shipping_method', function () {
 				self.styleShippingMethods();
+			});
+
+			// Mobile sticky order button click -> scroll smoothly to checkout
+			this.$container.on('click', '.wcsc-mobile-sticky-btn', function (e) {
+				e.preventDefault();
+				var $target = self.$container.find('.wcas-checkout-wrapper');
+				if ($target.length) {
+					$('html, body').animate({
+						scrollTop: $target.offset().top - 20
+					}, 450);
+				}
+			});
+
+			// Close modal on close button click
+			$(document).on('click', '.wcsc-phone-modal-close-btn', function (e) {
+				e.preventDefault();
+				$('#wcsc-phone-modal').fadeOut(200);
+				var $phone = self.$container.find('input[name="billing_phone"]');
+				if ($phone.length) {
+					$phone.focus();
+				}
+			});
+
+			// Close modal on backdrop click
+			$(document).on('click', '#wcsc-phone-modal', function (e) {
+				if ($(e.target).is('#wcsc-phone-modal')) {
+					$(this).fadeOut(200);
+				}
+			});
+
+			// Intercept checkout submit for Bangladeshi phone validation
+			this.$container.on('click', '#place_order, .wcsc-order-now-btn', function (e) {
+				var $hasValidation = self.$container.find('input[name="wcsc_bd_phone_validation"]');
+				if ($hasValidation.length && $hasValidation.val() === '1') {
+					var $phone = self.$container.find('input[name="billing_phone"]');
+					if ($phone.length) {
+						var rawPhone = $.trim($phone.val() || '').replace(/[\s\-\(\)]/g, '');
+						var bdPhoneRegex = /^(?:\+?880|880|0)?1[3-9]\d{8}$/;
+						if (!bdPhoneRegex.test(rawPhone)) {
+							e.preventDefault();
+							e.stopImmediatePropagation();
+							$('#wcsc-phone-modal').fadeIn(200);
+							return false;
+						}
+					}
+				}
 			});
 		},
 
@@ -408,6 +459,27 @@
 					self.hideLoading();
 				}
 			});
+		},
+
+		initMobileStickyObserver: function () {
+			var self = this;
+			var stickyBar = self.$container.find('.wcsc-mobile-sticky-bar')[0] || document.getElementById('wcsc-mobile-sticky-bar');
+			var checkoutWrapper = self.$container.find('.wcas-checkout-wrapper')[0];
+
+			if (stickyBar && checkoutWrapper && 'IntersectionObserver' in window) {
+				var observer = new IntersectionObserver(function (entries) {
+					entries.forEach(function (entry) {
+						if (entry.isIntersecting) {
+							$(stickyBar).addClass('is-hidden');
+						} else {
+							$(stickyBar).removeClass('is-hidden');
+						}
+					});
+				}, {
+					threshold: 0.08
+				});
+				observer.observe(checkoutWrapper);
+			}
 		},
 
 		updateEditorPreview: function (variation) {

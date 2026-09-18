@@ -41,9 +41,13 @@ $total_label_text          = ! empty( $settings['total_label_text'] ) ? esc_html
 $show_order_review = ! isset( $settings['show_checkout_order_review'] ) || 'yes' === $settings['show_checkout_order_review'];
 $show_shipping     = ! isset( $settings['show_checkout_shipping'] ) || 'yes' === $settings['show_checkout_shipping'];
 $show_payment      = ! isset( $settings['show_checkout_payment'] ) || 'yes' === $settings['show_checkout_payment'];
-$show_order_button = ! isset( $settings['show_checkout_order_button'] ) || 'yes' === $settings['show_checkout_order_button'];
 $checkout_layout   = ! empty( $settings['checkout_layout'] ) ? $settings['checkout_layout'] : '2_columns';
-$order_button_pos  = ! empty( $settings['order_button_position'] ) ? $settings['order_button_position'] : 'under_payment';
+$order_button_pos  = ! empty( $settings['order_button_position'] ) ? $settings['order_button_position'] : 'right_column';
+if ( 'under_shipping' === $order_button_pos ) {
+	$order_button_pos = 'left_column';
+} elseif ( 'under_payment' === $order_button_pos || 'under_order_review' === $order_button_pos ) {
+	$order_button_pos = 'right_column';
+}
 
 // Dynamic WooCommerce shipping zones / methods for preview
 $preview_shipping_methods = array();
@@ -255,6 +259,10 @@ if ( '1_column' === $checkout_layout ) {
 						</div>
 					</div>
 				<?php endif; ?>
+
+				<?php if ( 'left_column' === $order_button_pos ) : ?>
+					<?php $render_order_button_html(); ?>
+				<?php endif; ?>
 			</div>
 
 			<div class="wcas-checkout-column wcas-checkout-column-right">
@@ -320,11 +328,30 @@ if ( '1_column' === $checkout_layout ) {
 					</div>
 				<?php endif; ?>
 
-				<?php if ( $show_order_button ) : ?>
+				<?php if ( 'right_column' === $order_button_pos ) : ?>
 					<?php $render_order_button_html(); ?>
 				<?php endif; ?>
 			</div>
 
+			<?php if ( 'full_width' === $order_button_pos ) : ?>
+				<div class="wcas-checkout-row-full">
+					<?php $render_order_button_html(); ?>
+				</div>
+			<?php endif; ?>
+
+		<?php endif; ?>
+
+		<?php
+		$sticky_enabled = ! isset( $settings['enable_mobile_sticky_button'] ) || 'yes' === $settings['enable_mobile_sticky_button'];
+		if ( $sticky_enabled ) :
+			$sticky_text = ! empty( $settings['mobile_sticky_button_text'] ) ? $settings['mobile_sticky_button_text'] : __( 'অর্ডার করুন', 'wc-smart-checkout-builder' );
+			?>
+			<div class="wcsc-mobile-sticky-bar" id="wcsc-mobile-sticky-bar">
+				<button type="button" class="wcsc-mobile-sticky-btn">
+					<span class="wcsc-sticky-shine"></span>
+					<span class="wcsc-sticky-text"><?php echo esc_html( $sticky_text ); ?></span>
+				</button>
+			</div>
 		<?php endif; ?>
 	</form>
 </div>

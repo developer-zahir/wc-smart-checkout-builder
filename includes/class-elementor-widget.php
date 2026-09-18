@@ -504,33 +504,18 @@ class Elementor_Widget extends Widget_Base {
 		)
 	);
 
-	$this->add_control(
-		'show_checkout_order_button',
-			array(
-				'label'        => esc_html__( 'Show Order Button', 'wc-smart-checkout-builder' ),
-				'type'         => Controls_Manager::SWITCHER,
-				'label_on'     => esc_html__( 'Show', 'wc-smart-checkout-builder' ),
-				'label_off'    => esc_html__( 'Hide', 'wc-smart-checkout-builder' ),
-				'return_value' => 'yes',
-				'default'      => 'yes',
-			)
-		);
-
 		$this->add_control(
 			'order_button_position',
 			array(
-				'label'       => esc_html__( 'Button Position (Desktop)', 'wc-smart-checkout-builder' ),
+				'label'       => esc_html__( 'Button Position (Two-Column Mode)', 'wc-smart-checkout-builder' ),
 				'type'        => Controls_Manager::SELECT,
 				'options'     => array(
-					'under_order_review' => esc_html__( 'Under Order Review (Right Side)', 'wc-smart-checkout-builder' ),
-					'under_shipping'     => esc_html__( 'Under Shipping Selection (Left Side)', 'wc-smart-checkout-builder' ),
-					'under_payment'      => esc_html__( 'Under Payment Methods (Right Side)', 'wc-smart-checkout-builder' ),
+					'right_column' => esc_html__( 'Right Column (Default)', 'wc-smart-checkout-builder' ),
+					'left_column'  => esc_html__( 'Left Column', 'wc-smart-checkout-builder' ),
+					'full_width'   => esc_html__( 'Full Width', 'wc-smart-checkout-builder' ),
 				),
-				'default'     => 'under_order_review',
-				'description' => esc_html__( 'Note: In mobile 1-column layout, the button is always placed at the very end.', 'wc-smart-checkout-builder' ),
-				'condition'   => array(
-					'show_checkout_order_button' => 'yes',
-				),
+				'default'     => 'right_column',
+				'description' => esc_html__( 'Left Column: under Shipping block. Right Column: bottom of right stack (under Payment or Order Review). Full Width: 100% row beneath columns.', 'wc-smart-checkout-builder' ),
 			)
 		);
 
@@ -599,6 +584,108 @@ class Elementor_Widget extends Widget_Base {
 					'tada'                => esc_html__( 'Tada / Wobble', 'wc-smart-checkout-builder' ),
 					'pulse'               => esc_html__( 'Glow Pulse', 'wc-smart-checkout-builder' ),
 					'none'                => esc_html__( 'None', 'wc-smart-checkout-builder' ),
+				),
+			)
+		);
+
+		$this->end_controls_section();
+
+		// --- Section: Phone Number Validation ---
+		$this->start_controls_section(
+			'section_phone_validation',
+			array(
+				'label'     => esc_html__( 'Phone Number Validation', 'wc-smart-checkout-builder' ),
+				'tab'       => Controls_Manager::TAB_CONTENT,
+				'condition' => array(
+					'show_checkout' => 'yes',
+				),
+			)
+		);
+
+		$this->add_control(
+			'enable_phone_validation',
+			array(
+				'label'        => esc_html__( 'Enable Phone Validation', 'wc-smart-checkout-builder' ),
+				'type'         => Controls_Manager::SWITCHER,
+				'label_on'     => esc_html__( 'Yes', 'wc-smart-checkout-builder' ),
+				'label_off'    => esc_html__( 'No', 'wc-smart-checkout-builder' ),
+				'return_value' => 'yes',
+				'default'      => 'yes',
+				'description'  => esc_html__( 'Validates 11-digit Bangladeshi mobile numbers (013-019, +880, 880). Shows an interactive modal on error.', 'wc-smart-checkout-builder' ),
+			)
+		);
+
+		$this->add_control(
+			'phone_modal_title',
+			array(
+				'label'       => esc_html__( 'Modal Title', 'wc-smart-checkout-builder' ),
+				'type'        => Controls_Manager::TEXT,
+				'default'     => esc_html__( 'সঠিক ফোন নম্বর দিন', 'wc-smart-checkout-builder' ),
+				'condition'   => array(
+					'enable_phone_validation' => 'yes',
+				),
+			)
+		);
+
+		$this->add_control(
+			'phone_modal_message',
+			array(
+				'label'       => esc_html__( 'Modal Message', 'wc-smart-checkout-builder' ),
+				'type'        => Controls_Manager::TEXTAREA,
+				'default'     => esc_html__( 'অনুগ্রহ করে একটি ১১ ডিজিটের বৈধ বাংলাদেশি মোবাইল নম্বর ব্যবহার করুন।', 'wc-smart-checkout-builder' ),
+				'condition'   => array(
+					'enable_phone_validation' => 'yes',
+				),
+			)
+		);
+
+		$this->add_control(
+			'phone_modal_btn_text',
+			array(
+				'label'       => esc_html__( 'Modal Button Text', 'wc-smart-checkout-builder' ),
+				'type'        => Controls_Manager::TEXT,
+				'default'     => esc_html__( 'ঠিক আছে', 'wc-smart-checkout-builder' ),
+				'condition'   => array(
+					'enable_phone_validation' => 'yes',
+				),
+			)
+		);
+
+		$this->end_controls_section();
+
+		// --- Section: Mobile Sticky Order Button ---
+		$this->start_controls_section(
+			'section_mobile_sticky_button',
+			array(
+				'label'     => esc_html__( 'Mobile Sticky Order Button', 'wc-smart-checkout-builder' ),
+				'tab'       => Controls_Manager::TAB_CONTENT,
+				'condition' => array(
+					'show_checkout' => 'yes',
+				),
+			)
+		);
+
+		$this->add_control(
+			'enable_mobile_sticky_button',
+			array(
+				'label'        => esc_html__( 'Enable Sticky Mobile Button', 'wc-smart-checkout-builder' ),
+				'type'         => Controls_Manager::SWITCHER,
+				'label_on'     => esc_html__( 'Yes', 'wc-smart-checkout-builder' ),
+				'label_off'    => esc_html__( 'No', 'wc-smart-checkout-builder' ),
+				'return_value' => 'yes',
+				'default'      => 'yes',
+				'description'  => esc_html__( 'Displays a fixed bottom bar on mobile screens (<= 767px) with shine animation. Smooth-scrolls to checkout.', 'wc-smart-checkout-builder' ),
+			)
+		);
+
+		$this->add_control(
+			'mobile_sticky_button_text',
+			array(
+				'label'       => esc_html__( 'Sticky Button Text', 'wc-smart-checkout-builder' ),
+				'type'        => Controls_Manager::TEXT,
+				'default'     => esc_html__( 'অর্ডার করুন', 'wc-smart-checkout-builder' ),
+				'condition'   => array(
+					'enable_mobile_sticky_button' => 'yes',
 				),
 			)
 		);
@@ -2006,8 +2093,7 @@ class Elementor_Widget extends Widget_Base {
 				'label'     => esc_html__( 'Order Button', 'wc-smart-checkout-builder' ),
 				'tab'       => Controls_Manager::TAB_STYLE,
 				'condition' => array(
-					'show_checkout'              => 'yes',
-					'show_checkout_order_button' => 'yes',
+					'show_checkout' => 'yes',
 				),
 			)
 		);
@@ -2196,10 +2282,26 @@ class Elementor_Widget extends Widget_Base {
 		$this->end_controls_section();
 
 		$blocks = array(
-			'billing'       => array( 'label' => esc_html__( 'Billing Block', 'wc-smart-checkout-builder' ), 'selector' => '{{WRAPPER}} .woocommerce-checkout #customer_details .col-1, {{WRAPPER}} #customer_details .col-1, {{WRAPPER}} .woocommerce-billing-fields' ),
-			'shipping'      => array( 'label' => esc_html__( 'Shipping Block', 'wc-smart-checkout-builder' ), 'selector' => '{{WRAPPER}} .woocommerce-checkout #customer_details .col-2, {{WRAPPER}} #customer_details .col-2, {{WRAPPER}} .woocommerce-shipping-fields' ),
-			'order_summary' => array( 'label' => esc_html__( 'Order Summary Block', 'wc-smart-checkout-builder' ), 'selector' => '{{WRAPPER}} .woocommerce-checkout #order_review, {{WRAPPER}} #order_review, {{WRAPPER}} .ct-order-review' ),
-			'payment'       => array( 'label' => esc_html__( 'Payment Block', 'wc-smart-checkout-builder' ), 'selector' => '{{WRAPPER}} .woocommerce-checkout #payment, {{WRAPPER}} #payment' ),
+			'checkout_form' => array(
+				'label'          => esc_html__( 'Billing & Shipping Block (Form)', 'wc-smart-checkout-builder' ),
+				'selector'       => '{{WRAPPER}} .wcas-checkout-wrapper .wcas-block-checkout-form',
+				'title_selector' => '{{WRAPPER}} .wcas-checkout-wrapper .wcas-block-checkout-form .wcas-block-title',
+			),
+			'shipping'      => array(
+				'label'          => esc_html__( 'Shipping Selection Block', 'wc-smart-checkout-builder' ),
+				'selector'       => '{{WRAPPER}} .wcas-checkout-wrapper .wcas-block-shipping',
+				'title_selector' => '{{WRAPPER}} .wcas-checkout-wrapper .wcas-block-shipping .wcas-block-title',
+			),
+			'order_summary' => array(
+				'label'          => esc_html__( 'Order Review Block', 'wc-smart-checkout-builder' ),
+				'selector'       => '{{WRAPPER}} .wcas-checkout-wrapper .wcas-block-order-review',
+				'title_selector' => '{{WRAPPER}} .wcas-checkout-wrapper .wcas-block-order-review .wcas-block-title',
+			),
+			'payment'       => array(
+				'label'          => esc_html__( 'Payment Block', 'wc-smart-checkout-builder' ),
+				'selector'       => '{{WRAPPER}} .wcas-checkout-wrapper .wcas-block-payment',
+				'title_selector' => '{{WRAPPER}} .wcas-checkout-wrapper .wcas-block-payment .wcas-block-title',
+			),
 		);
 
 		foreach ( $blocks as $key => $block ) {
@@ -2265,18 +2367,237 @@ class Elementor_Widget extends Widget_Base {
 					),
 				)
 			);
-			
+
+			$this->add_group_control(
+				Group_Control_Box_Shadow::get_type(),
+				array(
+					'name'     => 'block_box_shadow_' . $key,
+					'label'    => esc_html__( 'Box Shadow', 'wc-smart-checkout-builder' ),
+					'selector' => $block['selector'],
+				)
+			);
+
+			$this->add_control(
+				'heading_block_title_' . $key,
+				array(
+					'label'     => esc_html__( 'Title Styling Override', 'wc-smart-checkout-builder' ),
+					'type'      => Controls_Manager::HEADING,
+					'separator' => 'before',
+				)
+			);
+
+			$this->add_control(
+				'block_title_color_' . $key,
+				array(
+					'label'     => esc_html__( 'Title Color', 'wc-smart-checkout-builder' ),
+					'type'      => Controls_Manager::COLOR,
+					'selectors' => array(
+						$block['title_selector'] => 'color: {{VALUE}};',
+					),
+				)
+			);
+
 			$this->add_group_control(
 				Group_Control_Typography::get_type(),
 				array(
-					'name'     => 'block_typography_' . $key,
-					'label'    => esc_html__( 'Typography', 'wc-smart-checkout-builder' ),
-					'selector' => $block['selector'] . ', ' . $block['selector'] . ' .wcsc-section-title',
+					'name'     => 'block_title_typography_' . $key,
+					'label'    => esc_html__( 'Title Typography', 'wc-smart-checkout-builder' ),
+					'selector' => $block['title_selector'],
+				)
+			);
+
+			$this->add_control(
+				'block_title_border_style_' . $key,
+				array(
+					'label'     => esc_html__( 'Title Bottom Border', 'wc-smart-checkout-builder' ),
+					'type'      => Controls_Manager::SELECT,
+					'options'   => array(
+						''       => esc_html__( 'Default / Global', 'wc-smart-checkout-builder' ),
+						'solid'  => esc_html__( 'Solid', 'wc-smart-checkout-builder' ),
+						'dashed' => esc_html__( 'Dashed', 'wc-smart-checkout-builder' ),
+						'dotted' => esc_html__( 'Dotted', 'wc-smart-checkout-builder' ),
+						'none'   => esc_html__( 'None', 'wc-smart-checkout-builder' ),
+					),
+					'default'   => '',
+					'selectors' => array(
+						$block['title_selector'] => 'border-bottom-style: {{VALUE}};',
+					),
+				)
+			);
+
+			$this->add_control(
+				'block_title_border_color_' . $key,
+				array(
+					'label'     => esc_html__( 'Title Border Color', 'wc-smart-checkout-builder' ),
+					'type'      => Controls_Manager::COLOR,
+					'selectors' => array(
+						$block['title_selector'] => 'border-bottom-color: {{VALUE}};',
+					),
+					'condition' => array(
+						'block_title_border_style_' . $key . '!' => array( '', 'none' ),
+					),
+				)
+			);
+
+			$this->add_responsive_control(
+				'block_title_border_width_' . $key,
+				array(
+					'label'      => esc_html__( 'Title Border Width', 'wc-smart-checkout-builder' ),
+					'type'       => Controls_Manager::SLIDER,
+					'size_units' => array( 'px' ),
+					'range'      => array(
+						'px' => array( 'min' => 0, 'max' => 10 ),
+					),
+					'selectors'  => array(
+						$block['title_selector'] => 'border-bottom-width: {{SIZE}}{{UNIT}};',
+					),
+					'condition'  => array(
+						'block_title_border_style_' . $key . '!' => array( '', 'none' ),
+					),
 				)
 			);
 
 			$this->end_controls_section();
 		}
+
+		// --- Section: Mobile Sticky Order Button Styling ---
+		$this->start_controls_section(
+			'section_style_mobile_sticky_button',
+			array(
+				'label'     => esc_html__( 'Mobile Sticky Button Style', 'wc-smart-checkout-builder' ),
+				'tab'       => Controls_Manager::TAB_STYLE,
+				'condition' => array(
+					'show_checkout'               => 'yes',
+					'enable_mobile_sticky_button' => 'yes',
+				),
+			)
+		);
+
+		$this->add_control(
+			'mobile_sticky_bg_color',
+			array(
+				'label'     => esc_html__( 'Button Background Color', 'wc-smart-checkout-builder' ),
+				'type'      => Controls_Manager::COLOR,
+				'default'   => '#e53e3e',
+				'selectors' => array(
+					'{{WRAPPER}} .wcsc-mobile-sticky-btn' => 'background-color: {{VALUE}} !important;',
+				),
+			)
+		);
+
+		$this->add_control(
+			'mobile_sticky_text_color',
+			array(
+				'label'     => esc_html__( 'Text Color', 'wc-smart-checkout-builder' ),
+				'type'      => Controls_Manager::COLOR,
+				'default'   => '#ffffff',
+				'selectors' => array(
+					'{{WRAPPER}} .wcsc-mobile-sticky-btn' => 'color: {{VALUE}} !important;',
+				),
+			)
+		);
+
+		$this->add_group_control(
+			Group_Control_Typography::get_type(),
+			array(
+				'name'     => 'mobile_sticky_typography',
+				'label'    => esc_html__( 'Typography', 'wc-smart-checkout-builder' ),
+				'selector' => '{{WRAPPER}} .wcsc-mobile-sticky-btn',
+			)
+		);
+
+		$this->add_responsive_control(
+			'mobile_sticky_padding',
+			array(
+				'label'      => esc_html__( 'Padding', 'wc-smart-checkout-builder' ),
+				'type'       => Controls_Manager::DIMENSIONS,
+				'size_units' => array( 'px', 'em' ),
+				'selectors'  => array(
+					'{{WRAPPER}} .wcsc-mobile-sticky-btn' => 'padding: {{TOP}}{{UNIT}} {{RIGHT}}{{UNIT}} {{BOTTOM}}{{UNIT}} {{LEFT}}{{UNIT}};',
+				),
+			)
+		);
+
+		$this->end_controls_section();
+
+		// --- Section: Phone Validation Modal Styling ---
+		$this->start_controls_section(
+			'section_style_phone_modal',
+			array(
+				'label'     => esc_html__( 'Phone Modal Style', 'wc-smart-checkout-builder' ),
+				'tab'       => Controls_Manager::TAB_STYLE,
+				'condition' => array(
+					'show_checkout'           => 'yes',
+					'enable_phone_validation' => 'yes',
+				),
+			)
+		);
+
+		$this->add_control(
+			'phone_modal_box_bg',
+			array(
+				'label'     => esc_html__( 'Modal Box Background', 'wc-smart-checkout-builder' ),
+				'type'      => Controls_Manager::COLOR,
+				'selectors' => array(
+					'{{WRAPPER}} .wcsc-phone-modal-box' => 'background-color: {{VALUE}};',
+				),
+			)
+		);
+
+		$this->add_control(
+			'phone_modal_title_color',
+			array(
+				'label'     => esc_html__( 'Title Color', 'wc-smart-checkout-builder' ),
+				'type'      => Controls_Manager::COLOR,
+				'selectors' => array(
+					'{{WRAPPER}} .wcsc-phone-modal-title' => 'color: {{VALUE}};',
+				),
+			)
+		);
+
+		$this->add_group_control(
+			Group_Control_Typography::get_type(),
+			array(
+				'name'     => 'phone_modal_title_typography',
+				'label'    => esc_html__( 'Title Typography', 'wc-smart-checkout-builder' ),
+				'selector' => '{{WRAPPER}} .wcsc-phone-modal-title',
+			)
+		);
+
+		$this->add_control(
+			'phone_modal_message_color',
+			array(
+				'label'     => esc_html__( 'Message Color', 'wc-smart-checkout-builder' ),
+				'type'      => Controls_Manager::COLOR,
+				'selectors' => array(
+					'{{WRAPPER}} .wcsc-phone-modal-message' => 'color: {{VALUE}};',
+				),
+			)
+		);
+
+		$this->add_control(
+			'phone_modal_btn_bg',
+			array(
+				'label'     => esc_html__( 'Button Background', 'wc-smart-checkout-builder' ),
+				'type'      => Controls_Manager::COLOR,
+				'selectors' => array(
+					'{{WRAPPER}} .wcsc-phone-modal-close-btn' => 'background-color: {{VALUE}};',
+				),
+			)
+		);
+
+		$this->add_control(
+			'phone_modal_btn_color',
+			array(
+				'label'     => esc_html__( 'Button Text Color', 'wc-smart-checkout-builder' ),
+				'type'      => Controls_Manager::COLOR,
+				'selectors' => array(
+					'{{WRAPPER}} .wcsc-phone-modal-close-btn' => 'color: {{VALUE}};',
+				),
+			)
+		);
+
+		$this->end_controls_section();
 
 		// --- 9. Checkout Fields Style ---
 		$this->start_controls_section(

@@ -44,6 +44,17 @@ class Checkout_Handler {
 	public static $active_product = null;
 
 	/**
+	 * Flag indicating when the plugin's own order button block is actively rendering.
+	 *
+	 * When false, any calls to `woocommerce_order_button_html` (such as inside
+	 * WooCommerce's default checkout/payment.php during AJAX or native rendering)
+	 * will return an empty string to guarantee EXACTLY ONE button exists.
+	 *
+	 * @var bool
+	 */
+	public static $is_rendering_plugin_order_button = false;
+
+	/**
 	 * Cached native review-order HTML.
 	 *
 	 * Captured once per render cycle so that both the Shipping block
@@ -122,6 +133,12 @@ class Checkout_Handler {
 	public static function filter_order_button_html( $button_html ) {
 		if ( empty( self::$active_widget_settings ) ) {
 			return $button_html;
+		}
+
+		// Prevent duplicate order button from being rendered inside #payment by WooCommerce core or AJAX.
+		// Only output button markup when our own dedicated .wcas-block-order-button is actively rendering.
+		if ( ! self::$is_rendering_plugin_order_button ) {
+			return '';
 		}
 
 		$settings   = self::$active_widget_settings;
@@ -309,18 +326,24 @@ class Checkout_Handler {
 			$layout_class = 'wcas-layout-two-column';
 		}
 
-		$order_button_pos = ! empty( $settings['order_button_position'] ) ? $settings['order_button_position'] : 'under_payment';
-		$pos_class        = 'wcas-order-btn-pos-' . sanitize_html_class( str_replace( '_', '-', $order_button_pos ) );
+		$order_button_pos = ! empty( $settings['order_button_position'] ) ? $settings['order_button_position'] : 'right_column';
+		if ( 'under_shipping' === $order_button_pos ) {
+			$order_button_pos = 'left_column';
+		} elseif ( 'under_payment' === $order_button_pos || 'under_order_review' === $order_button_pos ) {
+			$order_button_pos = 'right_column';
+		}
+		$pos_class = 'wcas-order-btn-pos-' . sanitize_html_class( str_replace( '_', '-', $order_button_pos ) );
 
 		// ----------------------------------------------------------------------
 		// Per-block visibility (conditional rendering).
+		// Note: The Order Button is MANDATORY and always rendered.
 		// ----------------------------------------------------------------------
 		$blocks_enabled = array(
 			'checkout_form' => true,
 			'shipping'      => self::is_enabled( $settings, 'show_checkout_shipping' ) && WC()->cart->needs_shipping(),
 			'order_review'  => self::is_enabled( $settings, 'show_checkout_order_review' ),
 			'payment'       => self::is_enabled( $settings, 'show_checkout_payment' ),
-			'order_button'  => self::is_enabled( $settings, 'show_checkout_order_button' ),
+			'order_button'  => true,
 		);
 
 		?>
@@ -345,6 +368,9 @@ class Checkout_Handler {
 					if ( ! empty( $blocks_enabled['shipping'] ) ) {
 						self::render_shipping_block();
 					}
+					if ( 'left_column' === $order_button_pos ) {
+						self::render_order_button_block();
+					}
 					?>
 				</div>
 
@@ -356,12 +382,35 @@ class Checkout_Handler {
 					if ( ! empty( $blocks_enabled['payment'] ) ) {
 						self::render_payment_block();
 					}
-					if ( ! empty( $blocks_enabled['order_button'] ) ) {
+					if ( 'right_column' === $order_button_pos ) {
 						self::render_order_button_block();
 					}
 					?>
 				</div>
+
+				<?php if ( 'full_width' === $order_button_pos ) : ?>
+					<div class="wcas-checkout-row-full">
+						<?php self::render_order_button_block(); ?>
+					</div>
+				<?php endif; ?>
 			</div>
+
+			<?php
+			$phone_val_enabled = ! isset( $settings['enable_phone_validation'] ) || 'yes' === $settings['enable_phone_validation'];
+			if ( $phone_val_enabled ) {
+				$modal_title = ! empty( $settings['phone_modal_title'] ) ? $settings['phone_modal_title'] : __( 'সঠিক ফোন নম্বর দিন', 'wc-smart-checkout-builder' );
+				$modal_msg   = ! empty( $settings['phone_modal_message'] ) ? $settings['phone_modal_message'] : __( 'অনুগ্রহ করে একটি ১১ ডিজিটের বৈধ বাংলাদেশি মোবাইল নম্বর ব্যবহার করুন।', 'wc-smart-checkout-builder' );
+				$modal_btn   = ! empty( $settings['phone_modal_btn_text'] ) ? $settings['phone_modal_btn_text'] : __( 'ঠিক আছে', 'wc-smart-checkout-builder' );
+				self::render_phone_modal_html( $modal_title, $modal_msg, $modal_btn );
+				echo '<input type="hidden" name="wcsc_bd_phone_validation" value="1" />';
+			}
+
+			$sticky_enabled = ! isset( $settings['enable_mobile_sticky_button'] ) || 'yes' === $settings['enable_mobile_sticky_button'];
+			if ( $sticky_enabled ) {
+				$sticky_text = ! empty( $settings['mobile_sticky_button_text'] ) ? $settings['mobile_sticky_button_text'] : __( 'অর্ডার করুন', 'wc-smart-checkout-builder' );
+				self::render_mobile_sticky_button_html( $sticky_text );
+			}
+			?>
 		</form>
 		<?php
 	}
@@ -896,7 +945,9 @@ class Checkout_Handler {
 			esc_html__( 'Place order', 'woocommerce' )
 		);
 
+		self::$is_rendering_plugin_order_button = true;
 		$button_html = apply_filters( 'woocommerce_order_button_html', $default_button );
+		self::$is_rendering_plugin_order_button = false;
 		?>
 		<div class="wcas-block wcas-block-order-button">
 			<div class="form-row place-order">
@@ -930,7 +981,7 @@ class Checkout_Handler {
 	 * 1. .woocommerce-checkout-review-order-table is updated with our clean table,
 	 *    displaying the updated shipping charge row without any method radios.
 	 * 2. .wcas-shipping-methods-wrapper is updated with the refreshed shipping methods.
-	 * 3. The place order button is stripped from .woocommerce-checkout-payment.
+	 * 3. The place order button and .place-order row are stripped from .woocommerce-checkout-payment.
 	 *
 	 * @param array $fragments
 	 * @return array
@@ -942,16 +993,63 @@ class Checkout_Handler {
 		// Update the selectable shipping methods in the dedicated Shipping block
 		$fragments['.wcas-shipping-methods-wrapper'] = '<div class="wcas-shipping-methods-wrapper">' . self::render_shipping_methods_html() . '</div>';
 
-		// Strip place-order button from payment gateway fragment if present
+		// Strip place-order button and container from payment gateway fragment if present
 		if ( isset( $fragments['.woocommerce-checkout-payment'] ) ) {
 			$fragments['.woocommerce-checkout-payment'] = (string) preg_replace(
-				'/<div[^>]*\sclass="[^"]*form-row[^"]*place-order[^"]*"[^>]*>.*?<\/div>\s*/is',
+				'/<div[^>]*\sclass="[^"]*place-order[^"]*"[^>]*>.*?<\/div>\s*/is',
+				'',
+				$fragments['.woocommerce-checkout-payment']
+			);
+			$fragments['.woocommerce-checkout-payment'] = (string) preg_replace(
+				'/<button[^>]*id="place_order"[^>]*>.*?<\/button>\s*/is',
 				'',
 				$fragments['.woocommerce-checkout-payment']
 			);
 		}
 
 		return $fragments;
+	}
+
+	/**
+	 * Render the phone number validation error modal markup.
+	 *
+	 * @param string $title
+	 * @param string $message
+	 * @param string $btn_text
+	 */
+	public static function render_phone_modal_html( $title, $message, $btn_text ) {
+		?>
+		<div id="wcsc-phone-modal" class="wcsc-phone-modal-backdrop" style="display: none;" role="dialog" aria-modal="true">
+			<div class="wcsc-phone-modal-box">
+				<div class="wcsc-phone-modal-icon">
+					<svg viewBox="0 0 24 24" width="32" height="32" fill="none" stroke="currentColor" stroke-width="2" stroke-linecap="round" stroke-linejoin="round">
+						<circle cx="12" cy="12" r="10"></circle>
+						<line x1="12" y1="8" x2="12" y2="12"></line>
+						<line x1="12" y1="16" x2="12.01" y2="16"></line>
+					</svg>
+				</div>
+				<h4 class="wcsc-phone-modal-title"><?php echo esc_html( $title ); ?></h4>
+				<p class="wcsc-phone-modal-message"><?php echo esc_html( $message ); ?></p>
+				<button type="button" class="wcsc-phone-modal-close-btn"><?php echo esc_html( $btn_text ); ?></button>
+			</div>
+		</div>
+		<?php
+	}
+
+	/**
+	 * Render the mobile sticky floating order now button.
+	 *
+	 * @param string $text
+	 */
+	public static function render_mobile_sticky_button_html( $text ) {
+		?>
+		<div class="wcsc-mobile-sticky-bar" id="wcsc-mobile-sticky-bar">
+			<button type="button" class="wcsc-mobile-sticky-btn">
+				<span class="wcsc-sticky-shine"></span>
+				<span class="wcsc-sticky-text"><?php echo esc_html( $text ); ?></span>
+			</button>
+		</div>
+		<?php
 	}
 
 	/**
@@ -1038,10 +1136,16 @@ class Checkout_Handler {
 		if ( isset( $_POST['wcsc_bd_phone_validation'] ) && '1' === $_POST['wcsc_bd_phone_validation'] ) {
 			$phone = isset( $data['billing_phone'] ) ? $data['billing_phone'] : '';
 			if ( ! empty( $phone ) ) {
-				$phone = preg_replace( '/[^0-9]/', '', $phone );
-				if ( strlen( $phone ) !== 11 || substr( $phone, 0, 2 ) !== '01' ) {
-					$errors->add( 'billing_phone', __( 'সঠিক ১১ ডিজিটের ফোন নাম্বার দিন।', 'wc-smart-checkout-builder' ) );
+				$clean = preg_replace( '/[^0-9+]/', '', trim( $phone ) );
+				// BD format regex: optional +880 or 880 or 0, followed by 1, then 3-9, then 8 digits
+				if ( ! preg_match( '/^(?:\+?880|880|0)?1[3-9]\d{8}$/', $clean ) ) {
+					$msg = ! empty( self::$active_widget_settings['phone_modal_message'] )
+						? self::$active_widget_settings['phone_modal_message']
+						: __( 'অনুগ্রহ করে একটি ১১ ডিজিটের বৈধ বাংলাদেশি মোবাইল নম্বর ব্যবহার করুন।', 'wc-smart-checkout-builder' );
+					$errors->add( 'billing_phone', esc_html( $msg ) );
 				}
+			} else {
+				$errors->add( 'billing_phone', __( 'ফোন নম্বর দিন।', 'wc-smart-checkout-builder' ) );
 			}
 		}
 	}
