@@ -144,11 +144,9 @@ if ( '1_column' === $checkout_layout ) {
 }
 ?>
 
-<div class="<?php echo esc_attr( implode( ' ', $wrapper_classes ) ); ?>">
-	<div class="woocommerce-NoticeGroup woocommerce-NoticeGroup-checkout" style="display: none;"></div>
-
-	<form name="checkout" class="checkout woocommerce-checkout wcsc-checkout-form" onsubmit="return false;">
-		<?php if ( $show_order_review || $show_shipping || $show_payment || $show_order_button ) : ?>
+<form name="checkout" class="checkout woocommerce-checkout wcsc-checkout-form" onsubmit="return false;">
+	<div class="<?php echo esc_attr( implode( ' ', $wrapper_classes ) ); ?>" <?php echo \WCSC\Checkout_Handler::render_data_attrs( $settings ); // phpcs:ignore WordPress.Security.EscapeOutput.OutputNotEscaped ?>>
+		<?php if ( $show_order_review || $show_shipping || $show_payment ) : ?>
 
 			<?php
 			// Render Order Button markup helper
@@ -340,18 +338,18 @@ if ( '1_column' === $checkout_layout ) {
 			<?php endif; ?>
 
 		<?php endif; ?>
+	</div>
 
-		<?php
-		$sticky_enabled = ! isset( $settings['enable_mobile_sticky_button'] ) || 'yes' === $settings['enable_mobile_sticky_button'];
-		if ( $sticky_enabled ) :
-			$sticky_text = ! empty( $settings['mobile_sticky_button_text'] ) ? $settings['mobile_sticky_button_text'] : __( 'অর্ডার করুন', 'wc-smart-checkout-builder' );
-			?>
-			<div class="wcsc-mobile-sticky-bar" id="wcsc-mobile-sticky-bar">
-				<button type="button" class="wcsc-mobile-sticky-btn">
-					<span class="wcsc-sticky-shine"></span>
-					<span class="wcsc-sticky-text"><?php echo esc_html( $sticky_text ); ?></span>
-				</button>
-			</div>
-		<?php endif; ?>
-	</form>
-</div>
+	<?php
+	$sticky_enabled = ! isset( $settings['enable_mobile_sticky_button'] ) || 'yes' === $settings['enable_mobile_sticky_button'];
+	if ( $sticky_enabled ) :
+		$sticky_text = ! empty( $settings['mobile_sticky_button_text'] ) ? $settings['mobile_sticky_button_text'] : __( 'অর্ডার করুন', 'wc-smart-checkout-builder' );
+		?>
+		<div class="wcsc-mobile-sticky-bar" id="wcsc-mobile-sticky-bar">
+			<button type="button" class="wcsc-mobile-sticky-btn">
+				<span class="wcsc-sticky-shine"></span>
+				<span class="wcsc-sticky-text"><?php echo esc_html( $sticky_text ); ?></span>
+			</button>
+		</div>
+	<?php endif; ?>
+</form>

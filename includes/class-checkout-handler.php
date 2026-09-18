@@ -432,7 +432,7 @@ class Checkout_Handler {
 	 * @param array $settings
 	 * @return string
 	 */
-	private static function render_data_attrs( $settings ) {
+	public static function render_data_attrs( $settings ) {
 		$attrs = array(
 			'data-txt-order'    => ! empty( $settings['order_review_heading_text'] ) ? $settings['order_review_heading_text'] : '',
 			'data-txt-billing'  => ! empty( $settings['billing_heading_text'] ) ? $settings['billing_heading_text'] : '',

@@ -472,7 +472,9 @@
 }
 
 .wcas-layout-two-column.wcas-checkout-wrapper > .wcas-checkout-column,
-.wcas-layout-two-column .wcas-checkout-wrapper > .wcas-checkout-column {
+.wcas-layout-two-column .wcas-checkout-wrapper > .wcas-checkout-column,
+.wcas-layout-two-column.wcas-checkout-wrapper .wcas-checkout-column,
+.wcas-layout-two-column .wcas-checkout-wrapper .wcas-checkout-column {
 	flex: 1 1 calc(50% - (var(--wcsc-col-gap, 30px) / 2));
 	max-width: calc(50% - (var(--wcsc-col-gap, 30px) / 2));
 	width: calc(50% - (var(--wcsc-col-gap, 30px) / 2));
@@ -483,12 +485,14 @@
 }
 
 /* Full Width Order Button Row (spans 100% beneath both columns) */
-.wcas-checkout-wrapper .wcas-checkout-row-full {
-	flex: 0 0 100%;
-	width: 100%;
-	max-width: 100%;
+.wcas-checkout-wrapper .wcas-checkout-row-full,
+.wcas-layout-two-column.wcas-checkout-wrapper .wcas-checkout-row-full,
+.wcas-layout-two-column .wcas-checkout-wrapper .wcas-checkout-row-full {
+	flex: 0 0 100% !important;
+	width: 100% !important;
+	max-width: 100% !important;
 	box-sizing: border-box;
-	margin-top: 6px;
+	margin-top: var(--wcsc-row-gap, 24px);
 }
 
 .wcas-checkout-wrapper .wcas-checkout-row-full .wcas-block-order-button {
@@ -1126,11 +1130,14 @@
 	position: fixed;
 	bottom: 0;
 	left: 0;
-	width: 100%;
+	right: 0;
+	width: 100% !important;
 	z-index: 99999;
-	background: #ffffff;
-	box-shadow: 0 -4px 16px rgba(0, 0, 0, 0.12);
-	padding: 10px 14px;
+	background: transparent !important;
+	box-shadow: 0 -4px 16px rgba(0, 0, 0, 0.15);
+	padding: 0 !important;
+	margin: 0 !important;
+	border: none !important;
 	box-sizing: border-box;
 	transition: transform 0.3s cubic-bezier(0.16, 1, 0.3, 1), opacity 0.3s ease;
 }
@@ -1146,24 +1153,32 @@
 	}
 }
 
+/* In active Elementor editor, prevent sticky bar from covering the editor bottom bar */
+body.elementor-editor-active .wcsc-mobile-sticky-bar {
+	display: none !important;
+}
+
 .wcsc-mobile-sticky-btn {
 	position: relative;
 	overflow: hidden;
-	width: 100%;
+	width: 100% !important;
+	max-width: 100% !important;
 	display: flex;
 	align-items: center;
 	justify-content: center;
 	background: #e53e3e;
 	color: #ffffff;
-	border: none;
-	border-radius: 0;
-	padding: 14px 20px;
+	border: none !important;
+	border-radius: 0 !important;
+	margin: 0 !important;
+	padding: 16px 20px;
 	font-size: 1.15rem;
 	font-weight: 700;
 	cursor: pointer;
 	text-decoration: none;
 	text-align: center;
 	line-height: 1.2;
+	box-sizing: border-box;
 }
 
 .wcsc-mobile-sticky-btn .wcsc-sticky-shine {

@@ -257,7 +257,8 @@ class Elementor_Widget extends Widget_Base {
 			array(
 				'label'       => esc_html__( 'Custom Label / Title', 'wc-smart-checkout-builder' ),
 				'type'        => Controls_Manager::TEXT,
-				'placeholder' => esc_html__( 'e.g. কালার সিলেক্ট করুন, সাইজ সিলেক্ট করুন', 'wc-smart-checkout-builder' ),
+				'placeholder' => esc_html__( 'e.g. সাইজ নির্বাচন করুন: {value}', 'wc-smart-checkout-builder' ),
+				'description' => esc_html__( 'Use {value} or {selected_variation} to dynamically display the currently selected option.', 'wc-smart-checkout-builder' ),
 				'label_block' => true,
 			)
 		);
@@ -342,19 +343,9 @@ class Elementor_Widget extends Widget_Base {
 				),
 				'selectors'  => array(
 					'{{WRAPPER}} .wcsc-product-checkout-widget' => '--wcsc-row-gap: {{SIZE}}{{UNIT}};',
+					'{{WRAPPER}} .wcas-checkout-wrapper'        => '--wcsc-row-gap: {{SIZE}}{{UNIT}};',
+					'{{WRAPPER}} .wcas-checkout-column'         => 'gap: {{SIZE}}{{UNIT}};',
 				),
-			)
-		);
-
-		$this->add_control(
-			'bd_phone_validation',
-			array(
-				'label'        => esc_html__( 'Enable BD Phone Validation', 'wc-smart-checkout-builder' ),
-				'type'         => Controls_Manager::SWITCHER,
-				'label_on'     => esc_html__( 'On', 'wc-smart-checkout-builder' ),
-				'label_off'    => esc_html__( 'Off', 'wc-smart-checkout-builder' ),
-				'return_value' => 'yes',
-				'default'      => '',
 			)
 		);
 
@@ -507,15 +498,14 @@ class Elementor_Widget extends Widget_Base {
 		$this->add_control(
 			'order_button_position',
 			array(
-				'label'       => esc_html__( 'Button Position (Two-Column Mode)', 'wc-smart-checkout-builder' ),
-				'type'        => Controls_Manager::SELECT,
-				'options'     => array(
-					'right_column' => esc_html__( 'Right Column (Default)', 'wc-smart-checkout-builder' ),
+				'label'   => esc_html__( 'Button Position (Two-Column Mode)', 'wc-smart-checkout-builder' ),
+				'type'    => Controls_Manager::SELECT,
+				'options' => array(
 					'left_column'  => esc_html__( 'Left Column', 'wc-smart-checkout-builder' ),
+					'right_column' => esc_html__( 'Right Column', 'wc-smart-checkout-builder' ),
 					'full_width'   => esc_html__( 'Full Width', 'wc-smart-checkout-builder' ),
 				),
-				'default'     => 'right_column',
-				'description' => esc_html__( 'Left Column: under Shipping block. Right Column: bottom of right stack (under Payment or Order Review). Full Width: 100% row beneath columns.', 'wc-smart-checkout-builder' ),
+				'default' => 'right_column',
 			)
 		);
 
@@ -1528,6 +1518,30 @@ class Elementor_Widget extends Widget_Base {
 			)
 		);
 
+		$this->add_responsive_control(
+			'global_block_spacing',
+			array(
+				'label'      => esc_html__( 'Block Spacing / Gap', 'wc-smart-checkout-builder' ),
+				'type'       => Controls_Manager::SLIDER,
+				'size_units' => array( 'px', 'em', 'rem' ),
+				'range'      => array(
+					'px' => array(
+						'min' => 0,
+						'max' => 100,
+					),
+				),
+				'default'    => array(
+					'size' => 24,
+					'unit' => 'px',
+				),
+				'selectors'  => array(
+					'{{WRAPPER}}'                        => '--wcsc-row-gap: {{SIZE}}{{UNIT}};',
+					'{{WRAPPER}} .wcas-checkout-wrapper' => '--wcsc-row-gap: {{SIZE}}{{UNIT}}; gap: {{SIZE}}{{UNIT}};',
+					'{{WRAPPER}} .wcas-checkout-column'  => 'gap: {{SIZE}}{{UNIT}};',
+				),
+			)
+		);
+
 		$this->add_control(
 			'heading_global_card_title',
 			array(
@@ -1575,60 +1589,18 @@ class Elementor_Widget extends Widget_Base {
 		$this->add_control(
 			'heading_global_title_border',
 			array(
-				'label'     => esc_html__( 'Title Bottom Border Controls', 'wc-smart-checkout-builder' ),
+				'label'     => esc_html__( 'Title Border', 'wc-smart-checkout-builder' ),
 				'type'      => Controls_Manager::HEADING,
 				'separator' => 'before',
 			)
 		);
 
-		$this->add_control(
-			'global_title_border_style',
+		$this->add_group_control(
+			Group_Control_Border::get_type(),
 			array(
-				'label'     => esc_html__( 'Border Style', 'wc-smart-checkout-builder' ),
-				'type'      => Controls_Manager::SELECT,
-				'options'   => array(
-					'solid'  => esc_html__( 'Solid', 'wc-smart-checkout-builder' ),
-					'dashed' => esc_html__( 'Dashed', 'wc-smart-checkout-builder' ),
-					'dotted' => esc_html__( 'Dotted', 'wc-smart-checkout-builder' ),
-					'double' => esc_html__( 'Double', 'wc-smart-checkout-builder' ),
-					'none'   => esc_html__( 'None', 'wc-smart-checkout-builder' ),
-				),
-				'default'   => 'solid',
-				'selectors' => array(
-					'{{WRAPPER}} .wcas-checkout-wrapper .wcas-block .wcas-block-title, {{WRAPPER}} .wcas-checkout-wrapper .wcas-block .wcsc-section-title' => 'border-bottom-style: {{VALUE}};',
-				),
-			)
-		);
-
-		$this->add_control(
-			'global_title_border_color',
-			array(
-				'label'     => esc_html__( 'Border Color', 'wc-smart-checkout-builder' ),
-				'type'      => Controls_Manager::COLOR,
-				'selectors' => array(
-					'{{WRAPPER}} .wcas-checkout-wrapper .wcas-block .wcas-block-title, {{WRAPPER}} .wcas-checkout-wrapper .wcas-block .wcsc-section-title' => 'border-bottom-color: {{VALUE}};',
-				),
-				'condition' => array(
-					'global_title_border_style!' => 'none',
-				),
-			)
-		);
-
-		$this->add_responsive_control(
-			'global_title_border_width',
-			array(
-				'label'      => esc_html__( 'Border Width', 'wc-smart-checkout-builder' ),
-				'type'       => Controls_Manager::SLIDER,
-				'size_units' => array( 'px' ),
-				'range'      => array(
-					'px' => array( 'min' => 0, 'max' => 10 ),
-				),
-				'selectors'  => array(
-					'{{WRAPPER}} .wcas-checkout-wrapper .wcas-block .wcas-block-title, {{WRAPPER}} .wcas-checkout-wrapper .wcas-block .wcsc-section-title' => 'border-bottom-width: {{SIZE}}{{UNIT}};',
-				),
-				'condition'  => array(
-					'global_title_border_style!' => 'none',
-				),
+				'name'     => 'global_title_border',
+				'label'    => esc_html__( 'Border', 'wc-smart-checkout-builder' ),
+				'selector' => '{{WRAPPER}} .wcas-checkout-wrapper .wcas-block .wcas-block-title, {{WRAPPER}} .wcas-checkout-wrapper .wcas-block .wcsc-section-title',
 			)
 		);
 
@@ -2406,54 +2378,12 @@ class Elementor_Widget extends Widget_Base {
 				)
 			);
 
-			$this->add_control(
-				'block_title_border_style_' . $key,
+			$this->add_group_control(
+				Group_Control_Border::get_type(),
 				array(
-					'label'     => esc_html__( 'Title Bottom Border', 'wc-smart-checkout-builder' ),
-					'type'      => Controls_Manager::SELECT,
-					'options'   => array(
-						''       => esc_html__( 'Default / Global', 'wc-smart-checkout-builder' ),
-						'solid'  => esc_html__( 'Solid', 'wc-smart-checkout-builder' ),
-						'dashed' => esc_html__( 'Dashed', 'wc-smart-checkout-builder' ),
-						'dotted' => esc_html__( 'Dotted', 'wc-smart-checkout-builder' ),
-						'none'   => esc_html__( 'None', 'wc-smart-checkout-builder' ),
-					),
-					'default'   => '',
-					'selectors' => array(
-						$block['title_selector'] => 'border-bottom-style: {{VALUE}};',
-					),
-				)
-			);
-
-			$this->add_control(
-				'block_title_border_color_' . $key,
-				array(
-					'label'     => esc_html__( 'Title Border Color', 'wc-smart-checkout-builder' ),
-					'type'      => Controls_Manager::COLOR,
-					'selectors' => array(
-						$block['title_selector'] => 'border-bottom-color: {{VALUE}};',
-					),
-					'condition' => array(
-						'block_title_border_style_' . $key . '!' => array( '', 'none' ),
-					),
-				)
-			);
-
-			$this->add_responsive_control(
-				'block_title_border_width_' . $key,
-				array(
-					'label'      => esc_html__( 'Title Border Width', 'wc-smart-checkout-builder' ),
-					'type'       => Controls_Manager::SLIDER,
-					'size_units' => array( 'px' ),
-					'range'      => array(
-						'px' => array( 'min' => 0, 'max' => 10 ),
-					),
-					'selectors'  => array(
-						$block['title_selector'] => 'border-bottom-width: {{SIZE}}{{UNIT}};',
-					),
-					'condition'  => array(
-						'block_title_border_style_' . $key . '!' => array( '', 'none' ),
-					),
+					'name'     => 'block_title_border_' . $key,
+					'label'    => esc_html__( 'Title Border', 'wc-smart-checkout-builder' ),
+					'selector' => $block['title_selector'],
 				)
 			);
 
@@ -2994,13 +2924,41 @@ class Elementor_Widget extends Widget_Base {
 										}
 									}
 								}
+								if ( empty( $custom_label ) && preg_match( '/\{+(?:value|selected_variation)\}+/i', $attr_label ) ) {
+									$custom_label = $attr_label;
+								}
+
+								// Find initial default label for value replacement
+								$default_label = '';
+								if ( ! empty( $attr['options'] ) ) {
+									if ( $default_val ) {
+										foreach ( $attr['options'] as $opt ) {
+											if ( $opt['value'] === $default_val ) {
+												$default_label = $opt['label'];
+												break;
+											}
+										}
+									}
+									if ( empty( $default_label ) && isset( $attr['options'][0]['label'] ) ) {
+										$default_label = $attr['options'][0]['label'];
+									}
+								}
+
 								$label_template_attr = $custom_label ? ' data-label-template="' . esc_attr( $custom_label ) . '"' : '';
-								$display_label = $custom_label ? str_replace( '{{value}}', '', $custom_label ) : $attr_label;
+								$has_placeholder     = $custom_label && preg_match( '/\{+(?:value|selected_variation)\}+/i', $custom_label );
+
+								if ( $has_placeholder ) {
+									$display_label = preg_replace( '/\{+(?:value|selected_variation)\}+/i', $default_label, $custom_label );
+								} elseif ( $custom_label ) {
+									$display_label = $custom_label;
+								} else {
+									$display_label = $attr_label;
+								}
 							?>
 								<div class="wcsc-attribute-group" data-attribute-name="<?php echo esc_attr( $attr_name ); ?>" data-display-type="<?php echo esc_attr( $disp_type ); ?>">
 									<div class="wcsc-attribute-header"<?php echo $label_template_attr; ?>>
-										<span class="wcsc-attribute-label"><?php echo esc_html( $display_label ); ?><?php echo $custom_label ? '' : ':'; ?></span>
-										<span class="wcsc-selected-value-label"></span>
+										<span class="wcsc-attribute-label"><?php echo esc_html( $display_label ); ?><?php echo ( $custom_label || empty( $attr_label ) ) ? '' : ':'; ?></span>
+										<span class="wcsc-selected-value-label"><?php echo ( ! $custom_label && $default_label ) ? esc_html( $default_label ) : ''; ?></span>
 									</div>
 
 									<div class="wcsc-options-container wcsc-type-<?php echo esc_attr( $disp_type ); ?>">
