@@ -447,12 +447,13 @@ class Checkout_Handler {
 			</div>
 
 			<?php
+			$modal_title = ! empty( $settings['phone_modal_title'] ) ? $settings['phone_modal_title'] : __( 'প্রয়োজনীয় তথ্য পূরণ করুন', 'wc-smart-checkout-builder' );
+			$modal_msg   = ! empty( $settings['phone_modal_message'] ) ? $settings['phone_modal_message'] : __( 'অনুগ্রহ করে নিচের তথ্যগুলো সঠিকভাবে প্রদান করুন:', 'wc-smart-checkout-builder' );
+			$modal_btn   = ! empty( $settings['phone_modal_btn_text'] ) ? $settings['phone_modal_btn_text'] : __( 'ঠিক আছে', 'wc-smart-checkout-builder' );
+			self::render_phone_modal_html( $modal_title, $modal_msg, $modal_btn );
+
 			$phone_val_enabled = ! isset( $settings['enable_phone_validation'] ) || 'yes' === $settings['enable_phone_validation'];
 			if ( $phone_val_enabled ) {
-				$modal_title = ! empty( $settings['phone_modal_title'] ) ? $settings['phone_modal_title'] : __( 'সঠিক ফোন নম্বর দিন', 'wc-smart-checkout-builder' );
-				$modal_msg   = ! empty( $settings['phone_modal_message'] ) ? $settings['phone_modal_message'] : __( 'অনুগ্রহ করে একটি ১১ ডিজিটের বৈধ বাংলাদেশি মোবাইল নম্বর ব্যবহার করুন।', 'wc-smart-checkout-builder' );
-				$modal_btn   = ! empty( $settings['phone_modal_btn_text'] ) ? $settings['phone_modal_btn_text'] : __( 'ঠিক আছে', 'wc-smart-checkout-builder' );
-				self::render_phone_modal_html( $modal_title, $modal_msg, $modal_btn );
 				echo '<input type="hidden" name="wcsc_bd_phone_validation" value="1" />';
 			}
 
@@ -1065,7 +1066,7 @@ class Checkout_Handler {
 	}
 
 	/**
-	 * Render the phone number validation error modal markup.
+	 * Render the universal checkout validation error modal markup.
 	 *
 	 * @param string $title
 	 * @param string $message
@@ -1073,18 +1074,21 @@ class Checkout_Handler {
 	 */
 	public static function render_phone_modal_html( $title, $message, $btn_text ) {
 		?>
-		<div id="wcsc-phone-modal" class="wcsc-phone-modal-backdrop" style="display: none;" role="dialog" aria-modal="true">
-			<div class="wcsc-phone-modal-box">
-				<div class="wcsc-phone-modal-icon">
-					<svg viewBox="0 0 24 24" width="32" height="32" fill="none" stroke="currentColor" stroke-width="2" stroke-linecap="round" stroke-linejoin="round">
+		<div id="wcsc-validation-modal" class="wcsc-phone-modal-backdrop wcsc-validation-modal-backdrop" style="display: none;" role="dialog" aria-modal="true">
+			<div class="wcsc-phone-modal-box wcsc-validation-modal-box">
+				<div class="wcsc-phone-modal-icon wcsc-validation-modal-icon">
+					<svg viewBox="0 0 24 24" width="36" height="36" fill="none" stroke="currentColor" stroke-width="2" stroke-linecap="round" stroke-linejoin="round">
 						<circle cx="12" cy="12" r="10"></circle>
 						<line x1="12" y1="8" x2="12" y2="12"></line>
 						<line x1="12" y1="16" x2="12.01" y2="16"></line>
 					</svg>
 				</div>
-				<h4 class="wcsc-phone-modal-title"><?php echo esc_html( $title ); ?></h4>
-				<p class="wcsc-phone-modal-message"><?php echo esc_html( $message ); ?></p>
-				<button type="button" class="wcsc-phone-modal-close-btn"><?php echo esc_html( $btn_text ); ?></button>
+				<h4 class="wcsc-phone-modal-title wcsc-validation-modal-title"><?php echo esc_html( $title ); ?></h4>
+				<div class="wcsc-phone-modal-message wcsc-validation-modal-message">
+					<p class="wcsc-modal-intro-text" style="margin: 0 0 8px 0;"><?php echo esc_html( $message ); ?></p>
+					<ul class="wcsc-missing-fields-list"></ul>
+				</div>
+				<button type="button" class="wcsc-phone-modal-close-btn wcsc-validation-modal-close-btn"><?php echo esc_html( $btn_text ); ?></button>
 			</div>
 		</div>
 		<?php

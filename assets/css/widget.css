@@ -1362,3 +1362,36 @@ body.elementor-editor-active .wcsc-mobile-sticky-bar {
 .wcsc-phone-modal-close-btn:active {
 	transform: scale(0.98);
 }
+
+/* Universal Required Fields Error List inside Modal */
+.wcsc-missing-fields-list {
+	list-style: none;
+	padding: 0;
+	margin: 12px 0 4px 0;
+	text-align: left;
+	display: inline-block;
+	max-width: 100%;
+}
+
+.wcsc-missing-fields-list li {
+	display: flex;
+	align-items: center;
+	gap: 8px;
+	margin-bottom: 8px;
+	color: #e53e3e;
+	font-size: 0.95rem;
+	line-height: 1.45;
+	font-weight: 500;
+}
+
+.wcsc-missing-fields-list li:last-child {
+	margin-bottom: 0;
+}
+
+.wcsc-missing-fields-list .wcsc-missing-icon {
+	width: 18px;
+	height: 18px;
+	flex-shrink: 0;
+	color: #e53e3e;
+}
+

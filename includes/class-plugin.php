@@ -64,8 +64,13 @@ class Plugin {
 		// Custom CSS injection
 		add_action( 'wp_head', array( $this, 'print_custom_css' ), 100 );
 
-		// Custom Thank You Redirect
+		// Custom Thank You Redirect & Return URL Filter for Tracking Safety
 		add_action( 'template_redirect', array( $this, 'custom_thank_you_redirect' ) );
+		add_filter( 'woocommerce_get_checkout_order_received_url', array( $this, 'filter_order_received_url' ), 10, 2 );
+		add_filter( 'woocommerce_get_return_url', array( $this, 'filter_order_received_url' ), 10, 2 );
+
+		// Elementor Editor Top-Level Panel Script (Collapsing Accordions by Default)
+		add_action( 'elementor/editor/after_enqueue_scripts', array( $this, 'enqueue_editor_panel_scripts' ) );
 
 		// Add template fallback for Landing Pages
 		add_filter( 'template_include', array( $this, 'landing_page_template_fallback' ), 99 );
@@ -217,6 +222,19 @@ class Plugin {
 		$this->register_assets();
 		wp_enqueue_style( 'wcsc-widget-style' );
 		wp_enqueue_script( 'wcsc-widget-script' );
+	}
+
+	/**
+	 * Enqueue top-level Elementor editor panel scripts.
+	 */
+	public function enqueue_editor_panel_scripts() {
+		wp_enqueue_script(
+			'wcsc-editor-panel-script',
+			WCSC_URL . 'assets/js/editor.js',
+			array( 'jquery' ),
+			WCSC_VERSION,
+			true
+		);
 	}
 
 	/**
@@ -374,14 +392,53 @@ class Plugin {
 	}
 
 	/**
-	 * Custom Thank You Redirect logic.
+	 * Filter the order received return URL so that WooCommerce redirects
+	 * directly to the custom Thank You page with tracking-safe query parameters.
+	 *
+	 * @param string    $return_url Default return URL.
+	 * @param \WC_Order $order      The WooCommerce order object.
+	 * @return string
+	 */
+	public function filter_order_received_url( $return_url, $order = null ) {
+		if ( ! $order || ! is_a( $order, 'WC_Order' ) ) {
+			return $return_url;
+		}
+
+		$enable_thank_you   = get_option( 'wcsc_enable_thank_you' );
+		$thank_you_page_id = get_option( 'wcsc_thank_you_page_id' );
+
+		if ( empty( $enable_thank_you ) || empty( $thank_you_page_id ) ) {
+			return $return_url;
+		}
+
+		$page = get_post( $thank_you_page_id );
+		if ( ! $page || 'trash' === $page->post_status ) {
+			return $return_url;
+		}
+
+		$custom_url = get_permalink( $thank_you_page_id );
+		if ( ! $custom_url ) {
+			return $return_url;
+		}
+
+		return add_query_arg(
+			array(
+				'order_id' => $order->get_id(),
+				'key'      => $order->get_order_key(),
+			),
+			$custom_url
+		);
+	}
+
+	/**
+	 * Custom Thank You Redirect logic for direct visits or fallbacks.
 	 */
 	public function custom_thank_you_redirect() {
 		if ( ! is_wc_endpoint_url( 'order-received' ) ) {
 			return;
 		}
 		
-		$enable_thank_you = get_option( 'wcsc_enable_thank_you' );
+		$enable_thank_you   = get_option( 'wcsc_enable_thank_you' );
 		$thank_you_page_id = get_option( 'wcsc_thank_you_page_id' );
 		
 		if ( empty( $enable_thank_you ) || empty( $thank_you_page_id ) ) {
@@ -397,6 +454,13 @@ class Plugin {
 		
 		// Order ID from URL
 		$order_id = isset( $wp->query_vars['order-received'] ) ? absint( $wp->query_vars['order-received'] ) : 0;
+		if ( ! $order_id && isset( $_GET['order-received'] ) ) {
+			$order_id = absint( $_GET['order-received'] );
+		}
+		if ( ! $order_id && isset( $_GET['order_id'] ) ) {
+			$order_id = absint( $_GET['order_id'] );
+		}
+
 		$order_key = isset( $_GET['key'] ) ? sanitize_text_field( wp_unslash( $_GET['key'] ) ) : '';
 		
 		if ( ! $order_id || ! $order_key ) {
@@ -413,12 +477,15 @@ class Plugin {
 			return;
 		}
 		
-		$redirect_url = add_query_arg( array(
-			'order_id' => $order_id,
-			'key'      => $order_key,
-		), $redirect_url );
+		$redirect_url = add_query_arg(
+			array(
+				'order_id' => $order_id,
+				'key'      => $order_key,
+			),
+			$redirect_url
+		);
 		
-		wp_redirect( $redirect_url );
+		wp_safe_redirect( $redirect_url );
 		exit;
 	}
 

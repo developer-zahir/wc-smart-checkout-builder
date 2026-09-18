@@ -148,7 +148,12 @@ class ThankYou_Widget extends Widget_Base {
 
 	protected function render() {
 		$is_editor = class_exists( '\Elementor\Plugin' ) && isset( \Elementor\Plugin::$instance->editor ) && \Elementor\Plugin::$instance->editor->is_edit_mode();
-		$order_id = isset( $_GET['order_id'] ) ? absint( $_GET['order_id'] ) : 0;
+		$order_id  = isset( $_GET['order_id'] ) ? absint( $_GET['order_id'] ) : ( isset( $_GET['order-received'] ) ? absint( $_GET['order-received'] ) : 0 );
+		if ( ! $order_id ) {
+			global $wp;
+			$order_id = isset( $wp->query_vars['order-received'] ) ? absint( $wp->query_vars['order-received'] ) : 0;
+		}
+
 		$order_key = isset( $_GET['key'] ) ? sanitize_text_field( wp_unslash( $_GET['key'] ) ) : '';
 		$order = false;
 		if ( $order_id && $order_key ) {
@@ -204,6 +209,19 @@ class ThankYou_Widget extends Widget_Base {
 	}
 
 	private function render_real_order( $order ) {
+		// Populate global query var for plugins checking is_order_received_page()
+		global $wp;
+		if ( empty( $wp->query_vars['order-received'] ) ) {
+			$wp->query_vars['order-received'] = $order->get_id();
+		}
+
+		// Fire native woocommerce_thankyou action for Pixel, GTM (GTM4WP), and conversion tracking
+		static $fired_thankyou = array();
+		if ( empty( $fired_thankyou[ $order->get_id() ] ) ) {
+			$fired_thankyou[ $order->get_id() ] = true;
+			do_action( 'woocommerce_thankyou', $order->get_id() );
+		}
+
 		$settings = $this->get_settings_for_display();
 		
 		$items_data = [];

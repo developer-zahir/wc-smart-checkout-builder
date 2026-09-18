@@ -186,19 +186,31 @@
 			});
 
 			// Close modal on close button click
-			$(document).on('click', '.wcsc-phone-modal-close-btn', function (e) {
+			$(document).on('click', '.wcsc-phone-modal-close-btn, .wcsc-validation-modal-close-btn', function (e) {
 				e.preventDefault();
-				$('#wcsc-phone-modal').fadeOut(200);
-				var $phone = self.$container.find('input[name="billing_phone"]');
-				if ($phone.length) {
-					$phone.focus();
+				var $modal = $('#wcsc-validation-modal, #wcsc-phone-modal');
+				$modal.fadeOut(200);
+				var $firstInvalid = $modal.data('first-invalid') || self.$container.find('.wcsc-invalid').first();
+				if ($firstInvalid && $firstInvalid.length) {
+					$('html, body').animate({
+						scrollTop: $firstInvalid.offset().top - 100
+					}, 300);
+					$firstInvalid.focus();
 				}
 			});
 
 			// Close modal on backdrop click
-			$(document).on('click', '#wcsc-phone-modal', function (e) {
-				if ($(e.target).is('#wcsc-phone-modal')) {
-					$(this).fadeOut(200);
+			$(document).on('click', '#wcsc-validation-modal, #wcsc-phone-modal', function (e) {
+				if ($(e.target).is('#wcsc-validation-modal, #wcsc-phone-modal')) {
+					var $modal = $(this);
+					$modal.fadeOut(200);
+					var $firstInvalid = $modal.data('first-invalid') || self.$container.find('.wcsc-invalid').first();
+					if ($firstInvalid && $firstInvalid.length) {
+						$('html, body').animate({
+							scrollTop: $firstInvalid.offset().top - 100
+						}, 300);
+						$firstInvalid.focus();
+					}
 				}
 			});
 
@@ -208,6 +220,7 @@
 				if ($form.length) {
 					var hasInvalid = false;
 					var $firstInvalid = null;
+					var missingFields = [];
 
 					// Clear previous error states
 					$form.find('.wcsc-invalid').removeClass('wcsc-invalid');
@@ -227,35 +240,70 @@
 							if (!$firstInvalid) {
 								$firstInvalid = $field;
 							}
+							var nameAttr = ($field.attr('name') || '').toLowerCase();
+							var msg = '';
+							if (nameAttr.indexOf('first_name') !== -1 || nameAttr.indexOf('last_name') !== -1 || nameAttr.indexOf('name') !== -1) {
+								msg = 'অনুগ্রহ করে আপনার নাম প্রদান করুন';
+							} else if (nameAttr.indexOf('phone') !== -1) {
+								msg = 'ফোন নম্বর প্রদান করা বাধ্যতামূলক';
+							} else if (nameAttr.indexOf('address_1') !== -1 || nameAttr.indexOf('address') !== -1) {
+								msg = 'অনুগ্রহ করে আপনার সম্পূর্ণ ঠিকানা প্রদান করুন';
+							} else if (nameAttr.indexOf('city') !== -1) {
+								msg = 'শহর / জেলা প্রদান করুন';
+							} else {
+								var label = $field.closest('.form-row').find('label').text().replace(/[\*\:]/g, '').trim();
+								msg = label ? label + ' পূরণ করা বাধ্যতামূলক' : 'প্রয়োজনীয় তথ্য প্রদান করুন';
+							}
+							if (missingFields.indexOf(msg) === -1) {
+								missingFields.push(msg);
+							}
 						}
 					});
 
 					// Validate BD phone if enabled
 					var $hasValidation = self.$container.find('input[name="wcsc_bd_phone_validation"]');
-					if ($hasValidation.length && $hasValidation.val() === '1') {
-						var $phone = self.$container.find('input[name="billing_phone"]');
-						if ($phone.length && $phone.is(':visible')) {
-							var rawPhone = $.trim($phone.val() || '').replace(/[\s\-\(\)]/g, '');
+					var $phone = self.$container.find('input[name="billing_phone"]');
+					if ($phone.length && $phone.is(':visible')) {
+						var rawPhone = $.trim($phone.val() || '').replace(/[\s\-\(\)]/g, '');
+						if ($hasValidation.length && $hasValidation.val() === '1' && rawPhone) {
 							var bdPhoneRegex = /^(?:\+?880|880|0)?1[3-9]\d{8}$/;
 							if (!bdPhoneRegex.test(rawPhone)) {
 								hasInvalid = true;
 								$phone.addClass('wcsc-invalid');
 								$phone.closest('.form-row').addClass('woocommerce-invalid');
-								e.preventDefault();
-								e.stopImmediatePropagation();
-								$('#wcsc-phone-modal').fadeIn(200);
-								return false;
+								var phoneErr = 'সঠিক ১১ ডিজিটের মোবাইল নম্বর প্রদান করুন';
+								if (missingFields.indexOf(phoneErr) === -1) {
+									missingFields.push(phoneErr);
+								}
+								if (!$firstInvalid) {
+									$firstInvalid = $phone;
+								}
 							}
 						}
 					}
 
-					if (hasInvalid && $firstInvalid) {
+					if (hasInvalid && missingFields.length > 0) {
 						e.preventDefault();
 						e.stopImmediatePropagation();
-						$('html, body').animate({
-							scrollTop: $firstInvalid.offset().top - 100
-						}, 300);
-						$firstInvalid.focus();
+
+						var $modal = $('#wcsc-validation-modal, #wcsc-phone-modal');
+						if ($modal.length) {
+							var $list = $modal.find('.wcsc-missing-fields-list');
+							if ($list.length) {
+								$list.empty();
+								missingFields.forEach(function (text) {
+									$list.append('<li><svg class="wcsc-missing-icon" viewBox="0 0 20 20" fill="currentColor"><path fill-rule="evenodd" d="M10 18a8 8 0 100-16 8 8 0 000 16zM8.707 7.293a1 1 0 00-1.414 1.414L8.586 10l-1.293 1.293a1 1 0 101.414 1.414L10 11.414l1.293 1.293a1 1 0 001.414-1.414L11.414 10l1.293-1.293a1 1 0 00-1.414-1.414L10 8.586 8.707 7.293z" clip-rule="evenodd" /></svg> ' + text + '</li>');
+								});
+							} else {
+								$modal.find('.wcsc-phone-modal-message').html(missingFields.join('<br>'));
+							}
+							$modal.data('first-invalid', $firstInvalid).fadeIn(200);
+						} else if ($firstInvalid) {
+							$('html, body').animate({
+								scrollTop: $firstInvalid.offset().top - 100
+							}, 300);
+							$firstInvalid.focus();
+						}
 						return false;
 					}
 				}
@@ -549,21 +597,30 @@
 		initMobileStickyObserver: function () {
 			var self = this;
 			var stickyBar = self.$container.find('.wcsc-mobile-sticky-bar')[0] || document.getElementById('wcsc-mobile-sticky-bar');
-			var checkoutWrapper = self.$container.find('.wcas-checkout-wrapper')[0];
+			var targetEl = self.$container[0] || self.$container.find('.wcas-checkout-wrapper')[0];
 
-			if (stickyBar && checkoutWrapper && 'IntersectionObserver' in window) {
+			if (stickyBar && targetEl && 'IntersectionObserver' in window) {
 				var observer = new IntersectionObserver(function (entries) {
 					entries.forEach(function (entry) {
 						if (entry.isIntersecting) {
+							// As soon as entire checkout widget enters viewport, automatically hide the floating button
 							$(stickyBar).addClass('is-hidden');
 						} else {
-							$(stickyBar).removeClass('is-hidden');
+							var rect = entry.boundingClientRect;
+							// If checkout widget is below viewport (user browsing top landing content), show button
+							if (rect.top > 0) {
+								$(stickyBar).removeClass('is-hidden');
+							} else {
+								// User has scrolled completely past the widget, keep hidden
+								$(stickyBar).addClass('is-hidden');
+							}
 						}
 					});
 				}, {
-					threshold: 0.08
+					threshold: 0,
+					rootMargin: '0px 0px 0px 0px'
 				});
-				observer.observe(checkoutWrapper);
+				observer.observe(targetEl);
 			}
 		},
 

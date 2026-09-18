@@ -2141,6 +2141,21 @@ class Elementor_Widget extends Widget_Base {
 		);
 
 		$this->add_responsive_control(
+			'order_button_height',
+			array(
+				'label'      => esc_html__( 'Height / Min Height', 'wc-smart-checkout-builder' ),
+				'type'       => Controls_Manager::SLIDER,
+				'size_units' => array( 'px', 'em' ),
+				'range'      => array(
+					'px' => array( 'min' => 30, 'max' => 120 ),
+				),
+				'selectors'  => array(
+					'{{WRAPPER}} #place_order, {{WRAPPER}} .wcsc-order-now-btn' => 'min-height: {{SIZE}}{{UNIT}};',
+				),
+			)
+		);
+
+		$this->add_responsive_control(
 			'order_button_alignment',
 			array(
 				'label'   => esc_html__( 'Alignment', 'wc-smart-checkout-builder' ),
@@ -2166,12 +2181,20 @@ class Elementor_Widget extends Widget_Base {
 			)
 		);
 
+		$this->add_group_control(
+			Group_Control_Border::get_type(),
+			array(
+				'name'     => 'order_button_border',
+				'selector' => '{{WRAPPER}} #place_order, {{WRAPPER}} .wcsc-order-now-btn',
+			)
+		);
+
 		$this->add_responsive_control(
 			'order_button_border_radius',
 			array(
 				'label'      => esc_html__( 'Border Radius', 'wc-smart-checkout-builder' ),
 				'type'       => Controls_Manager::DIMENSIONS,
-				'size_units' => array( 'px' ),
+				'size_units' => array( 'px', '%' ),
 				'default'    => array(
 					'top'      => '4',
 					'right'    => '4',
@@ -2183,6 +2206,14 @@ class Elementor_Widget extends Widget_Base {
 				'selectors'  => array(
 					'{{WRAPPER}} #place_order, {{WRAPPER}} .wcsc-order-now-btn' => 'border-radius: {{TOP}}{{UNIT}} {{RIGHT}}{{UNIT}} {{BOTTOM}}{{UNIT}} {{LEFT}}{{UNIT}};',
 				),
+			)
+		);
+
+		$this->add_group_control(
+			Group_Control_Box_Shadow::get_type(),
+			array(
+				'name'     => 'order_button_box_shadow',
+				'selector' => '{{WRAPPER}} #place_order, {{WRAPPER}} .wcsc-order-now-btn',
 			)
 		);
 
@@ -2202,14 +2233,6 @@ class Elementor_Widget extends Widget_Base {
 			)
 		);
 
-		$this->add_group_control(
-			Group_Control_Border::get_type(),
-			array(
-				'name'     => 'order_button_border',
-				'selector' => '{{WRAPPER}} #place_order, {{WRAPPER}} .wcsc-order-now-btn',
-			)
-		);
-
 		$this->start_controls_tabs( 'tabs_order_button_states' );
 
 		$this->start_controls_tab(
@@ -2223,19 +2246,17 @@ class Elementor_Widget extends Widget_Base {
 				'label'     => esc_html__( 'Text Color', 'wc-smart-checkout-builder' ),
 				'type'      => Controls_Manager::COLOR,
 				'selectors' => array(
-					'{{WRAPPER}} #place_order, {{WRAPPER}} .wcsc-order-now-btn, {{WRAPPER}} .wcsc-btn-price' => 'color: {{VALUE}} !important;',
+					'{{WRAPPER}} #place_order, {{WRAPPER}} .wcsc-order-now-btn, {{WRAPPER}} .wcsc-btn-price, {{WRAPPER}} .wcsc-btn-text' => 'color: {{VALUE}} !important;',
 				),
 			)
 		);
 
-		$this->add_control(
-			'order_button_bg_color',
+		$this->add_group_control(
+			Group_Control_Background::get_type(),
 			array(
-				'label'     => esc_html__( 'Background Color', 'wc-smart-checkout-builder' ),
-				'type'      => Controls_Manager::COLOR,
-				'selectors' => array(
-					'{{WRAPPER}} #place_order, {{WRAPPER}} .wcsc-order-now-btn' => 'background-color: {{VALUE}} !important;',
-				),
+				'name'     => 'order_button_bg',
+				'types'    => array( 'classic', 'gradient' ),
+				'selector' => '{{WRAPPER}} #place_order, {{WRAPPER}} .wcsc-order-now-btn',
 			)
 		);
 
@@ -2252,18 +2273,49 @@ class Elementor_Widget extends Widget_Base {
 				'label'     => esc_html__( 'Text Color', 'wc-smart-checkout-builder' ),
 				'type'      => Controls_Manager::COLOR,
 				'selectors' => array(
-					'{{WRAPPER}} #place_order:hover, {{WRAPPER}} .wcsc-order-now-btn:hover' => 'color: {{VALUE}} !important;',
+					'{{WRAPPER}} #place_order:hover, {{WRAPPER}} .wcsc-order-now-btn:hover, {{WRAPPER}} #place_order:hover .wcsc-btn-text, {{WRAPPER}} .wcsc-order-now-btn:hover .wcsc-btn-text' => 'color: {{VALUE}} !important;',
 				),
 			)
 		);
 
-		$this->add_control(
-			'order_button_bg_color_hover',
+		$this->add_group_control(
+			Group_Control_Background::get_type(),
 			array(
-				'label'     => esc_html__( 'Background Color', 'wc-smart-checkout-builder' ),
+				'name'     => 'order_button_bg_hover',
+				'types'    => array( 'classic', 'gradient' ),
+				'selector' => '{{WRAPPER}} #place_order:hover, {{WRAPPER}} .wcsc-order-now-btn:hover',
+			)
+		);
+
+		$this->add_control(
+			'order_button_hover_border_color',
+			array(
+				'label'     => esc_html__( 'Border Color', 'wc-smart-checkout-builder' ),
 				'type'      => Controls_Manager::COLOR,
 				'selectors' => array(
-					'{{WRAPPER}} #place_order:hover, {{WRAPPER}} .wcsc-order-now-btn:hover' => 'background-color: {{VALUE}} !important;',
+					'{{WRAPPER}} #place_order:hover, {{WRAPPER}} .wcsc-order-now-btn:hover' => 'border-color: {{VALUE}} !important;',
+				),
+			)
+		);
+
+		$this->add_group_control(
+			Group_Control_Box_Shadow::get_type(),
+			array(
+				'name'     => 'order_button_hover_box_shadow',
+				'selector' => '{{WRAPPER}} #place_order:hover, {{WRAPPER}} .wcsc-order-now-btn:hover',
+			)
+		);
+
+		$this->add_control(
+			'order_button_hover_transition',
+			array(
+				'label'     => esc_html__( 'Transition Duration (s)', 'wc-smart-checkout-builder' ),
+				'type'      => Controls_Manager::SLIDER,
+				'range'     => array(
+					'px' => array( 'min' => 0.1, 'max' => 2, 'step' => 0.1 ),
+				),
+				'selectors' => array(
+					'{{WRAPPER}} #place_order, {{WRAPPER}} .wcsc-order-now-btn' => 'transition: all {{SIZE}}s ease;',
 				),
 			)
 		);
@@ -2411,40 +2463,36 @@ class Elementor_Widget extends Widget_Base {
 			$this->end_controls_section();
 		}
 
-		// --- Section: Mobile Sticky Order Button Styling ---
+		// --- Section: Floating "Order Now" Button (< 1024px) Styling ---
 		$this->start_controls_section(
 			'section_style_mobile_sticky_button',
 			array(
-				'label'     => esc_html__( 'Mobile Sticky Button Style', 'wc-smart-checkout-builder' ),
+				'label'     => esc_html__( 'Floating "Order Now" Button (< 1024px)', 'wc-smart-checkout-builder' ),
 				'tab'       => Controls_Manager::TAB_STYLE,
 				'condition' => array(
-					'show_checkout'               => 'yes',
-					'enable_mobile_sticky_button' => 'yes',
+					'show_checkout' => 'yes',
 				),
 			)
 		);
 
 		$this->add_control(
-			'mobile_sticky_bg_color',
+			'style_enable_mobile_sticky_button',
 			array(
-				'label'     => esc_html__( 'Button Background Color', 'wc-smart-checkout-builder' ),
-				'type'      => Controls_Manager::COLOR,
-				'default'   => '#e53e3e',
-				'selectors' => array(
-					'{{WRAPPER}} .wcsc-mobile-sticky-btn' => 'background-color: {{VALUE}} !important;',
-				),
+				'label'        => esc_html__( 'Enable Floating Button', 'wc-smart-checkout-builder' ),
+				'type'         => Controls_Manager::SWITCHER,
+				'label_on'     => esc_html__( 'Yes', 'wc-smart-checkout-builder' ),
+				'label_off'    => esc_html__( 'No', 'wc-smart-checkout-builder' ),
+				'return_value' => 'yes',
+				'default'      => 'yes',
 			)
 		);
 
 		$this->add_control(
-			'mobile_sticky_text_color',
+			'style_mobile_sticky_button_text',
 			array(
-				'label'     => esc_html__( 'Text Color', 'wc-smart-checkout-builder' ),
-				'type'      => Controls_Manager::COLOR,
-				'default'   => '#ffffff',
-				'selectors' => array(
-					'{{WRAPPER}} .wcsc-mobile-sticky-btn' => 'color: {{VALUE}} !important;',
-				),
+				'label'       => esc_html__( 'Button Text', 'wc-smart-checkout-builder' ),
+				'type'        => Controls_Manager::TEXT,
+				'default'     => esc_html__( 'অর্ডার করুন', 'wc-smart-checkout-builder' ),
 			)
 		);
 
@@ -2454,6 +2502,21 @@ class Elementor_Widget extends Widget_Base {
 				'name'     => 'mobile_sticky_typography',
 				'label'    => esc_html__( 'Typography', 'wc-smart-checkout-builder' ),
 				'selector' => '{{WRAPPER}} .wcsc-mobile-sticky-btn',
+			)
+		);
+
+		$this->add_responsive_control(
+			'mobile_sticky_height',
+			array(
+				'label'      => esc_html__( 'Height / Min Height', 'wc-smart-checkout-builder' ),
+				'type'       => Controls_Manager::SLIDER,
+				'size_units' => array( 'px', 'em' ),
+				'range'      => array(
+					'px' => array( 'min' => 35, 'max' => 90 ),
+				),
+				'selectors'  => array(
+					'{{WRAPPER}} .wcsc-mobile-sticky-btn' => 'min-height: {{SIZE}}{{UNIT}};',
+				),
 			)
 		);
 
@@ -2469,17 +2532,129 @@ class Elementor_Widget extends Widget_Base {
 			)
 		);
 
+		$this->add_responsive_control(
+			'mobile_sticky_margin',
+			array(
+				'label'      => esc_html__( 'Margin', 'wc-smart-checkout-builder' ),
+				'type'       => Controls_Manager::DIMENSIONS,
+				'size_units' => array( 'px', 'em' ),
+				'selectors'  => array(
+					'{{WRAPPER}} .wcsc-mobile-sticky-bar' => 'margin: {{TOP}}{{UNIT}} {{RIGHT}}{{UNIT}} {{BOTTOM}}{{UNIT}} {{LEFT}}{{UNIT}};',
+				),
+			)
+		);
+
+		$this->add_group_control(
+			Group_Control_Border::get_type(),
+			array(
+				'name'     => 'mobile_sticky_border',
+				'selector' => '{{WRAPPER}} .wcsc-mobile-sticky-btn',
+			)
+		);
+
+		$this->add_responsive_control(
+			'mobile_sticky_border_radius',
+			array(
+				'label'      => esc_html__( 'Border Radius', 'wc-smart-checkout-builder' ),
+				'type'       => Controls_Manager::DIMENSIONS,
+				'size_units' => array( 'px', '%' ),
+				'selectors'  => array(
+					'{{WRAPPER}} .wcsc-mobile-sticky-btn' => 'border-radius: {{TOP}}{{UNIT}} {{RIGHT}}{{UNIT}} {{BOTTOM}}{{UNIT}} {{LEFT}}{{UNIT}};',
+				),
+			)
+		);
+
+		$this->add_group_control(
+			Group_Control_Box_Shadow::get_type(),
+			array(
+				'name'     => 'mobile_sticky_box_shadow',
+				'selector' => '{{WRAPPER}} .wcsc-mobile-sticky-bar, {{WRAPPER}} .wcsc-mobile-sticky-btn',
+			)
+		);
+
+		$this->start_controls_tabs( 'tabs_mobile_sticky_states' );
+
+		$this->start_controls_tab(
+			'tab_mobile_sticky_normal',
+			array( 'label' => esc_html__( 'Normal', 'wc-smart-checkout-builder' ) )
+		);
+
+		$this->add_control(
+			'mobile_sticky_text_color',
+			array(
+				'label'     => esc_html__( 'Text Color', 'wc-smart-checkout-builder' ),
+				'type'      => Controls_Manager::COLOR,
+				'default'   => '#ffffff',
+				'selectors' => array(
+					'{{WRAPPER}} .wcsc-mobile-sticky-btn' => 'color: {{VALUE}} !important;',
+				),
+			)
+		);
+
+		$this->add_group_control(
+			Group_Control_Background::get_type(),
+			array(
+				'name'     => 'mobile_sticky_bg',
+				'types'    => array( 'classic', 'gradient' ),
+				'selector' => '{{WRAPPER}} .wcsc-mobile-sticky-btn',
+			)
+		);
+
+		$this->end_controls_tab();
+
+		$this->start_controls_tab(
+			'tab_mobile_sticky_hover',
+			array( 'label' => esc_html__( 'Hover', 'wc-smart-checkout-builder' ) )
+		);
+
+		$this->add_control(
+			'mobile_sticky_text_color_hover',
+			array(
+				'label'     => esc_html__( 'Text Color', 'wc-smart-checkout-builder' ),
+				'type'      => Controls_Manager::COLOR,
+				'selectors' => array(
+					'{{WRAPPER}} .wcsc-mobile-sticky-btn:hover' => 'color: {{VALUE}} !important;',
+				),
+			)
+		);
+
+		$this->add_group_control(
+			Group_Control_Background::get_type(),
+			array(
+				'name'     => 'mobile_sticky_bg_hover',
+				'types'    => array( 'classic', 'gradient' ),
+				'selector' => '{{WRAPPER}} .wcsc-mobile-sticky-btn:hover',
+			)
+		);
+
+		$this->add_control(
+			'mobile_sticky_hover_transition',
+			array(
+				'label'     => esc_html__( 'Transition Duration (s)', 'wc-smart-checkout-builder' ),
+				'type'      => Controls_Manager::SLIDER,
+				'range'     => array(
+					'px' => array( 'min' => 0.1, 'max' => 2, 'step' => 0.1 ),
+				),
+				'selectors'  => array(
+					'{{WRAPPER}} .wcsc-mobile-sticky-btn' => 'transition: all {{SIZE}}s ease;',
+				),
+			)
+		);
+
+		$this->end_controls_tab();
+
+		$this->end_controls_tabs();
+
 		$this->end_controls_section();
 
-		// --- Section: Phone Validation Modal Styling ---
+		// --- Section: Validation Error Modal Styling ---
 		$this->start_controls_section(
 			'section_style_phone_modal',
 			array(
-				'label'     => esc_html__( 'Phone Modal Style', 'wc-smart-checkout-builder' ),
+				'label'     => esc_html__( 'Validation Error Modal Style', 'wc-smart-checkout-builder' ),
 				'tab'       => Controls_Manager::TAB_STYLE,
 				'condition' => array(
-					'show_checkout'           => 'yes',
-					'enable_phone_validation' => 'yes',
+					'show_checkout' => 'yes',
 				),
 			)
 		);
