@@ -373,7 +373,7 @@ class Elementor_Widget extends Widget_Base {
 		$this->add_control(
 			'show_cart_item_image',
 			array(
-				'label'        => esc_html__( 'Show Product Image in Order Review', 'wc-smart-checkout-builder' ),
+				'label'        => esc_html__( 'Show Product Image', 'wc-smart-checkout-builder' ),
 				'type'         => Controls_Manager::SWITCHER,
 				'label_on'     => esc_html__( 'Yes', 'wc-smart-checkout-builder' ),
 				'label_off'    => esc_html__( 'No', 'wc-smart-checkout-builder' ),
@@ -424,9 +424,9 @@ class Elementor_Widget extends Widget_Base {
 		$this->add_control(
 			'billing_heading_text',
 			array(
-				'label'   => esc_html__( 'Billing & Shipping Title', 'wc-smart-checkout-builder' ),
+				'label'   => esc_html__( 'Customer Information Title', 'wc-smart-checkout-builder' ),
 				'type'    => Controls_Manager::TEXT,
-				'default' => esc_html__( 'Billing & Shipping', 'wc-smart-checkout-builder' ),
+				'default' => esc_html__( 'Customer information', 'wc-smart-checkout-builder' ),
 			)
 		);
 
@@ -647,7 +647,7 @@ class Elementor_Widget extends Widget_Base {
 		$this->start_controls_section(
 			'section_mobile_sticky_button',
 			array(
-				'label'     => esc_html__( 'Mobile Sticky Order Button', 'wc-smart-checkout-builder' ),
+				'label'     => esc_html__( 'Sticky Mobile & Tablet Order Button (< 1024px)', 'wc-smart-checkout-builder' ),
 				'tab'       => Controls_Manager::TAB_CONTENT,
 				'condition' => array(
 					'show_checkout' => 'yes',
@@ -664,7 +664,7 @@ class Elementor_Widget extends Widget_Base {
 				'label_off'    => esc_html__( 'No', 'wc-smart-checkout-builder' ),
 				'return_value' => 'yes',
 				'default'      => 'yes',
-				'description'  => esc_html__( 'Displays a fixed bottom bar on mobile screens (<= 767px) with shine animation. Smooth-scrolls to checkout.', 'wc-smart-checkout-builder' ),
+				'description'  => esc_html__( 'Displays a fixed bottom bar on mobile and tablet screens (< 1024px) with shine animation. Smooth-scrolls to checkout.', 'wc-smart-checkout-builder' ),
 			)
 		);
 
@@ -2255,7 +2255,7 @@ class Elementor_Widget extends Widget_Base {
 
 		$blocks = array(
 			'checkout_form' => array(
-				'label'          => esc_html__( 'Billing & Shipping Block (Form)', 'wc-smart-checkout-builder' ),
+				'label'          => esc_html__( 'Customer Information Block (Form)', 'wc-smart-checkout-builder' ),
 				'selector'       => '{{WRAPPER}} .wcas-checkout-wrapper .wcas-block-checkout-form',
 				'title_selector' => '{{WRAPPER}} .wcas-checkout-wrapper .wcas-block-checkout-form .wcas-block-title',
 			),

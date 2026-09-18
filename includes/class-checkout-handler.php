@@ -73,6 +73,7 @@ class Checkout_Handler {
 		add_filter( 'woocommerce_order_button_html', array( __CLASS__, 'filter_order_button_html' ), 20 );
 		add_filter( 'gettext', array( __CLASS__, 'filter_checkout_gettext' ), 20, 3 );
 		add_filter( 'woocommerce_cart_item_name', array( __CLASS__, 'filter_cart_item_name' ), 10, 3 );
+		add_filter( 'woocommerce_checkout_cart_item_quantity', array( __CLASS__, 'filter_cart_item_quantity' ), 10, 3 );
 
 		// Keep WooCommerce's AJAX "update order review" response from re-injecting the
 		// place order button into #payment. The button lives in its own plugin-owned
@@ -221,8 +222,9 @@ class Checkout_Handler {
 		$settings = self::$active_widget_settings;
 
 		$mapping = array(
-			'billing & shipping' => 'billing_heading_text',
-			'billing details'    => 'billing_heading_text',
+			'customer information' => 'billing_heading_text',
+			'billing & shipping'   => 'billing_heading_text',
+			'billing details'      => 'billing_heading_text',
 			'your order'         => 'order_review_heading_text',
 			'your orders'        => 'order_review_heading_text',
 			'product'            => 'product_label_text',
@@ -242,7 +244,7 @@ class Checkout_Handler {
 	}
 
 	/**
-	 * Filter cart item name to inject thumbnail if enabled.
+	 * Filter cart item name to inject thumbnail and inline quantity if enabled.
 	 *
 	 * @param string $item_name
 	 * @param array  $cart_item
@@ -250,21 +252,61 @@ class Checkout_Handler {
 	 * @return string
 	 */
 	public static function filter_cart_item_name( $item_name, $cart_item, $cart_item_key ) {
-		if ( empty( self::$active_widget_settings ) ) {
+		// Prevent double-wrapping
+		if ( strpos( $item_name, 'wcsc-cart-item-with-img' ) !== false || strpos( $item_name, 'wcsc-cart-item-name-text' ) !== false ) {
 			return $item_name;
 		}
 
-		if ( isset( self::$active_widget_settings['show_cart_item_image'] ) && 'yes' === self::$active_widget_settings['show_cart_item_image'] ) {
-			$product = $cart_item['data'];
+		$show_image = false;
+		$is_wcsc    = false;
+
+		if ( ! empty( self::$active_widget_settings ) ) {
+			$is_wcsc    = true;
+			$show_image = ( ! isset( self::$active_widget_settings['show_cart_item_image'] ) || 'yes' === self::$active_widget_settings['show_cart_item_image'] );
+		} elseif ( function_exists( 'WC' ) && WC()->session && 'yes' === WC()->session->get( 'wcsc_is_smart_checkout' ) ) {
+			$is_wcsc    = true;
+			$show_image = ( 'no' !== WC()->session->get( 'wcsc_show_cart_item_image' ) );
+		} elseif ( isset( $_POST['post_data'] ) ) {
+			parse_str( sanitize_text_field( wp_unslash( $_POST['post_data'] ) ), $post_vars );
+			if ( ! empty( $post_vars['wcsc_is_smart_checkout'] ) || isset( $post_vars['wcsc_show_cart_item_image'] ) ) {
+				$is_wcsc    = true;
+				$show_image = ( ! isset( $post_vars['wcsc_show_cart_item_image'] ) || 'yes' === $post_vars['wcsc_show_cart_item_image'] );
+			}
+		}
+
+		if ( ! $is_wcsc ) {
+			return $item_name;
+		}
+
+		$qty      = isset( $cart_item['quantity'] ) ? absint( $cart_item['quantity'] ) : 1;
+		$qty_html = ' <strong class="product-quantity">&times;&nbsp;' . $qty . '</strong>';
+
+		if ( $show_image ) {
+			$product = isset( $cart_item['data'] ) ? $cart_item['data'] : null;
 			if ( $product ) {
 				$thumbnail = $product->get_image( array( 48, 48 ), array( 'class' => 'wcsc-cart-item-image' ) );
 				if ( $thumbnail ) {
-					$item_name = '<div class="wcsc-cart-item-with-img">' . $thumbnail . '<span class="wcsc-cart-item-name-text">' . $item_name . '</span></div>';
+					return '<div class="wcsc-cart-item-with-img">' . $thumbnail . '<span class="wcsc-cart-item-name-text">' . $item_name . $qty_html . '</span></div>';
 				}
 			}
 		}
 
-		return $item_name;
+		return '<span class="wcsc-cart-item-name-text">' . $item_name . $qty_html . '</span>';
+	}
+
+	/**
+	 * Suppress detached checkout cart item quantity when already rendered inline.
+	 *
+	 * @param string $quantity_html
+	 * @param array  $cart_item
+	 * @param string $cart_item_key
+	 * @return string
+	 */
+	public static function filter_cart_item_quantity( $quantity_html, $cart_item, $cart_item_key ) {
+		if ( ! empty( self::$active_widget_settings ) || ( function_exists( 'WC' ) && WC()->session && 'yes' === WC()->session->get( 'wcsc_is_smart_checkout' ) ) || ( isset( $_POST['post_data'] ) && strpos( $_POST['post_data'], 'wcsc_is_smart_checkout' ) !== false ) ) {
+			return '';
+		}
+		return $quantity_html;
 	}
 
 	/**
@@ -282,6 +324,12 @@ class Checkout_Handler {
 		self::$active_widget_settings = $settings;
 		self::$active_product         = $product;
 		self::$review_order_html      = null;
+
+		if ( function_exists( 'WC' ) && WC()->session ) {
+			$show_img_val = ( ! isset( $settings['show_cart_item_image'] ) || 'yes' === $settings['show_cart_item_image'] ) ? 'yes' : 'no';
+			WC()->session->set( 'wcsc_show_cart_item_image', $show_img_val );
+			WC()->session->set( 'wcsc_is_smart_checkout', 'yes' );
+		}
 
 		if ( self::is_editor_environment() ) {
 			// In Elementor live editor or save builder: render safe preview template.
@@ -331,6 +379,9 @@ class Checkout_Handler {
 			$order_button_pos = 'left_column';
 		} elseif ( 'under_payment' === $order_button_pos || 'under_order_review' === $order_button_pos ) {
 			$order_button_pos = 'right_column';
+		}
+		if ( '1_column' === $layout ) {
+			$order_button_pos = 'full_width';
 		}
 		$pos_class = 'wcas-order-btn-pos-' . sanitize_html_class( str_replace( '_', '-', $order_button_pos ) );
 
@@ -404,6 +455,9 @@ class Checkout_Handler {
 				self::render_phone_modal_html( $modal_title, $modal_msg, $modal_btn );
 				echo '<input type="hidden" name="wcsc_bd_phone_validation" value="1" />';
 			}
+
+			echo '<input type="hidden" name="wcsc_show_cart_item_image" value="' . esc_attr( ( ! isset( $settings['show_cart_item_image'] ) || 'yes' === $settings['show_cart_item_image'] ) ? 'yes' : 'no' ) . '" />';
+			echo '<input type="hidden" name="wcsc_is_smart_checkout" value="yes" />';
 
 			$sticky_enabled = ! isset( $settings['enable_mobile_sticky_button'] ) || 'yes' === $settings['enable_mobile_sticky_button'];
 			if ( $sticky_enabled ) {
@@ -483,7 +537,7 @@ class Checkout_Handler {
 	public static function get_billing_label() {
 		return ! empty( self::$active_widget_settings['billing_heading_text'] )
 			? sanitize_text_field( self::$active_widget_settings['billing_heading_text'] )
-			: esc_html__( 'Billing & Shipping', 'wc-smart-checkout-builder' );
+			: esc_html__( 'Customer information', 'wc-smart-checkout-builder' );
 	}
 
 	/**

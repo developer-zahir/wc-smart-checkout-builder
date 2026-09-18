@@ -29,7 +29,7 @@ $price_html        = $product ? $product->get_price_html() : wc_price( 50 );
 $raw_price_text    = $product ? wp_strip_all_tags( wc_price( $product->get_price() ) ) : '$50.00';
 
 // Custom Text Labels (trimmed to 7 keys)
-$billing_heading_text      = ! empty( $settings['billing_heading_text'] ) ? esc_html( $settings['billing_heading_text'] ) : esc_html__( 'Billing & Shipping', 'wc-smart-checkout-builder' );
+$billing_heading_text      = ! empty( $settings['billing_heading_text'] ) ? esc_html( $settings['billing_heading_text'] ) : esc_html__( 'Customer information', 'wc-smart-checkout-builder' );
 $order_review_heading_text = ! empty( $settings['order_review_heading_text'] ) ? esc_html( $settings['order_review_heading_text'] ) : esc_html__( 'Your Order', 'wc-smart-checkout-builder' );
 $payment_heading_text      = ! empty( $settings['payment_heading_text'] ) ? esc_html( $settings['payment_heading_text'] ) : esc_html__( 'Payment', 'wc-smart-checkout-builder' );
 $product_label_text        = ! empty( $settings['product_label_text'] ) ? esc_html( $settings['product_label_text'] ) : esc_html__( 'Product', 'wc-smart-checkout-builder' );
@@ -47,6 +47,9 @@ if ( 'under_shipping' === $order_button_pos ) {
 	$order_button_pos = 'left_column';
 } elseif ( 'under_payment' === $order_button_pos || 'under_order_review' === $order_button_pos ) {
 	$order_button_pos = 'right_column';
+}
+if ( '1_column' === $checkout_layout ) {
+	$order_button_pos = 'full_width';
 }
 
 // Dynamic WooCommerce shipping zones / methods for preview
@@ -277,10 +280,32 @@ if ( '1_column' === $checkout_layout ) {
 									</tr>
 								</thead>
 								<tbody>
+									<?php
+									$show_cart_item_image = ! isset( $settings['show_cart_item_image'] ) || 'yes' === $settings['show_cart_item_image'];
+									$preview_img_url      = '';
+									if ( $product ) {
+										$image_id = $product->get_image_id();
+										if ( $image_id ) {
+											$preview_img_url = wp_get_attachment_image_url( $image_id, 'thumbnail' );
+										}
+									}
+									?>
 									<tr class="cart_item wcas-order-review-product">
 										<td class="product-name">
-											<span class="wcsc-preview-item-title"><?php echo esc_html( $product_name ); ?></span>
-											<strong class="product-quantity">&times;&nbsp;1</strong>
+											<?php if ( $show_cart_item_image && $preview_img_url ) : ?>
+												<div class="wcsc-cart-item-with-img">
+													<img src="<?php echo esc_url( $preview_img_url ); ?>" class="wcsc-cart-item-image" alt="<?php echo esc_attr( $product_name ); ?>" />
+													<span class="wcsc-cart-item-name-text">
+														<span class="wcsc-preview-item-title"><?php echo esc_html( $product_name ); ?></span>
+														<strong class="product-quantity">&times;&nbsp;1</strong>
+													</span>
+												</div>
+											<?php else : ?>
+												<span class="wcsc-cart-item-name-text">
+													<span class="wcsc-preview-item-title"><?php echo esc_html( $product_name ); ?></span>
+													<strong class="product-quantity">&times;&nbsp;1</strong>
+												</span>
+											<?php endif; ?>
 										</td>
 										<td class="product-total">
 											<span class="wcsc-preview-item-price"><?php echo wp_kses_post( $price_html ); ?></span>

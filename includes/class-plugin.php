@@ -61,6 +61,9 @@ class Plugin {
 		add_action( 'admin_menu', array( $this, 'register_admin_menu' ) );
 		add_action( 'admin_init', array( $this, 'register_settings' ) );
 
+		// Custom CSS injection
+		add_action( 'wp_head', array( $this, 'print_custom_css' ), 100 );
+
 		// Custom Thank You Redirect
 		add_action( 'template_redirect', array( $this, 'custom_thank_you_redirect' ) );
 
@@ -243,11 +246,11 @@ class Plugin {
 	public function register_admin_menu() {
 		add_submenu_page(
 			'edit.php?post_type=wcsc_page',
-			__( 'Thank You Page', 'wc-smart-checkout-builder' ),
-			__( 'Thank You Page', 'wc-smart-checkout-builder' ),
+			__( 'Settings', 'wc-smart-checkout-builder' ),
+			__( 'Settings', 'wc-smart-checkout-builder' ),
 			'manage_options',
-			'wcsc-thank-you-settings',
-			array( $this, 'thank_you_settings_html' )
+			'wcsc-settings',
+			array( $this, 'settings_page_html' )
 		);
 	}
 
@@ -255,55 +258,119 @@ class Plugin {
 	 * Register settings fields.
 	 */
 	public function register_settings() {
-		register_setting( 'wcsc_thank_you_settings', 'wcsc_enable_thank_you' );
-		register_setting( 'wcsc_thank_you_settings', 'wcsc_thank_you_page_id' );
+		register_setting( 'wcsc_settings_group', 'wcsc_enable_thank_you' );
+		register_setting( 'wcsc_settings_group', 'wcsc_thank_you_page_id' );
+		register_setting( 'wcsc_settings_group', 'wcsc_custom_css' );
 	}
 
 	/**
-	 * HTML for Thank You Page Settings.
+	 * HTML for Settings Page.
 	 */
-	public function thank_you_settings_html() {
+	public function settings_page_html() {
 		if ( ! current_user_can( 'manage_options' ) ) {
 			return;
 		}
 		
-		$pages = get_pages();
+		$pages         = get_pages();
 		$landing_pages = get_posts( array( 'post_type' => 'wcsc_page', 'numberposts' => -1 ) );
-		$all_pages = array_merge( $pages, $landing_pages );
+		$all_pages     = array_merge( $pages, $landing_pages );
+		$selected_id   = get_option( 'wcsc_thank_you_page_id' );
+		$edit_url      = $selected_id ? get_edit_post_link( $selected_id ) : '';
 		?>
 		<div class="wrap">
-			<h1><?php esc_html_e( 'Thank You Page Settings', 'wc-smart-checkout-builder' ); ?></h1>
+			<h1><?php esc_html_e( 'WC Smart Checkout Builder Settings', 'wc-smart-checkout-builder' ); ?></h1>
 			<form method="post" action="options.php">
 				<?php
-				settings_fields( 'wcsc_thank_you_settings' );
-				do_settings_sections( 'wcsc_thank_you_settings' );
+				settings_fields( 'wcsc_settings_group' );
+				do_settings_sections( 'wcsc_settings_group' );
 				?>
+				
+				<h2 class="title"><?php esc_html_e( 'Thank You Page Settings', 'wc-smart-checkout-builder' ); ?></h2>
 				<table class="form-table">
 					<tr valign="top">
 						<th scope="row"><?php esc_html_e( 'Enable Custom Thank You Page', 'wc-smart-checkout-builder' ); ?></th>
 						<td>
-							<input type="checkbox" name="wcsc_enable_thank_you" value="1" <?php checked( 1, get_option( 'wcsc_enable_thank_you' ), true ); ?> />
+							<label>
+								<input type="checkbox" name="wcsc_enable_thank_you" value="1" <?php checked( 1, get_option( 'wcsc_enable_thank_you' ), true ); ?> />
+								<?php esc_html_e( 'Redirect customers to a custom thank you page upon order completion', 'wc-smart-checkout-builder' ); ?>
+							</label>
 						</td>
 					</tr>
 					<tr valign="top">
 						<th scope="row"><?php esc_html_e( 'Select Thank You Page', 'wc-smart-checkout-builder' ); ?></th>
 						<td>
-							<select name="wcsc_thank_you_page_id">
-								<option value=""><?php esc_html_e( '— Select a page —', 'wc-smart-checkout-builder' ); ?></option>
-								<?php foreach ( $all_pages as $p ) : ?>
-									<option value="<?php echo esc_attr( $p->ID ); ?>" <?php selected( $p->ID, get_option( 'wcsc_thank_you_page_id' ) ); ?>>
-										<?php echo esc_html( $p->post_title . ' (' . $p->post_type . ')' ); ?>
-									</option>
-								<?php endforeach; ?>
-							</select>
+							<div style="display: flex; align-items: center; gap: 10px; flex-wrap: wrap;">
+								<select name="wcsc_thank_you_page_id" id="wcsc_thank_you_page_id" style="min-width: 260px;">
+									<option value=""><?php esc_html_e( '— Select a page —', 'wc-smart-checkout-builder' ); ?></option>
+									<?php foreach ( $all_pages as $p ) : ?>
+										<option value="<?php echo esc_attr( $p->ID ); ?>" <?php selected( $p->ID, $selected_id ); ?>>
+											<?php echo esc_html( $p->post_title . ' (' . $p->post_type . ')' ); ?>
+										</option>
+									<?php endforeach; ?>
+								</select>
+								<a href="<?php echo esc_url( $edit_url ? $edit_url : '#' ); ?>" 
+									id="wcsc-edit-page-btn" 
+									class="button button-secondary" 
+									target="_blank" 
+									style="<?php echo $edit_url ? 'display: inline-flex; align-items: center; gap: 4px;' : 'display: none; align-items: center; gap: 4px;'; ?>">
+									<span class="dashicons dashicons-edit" style="font-size: 16px; width: 16px; height: 16px;"></span>
+									<?php esc_html_e( 'Edit Page', 'wc-smart-checkout-builder' ); ?>
+								</a>
+							</div>
 							<p class="description"><?php esc_html_e( 'Select the page to redirect customers to after a successful order. Ensure you add the "Thank You / Order Details" Elementor widget to this page.', 'wc-smart-checkout-builder' ); ?></p>
 						</td>
 					</tr>
 				</table>
+
+				<h2 class="title" style="margin-top: 30px;"><?php esc_html_e( 'Custom CSS', 'wc-smart-checkout-builder' ); ?></h2>
+				<table class="form-table">
+					<tr valign="top">
+						<th scope="row"><?php esc_html_e( 'Custom CSS Code', 'wc-smart-checkout-builder' ); ?></th>
+						<td>
+							<textarea name="wcsc_custom_css" id="wcsc_custom_css" rows="10" cols="60" class="large-text code" placeholder="/* Add custom CSS rules here... */"><?php echo esc_textarea( get_option( 'wcsc_custom_css', '' ) ); ?></textarea>
+							<p class="description"><?php esc_html_e( 'Custom CSS will automatically be loaded on frontend pages.', 'wc-smart-checkout-builder' ); ?></p>
+						</td>
+					</tr>
+				</table>
+
 				<?php submit_button(); ?>
 			</form>
 		</div>
+
+		<script>
+		document.addEventListener('DOMContentLoaded', function() {
+			var select = document.getElementById('wcsc_thank_you_page_id');
+			var editBtn = document.getElementById('wcsc-edit-page-btn');
+			var adminPostUrl = '<?php echo esc_url( admin_url( 'post.php?action=edit&post=' ) ); ?>';
+			if (select && editBtn) {
+				select.addEventListener('change', function() {
+					var val = this.value;
+					if (val) {
+						editBtn.href = adminPostUrl + encodeURIComponent(val);
+						editBtn.style.display = 'inline-flex';
+						editBtn.style.alignItems = 'center';
+						editBtn.style.gap = '4px';
+					} else {
+						editBtn.style.display = 'none';
+					}
+				});
+			}
+		});
+		</script>
 		<?php
+	}
+
+	/**
+	 * Output custom CSS saved in settings.
+	 */
+	public function print_custom_css() {
+		$custom_css = get_option( 'wcsc_custom_css', '' );
+		if ( ! empty( $custom_css ) ) {
+			echo "\n<!-- WC Smart Checkout Builder Custom CSS -->\n";
+			echo "<style type=\"text/css\" id=\"wcsc-custom-css\">\n";
+			echo wp_strip_all_tags( $custom_css ) . "\n";
+			echo "</style>\n";
+		}
 	}
 
 	/**

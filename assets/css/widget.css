@@ -529,6 +529,10 @@
 .wcas-checkout-wrapper #customer_details.col2-set,
 .wcas-checkout-wrapper .col2-set#customer_details,
 .wcas-checkout-wrapper #customer_details .col-1,
+.wcas-checkout-wrapper #customer_details .col-2 {
+	margin: 0 !important;
+}
+.wcas-checkout-wrapper #customer_details .col-1,
 .wcas-checkout-wrapper #customer_details .col-2,
 .wcas-checkout-wrapper .woocommerce-billing-fields,
 .wcas-checkout-wrapper .woocommerce-shipping-fields,
@@ -570,20 +574,55 @@
 	box-sizing: border-box !important;
 }
 
+/* One-Column Layout: Force Order Button to the Very Bottom */
+.wcas-layout-one-column.wcas-checkout-wrapper > .wcas-checkout-column,
+.wcas-layout-one-column .wcas-checkout-wrapper > .wcas-checkout-column,
+.wcas-layout-one-column .wcas-checkout-column {
+	display: contents !important;
+}
+.wcas-layout-one-column .wcas-block-checkout-form { order: 10 !important; }
+.wcas-layout-one-column .wcas-block-shipping      { order: 20 !important; }
+.wcas-layout-one-column .wcas-block-order-review  { order: 30 !important; }
+.wcas-layout-one-column .wcas-block-payment       { order: 40 !important; }
+.wcas-layout-one-column .wcas-checkout-row-full   { order: 998 !important; }
+.wcas-layout-one-column .wcas-block-order-button  {
+	order: 999 !important;
+	width: 100% !important;
+	flex: 1 1 100% !important;
+}
+
 /* ==========================================================================
-   5. Responsive — Stacking & Mobile Behavior
+   5. Responsive — Stacking & Mobile Behavior (< 1024px)
    ========================================================================== */
-@media (max-width: 1024px) {
+@media (max-width: 1023px) {
 	.wcas-layout-two-column.wcas-checkout-wrapper,
 	.wcas-layout-two-column .wcas-checkout-wrapper {
-		flex-direction: column;
-		gap: var(--wcsc-row-gap, 24px);
+		flex-direction: column !important;
+		gap: var(--wcsc-row-gap, 24px) !important;
 	}
-	.wcas-layout-two-column.wcas-checkout-wrapper > .wcas-checkout-column,
-	.wcas-layout-two-column .wcas-checkout-wrapper > .wcas-checkout-column {
-		flex: 1 1 100%;
-		max-width: 100%;
-		width: 100%;
+
+	.wcas-checkout-wrapper {
+		display: flex !important;
+		flex-direction: column !important;
+		gap: var(--wcsc-row-gap, 20px) !important;
+	}
+
+	.wcas-checkout-wrapper > .wcas-checkout-column,
+	.wcas-checkout-wrapper .wcas-checkout-column {
+		display: contents !important;
+	}
+
+	.wcas-checkout-wrapper .wcas-block-checkout-form { order: 10 !important; }
+	.wcas-checkout-wrapper .wcas-block-shipping      { order: 20 !important; }
+	.wcas-checkout-wrapper .wcas-block-order-review  { order: 30 !important; }
+	.wcas-checkout-wrapper .wcas-block-payment       { order: 40 !important; }
+	.wcas-checkout-wrapper .wcas-checkout-row-full   { order: 998 !important; }
+
+	/* Tablet & Mobile: Order Now Button MUST ALWAYS stay at the very bottom */
+	.wcas-checkout-wrapper .wcas-block-order-button {
+		order: 999 !important;
+		width: 100% !important;
+		flex: 1 1 100% !important;
 	}
 }
 
@@ -600,29 +639,6 @@
 	.wcsc-product-image img {
 		max-width: 100%;
 		width: 100%;
-	}
-
-	/* Mobile: Flatten columns so all blocks participate in single flex container */
-	.wcas-checkout-wrapper {
-		display: flex !important;
-		flex-direction: column !important;
-		gap: var(--wcsc-row-gap, 20px) !important;
-	}
-
-	.wcas-checkout-wrapper > .wcas-checkout-column {
-		display: contents !important;
-	}
-
-	.wcas-checkout-wrapper .wcas-block-checkout-form { order: 10 !important; }
-	.wcas-checkout-wrapper .wcas-block-shipping      { order: 20 !important; }
-	.wcas-checkout-wrapper .wcas-block-order-review  { order: 30 !important; }
-	.wcas-checkout-wrapper .wcas-block-payment       { order: 40 !important; }
-
-	/* Mobile One Column: Order Now MUST ALWAYS be the final block (Requirement 11) */
-	.wcas-checkout-wrapper .wcas-block-order-button {
-		order: 999 !important;
-		width: 100% !important;
-		flex: 1 1 100% !important;
 	}
 }
 
@@ -1084,11 +1100,16 @@
 	box-shadow: 0 0 0 1px #e53e3e !important;
 }
 
-/* Cart Item Image in Order Review */
+/* Cart Item Image in Order Review & Inline Title + Quantity */
+.wcas-checkout-wrapper .shop_table td.product-name {
+	vertical-align: middle;
+}
+
 .wcsc-cart-item-with-img {
-	display: flex;
+	display: inline-flex;
 	align-items: center;
 	gap: 12px;
+	vertical-align: middle;
 }
 
 .wcsc-cart-item-image {
@@ -1097,6 +1118,21 @@
 	object-fit: cover;
 	border-radius: 4px;
 	border: 1px solid #edf2f7;
+	flex-shrink: 0;
+}
+
+.wcsc-cart-item-name-text {
+	display: inline;
+	vertical-align: middle;
+}
+
+.wcas-checkout-wrapper .shop_table td.product-name strong.product-quantity,
+.wcsc-cart-item-name-text strong.product-quantity {
+	display: inline !important;
+	margin-left: 6px;
+	white-space: nowrap;
+	font-weight: 600;
+	vertical-align: baseline;
 }
 
 .wcsc-cart-item-name-text dl.variation {
@@ -1104,6 +1140,7 @@
 	color: #4a5568;
 	margin-top: 4px;
 	margin-bottom: 0;
+	display: block;
 }
 
 .wcsc-cart-item-name-text dl.variation dt {
@@ -1123,7 +1160,7 @@
 }
 
 /* ==========================================================================
-   10. Mobile Sticky Floating Order Button (<= 767px)
+   10. Mobile & Tablet Sticky Floating Order Button (< 1024px)
    ========================================================================== */
 .wcsc-mobile-sticky-bar {
 	display: none;
@@ -1142,7 +1179,7 @@
 	transition: transform 0.3s cubic-bezier(0.16, 1, 0.3, 1), opacity 0.3s ease;
 }
 
-@media (max-width: 767px) {
+@media (max-width: 1023px) {
 	.wcsc-mobile-sticky-bar {
 		display: block;
 	}
