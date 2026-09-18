@@ -345,87 +345,379 @@ class Plugin {
 		$selected_id   = get_option( 'wcsc_thank_you_page_id' );
 		$edit_url      = $selected_id ? get_edit_post_link( $selected_id ) : '';
 		?>
-		<div class="wrap">
-			<h1><?php esc_html_e( 'WC Smart Checkout Builder Settings', 'wc-smart-checkout-builder' ); ?></h1>
-			<form method="post" action="options.php">
-				<?php
-				settings_fields( 'wcsc_settings_group' );
-				do_settings_sections( 'wcsc_settings_group' );
-				?>
-				
-				<h2 class="title"><?php esc_html_e( 'Landing Page URL Slug / Permalink Settings', 'wc-smart-checkout-builder' ); ?></h2>
-				<table class="form-table">
-					<tr valign="top">
-						<th scope="row">
-							<label for="wcsc_cpt_slug"><?php esc_html_e( 'Landing Page URL Slug', 'wc-smart-checkout-builder' ); ?></label>
-						</th>
-						<td>
-							<div style="display: flex; align-items: center; gap: 4px; font-family: monospace; font-size: 14px; flex-wrap: wrap;">
-								<span><?php echo esc_html( home_url( '/' ) ); ?></span>
-								<input type="text" name="wcsc_cpt_slug" id="wcsc_cpt_slug" value="<?php echo esc_attr( get_option( 'wcsc_cpt_slug', 'landing-page' ) ); ?>" class="regular-text" style="max-width: 180px; font-weight: 600;" placeholder="landing-page" />
-								<span>/my-landing-page/</span>
+		<div class="wrap wcsc-admin-dashboard-wrap" style="margin: 20px 20px 0 0; max-width: 100%;">
+			<style>
+				.wcsc-admin-dashboard-wrap {
+					font-family: -apple-system, BlinkMacSystemFont, "Segoe UI", Roboto, Oxygen-Sans, Ubuntu, Cantarell, "Helvetica Neue", sans-serif;
+					color: #1e293b;
+				}
+				.wcsc-dashboard-header {
+					background: #0f172a;
+					color: #ffffff;
+					padding: 28px 32px;
+					border-radius: 0;
+					display: flex;
+					align-items: center;
+					justify-content: space-between;
+					flex-wrap: wrap;
+					gap: 16px;
+					border-bottom: 3px solid #2563eb;
+				}
+				.wcsc-header-left {
+					display: flex;
+					align-items: center;
+					gap: 16px;
+				}
+				.wcsc-header-icon {
+					width: 44px;
+					height: 44px;
+					background: #2563eb;
+					display: flex;
+					align-items: center;
+					justify-content: center;
+					border-radius: 0;
+					color: #ffffff;
+					font-size: 24px;
+				}
+				.wcsc-header-icon .dashicons {
+					font-size: 26px;
+					width: 26px;
+					height: 26px;
+				}
+				.wcsc-header-title {
+					margin: 0;
+					font-size: 22px;
+					font-weight: 700;
+					letter-spacing: -0.01em;
+					color: #ffffff;
+					display: flex;
+					align-items: center;
+					gap: 10px;
+				}
+				.wcsc-badge {
+					font-size: 11px;
+					font-weight: 600;
+					padding: 2px 8px;
+					background: rgba(37, 99, 235, 0.3);
+					border: 1px solid #3b82f6;
+					color: #93c5fd;
+					border-radius: 0;
+					text-transform: uppercase;
+					letter-spacing: 0.05em;
+				}
+				.wcsc-header-subtitle {
+					margin: 4px 0 0 0;
+					color: #94a3b8;
+					font-size: 13px;
+				}
+				.wcsc-tabs-nav {
+					display: flex;
+					background: #f8fafc;
+					border-left: 1px solid #e2e8f0;
+					border-right: 1px solid #e2e8f0;
+					border-bottom: 1px solid #e2e8f0;
+					border-radius: 0;
+					margin: 0;
+					padding: 0;
+					list-style: none;
+					gap: 0;
+				}
+				.wcsc-tab-btn {
+					padding: 14px 24px;
+					font-size: 14px;
+					font-weight: 600;
+					color: #64748b;
+					background: transparent;
+					border: none;
+					border-right: 1px solid #e2e8f0;
+					border-bottom: 3px solid transparent;
+					border-radius: 0;
+					cursor: pointer;
+					display: inline-flex;
+					align-items: center;
+					gap: 8px;
+					transition: all 0.15s ease;
+					outline: none;
+				}
+				.wcsc-tab-btn:hover {
+					color: #0f172a;
+					background: #f1f5f9;
+				}
+				.wcsc-tab-btn.active {
+					color: #2563eb;
+					background: #ffffff;
+					border-bottom-color: #2563eb;
+				}
+				.wcsc-dashboard-body {
+					background: #ffffff;
+					border: 1px solid #e2e8f0;
+					border-top: none;
+					border-radius: 0;
+					padding: 32px;
+					box-sizing: border-box;
+				}
+				.wcsc-tab-pane {
+					display: none;
+				}
+				.wcsc-tab-pane.active {
+					display: block;
+				}
+				.wcsc-section-card {
+					margin-bottom: 24px;
+				}
+				.wcsc-card-heading {
+					margin: 0 0 6px 0;
+					font-size: 17px;
+					font-weight: 700;
+					color: #0f172a;
+				}
+				.wcsc-card-desc {
+					margin: 0 0 20px 0;
+					font-size: 13px;
+					color: #64748b;
+					line-height: 1.5;
+				}
+				.wcsc-form-group {
+					margin-bottom: 22px;
+				}
+				.wcsc-form-label {
+					display: block;
+					font-size: 14px;
+					font-weight: 600;
+					color: #1e293b;
+					margin-bottom: 8px;
+				}
+				.wcsc-url-preview-box {
+					display: flex;
+					align-items: center;
+					background: #f8fafc;
+					border: 1px solid #cbd5e1;
+					border-radius: 0;
+					padding: 10px 14px;
+					font-family: monospace;
+					font-size: 14px;
+					flex-wrap: wrap;
+					gap: 4px;
+					max-width: 600px;
+				}
+				.wcsc-url-preview-box input[type="text"] {
+					border: 1px solid #3b82f6;
+					border-radius: 0;
+					padding: 5px 10px;
+					font-family: monospace;
+					font-size: 14px;
+					font-weight: 700;
+					color: #1e293b;
+					background: #ffffff;
+					outline: none;
+				}
+				.wcsc-select-field {
+					border: 1px solid #cbd5e1;
+					border-radius: 0;
+					padding: 8px 12px;
+					font-size: 14px;
+					min-width: 300px;
+					color: #1e293b;
+					background: #ffffff;
+				}
+				.wcsc-code-textarea {
+					width: 100%;
+					font-family: Consolas, Monaco, "Courier New", monospace;
+					font-size: 13px;
+					line-height: 1.6;
+					background: #0f172a;
+					color: #38bdf8;
+					border: 1px solid #1e293b;
+					border-radius: 0;
+					padding: 16px;
+					box-sizing: border-box;
+				}
+				.wcsc-save-btn {
+					background: #2563eb !important;
+					border-color: #2563eb !important;
+					color: #ffffff !important;
+					font-size: 14px !important;
+					font-weight: 600 !important;
+					padding: 8px 24px !important;
+					border-radius: 0 !important;
+					cursor: pointer;
+					text-shadow: none !important;
+					box-shadow: none !important;
+					transition: background 0.15s ease !important;
+				}
+				.wcsc-save-btn:hover {
+					background: #1d4ed8 !important;
+					border-color: #1d4ed8 !important;
+				}
+				.wcsc-button-secondary {
+					display: inline-flex;
+					align-items: center;
+					gap: 6px;
+					background: #f1f5f9;
+					border: 1px solid #cbd5e1;
+					color: #334155;
+					padding: 8px 14px;
+					font-size: 13px;
+					font-weight: 600;
+					border-radius: 0;
+					text-decoration: none;
+				}
+				.wcsc-button-secondary:hover {
+					background: #e2e8f0;
+					color: #0f172a;
+				}
+				.wcsc-alert-box {
+					background: #eff6ff;
+					border-left: 4px solid #3b82f6;
+					border-radius: 0;
+					padding: 14px 18px;
+					margin-top: 12px;
+					font-size: 13px;
+					color: #1e40af;
+					line-height: 1.5;
+				}
+			</style>
+
+			<div class="wcsc-dashboard-header">
+				<div class="wcsc-header-left">
+					<div class="wcsc-header-icon">
+						<span class="dashicons dashicons-cart"></span>
+					</div>
+					<div>
+						<h1 class="wcsc-header-title">
+							<?php esc_html_e( 'WC Smart Checkout Builder', 'wc-smart-checkout-builder' ); ?>
+							<span class="wcsc-badge"><?php echo esc_html( WCSC_VERSION ); ?></span>
+						</h1>
+						<p class="wcsc-header-subtitle"><?php esc_html_e( 'Manage permalinks, post-purchase redirection, and custom checkout styling.', 'wc-smart-checkout-builder' ); ?></p>
+					</div>
+				</div>
+			</div>
+
+			<div class="wcsc-tabs-nav">
+				<button type="button" class="wcsc-tab-btn active" data-tab="tab-general">
+					<span class="dashicons dashicons-admin-links"></span>
+					<?php esc_html_e( 'Permalinks & Slug', 'wc-smart-checkout-builder' ); ?>
+				</button>
+				<button type="button" class="wcsc-tab-btn" data-tab="tab-thankyou">
+					<span class="dashicons dashicons-yes-alt"></span>
+					<?php esc_html_e( 'Thank You Page', 'wc-smart-checkout-builder' ); ?>
+				</button>
+				<button type="button" class="wcsc-tab-btn" data-tab="tab-custom-css">
+					<span class="dashicons dashicons-editor-code"></span>
+					<?php esc_html_e( 'Custom CSS', 'wc-smart-checkout-builder' ); ?>
+				</button>
+			</div>
+
+			<div class="wcsc-dashboard-body">
+				<form method="post" action="options.php">
+					<?php
+					settings_fields( 'wcsc_settings_group' );
+					do_settings_sections( 'wcsc_settings_group' );
+					?>
+
+					<!-- Tab 1: General / Permalinks -->
+					<div class="wcsc-tab-pane active" id="tab-general">
+						<div class="wcsc-section-card">
+							<h2 class="wcsc-card-heading"><?php esc_html_e( 'Landing Page URL Slug / Permalinks', 'wc-smart-checkout-builder' ); ?></h2>
+							<p class="wcsc-card-desc"><?php esc_html_e( 'Configure the public URL structure for your custom landing pages. Changes update rewrite rules automatically without causing 404 errors.', 'wc-smart-checkout-builder' ); ?></p>
+							
+							<div class="wcsc-form-group">
+								<label for="wcsc_cpt_slug" class="wcsc-form-label"><?php esc_html_e( 'Base Slug', 'wc-smart-checkout-builder' ); ?></label>
+								<div class="wcsc-url-preview-box">
+									<span><?php echo esc_html( home_url( '/' ) ); ?></span>
+									<input type="text" name="wcsc_cpt_slug" id="wcsc_cpt_slug" value="<?php echo esc_attr( get_option( 'wcsc_cpt_slug', 'landing-page' ) ); ?>" placeholder="landing-page" />
+									<span>/your-landing-page/</span>
+								</div>
 							</div>
-							<p class="description" style="margin-top: 6px;">
-								<?php esc_html_e( 'Change the URL base slug for your Landing Pages (e.g. "offer", "deal", "order"). Rewrite rules update automatically upon saving without 404 errors.', 'wc-smart-checkout-builder' ); ?>
-							</p>
-						</td>
-					</tr>
-				</table>
 
-				<h2 class="title" style="margin-top: 30px;"><?php esc_html_e( 'Thank You Page Settings', 'wc-smart-checkout-builder' ); ?></h2>
-				<table class="form-table">
-					<tr valign="top">
-						<th scope="row"><?php esc_html_e( 'Enable Custom Thank You Page', 'wc-smart-checkout-builder' ); ?></th>
-						<td>
-							<label>
-								<input type="checkbox" name="wcsc_enable_thank_you" value="1" <?php checked( 1, get_option( 'wcsc_enable_thank_you' ), true ); ?> />
-								<?php esc_html_e( 'Redirect customers to a custom thank you page upon order completion', 'wc-smart-checkout-builder' ); ?>
-							</label>
-						</td>
-					</tr>
-					<tr valign="top">
-						<th scope="row"><?php esc_html_e( 'Select Thank You Page', 'wc-smart-checkout-builder' ); ?></th>
-						<td>
-							<div style="display: flex; align-items: center; gap: 10px; flex-wrap: wrap;">
-								<select name="wcsc_thank_you_page_id" id="wcsc_thank_you_page_id" style="min-width: 260px;">
-									<option value=""><?php esc_html_e( '— Select a page —', 'wc-smart-checkout-builder' ); ?></option>
-									<?php foreach ( $all_pages as $p ) : ?>
-										<option value="<?php echo esc_attr( $p->ID ); ?>" <?php selected( $p->ID, $selected_id ); ?>>
-											<?php echo esc_html( $p->post_title . ' (' . $p->post_type . ')' ); ?>
-										</option>
-									<?php endforeach; ?>
-								</select>
-								<a href="<?php echo esc_url( $edit_url ? $edit_url : '#' ); ?>" 
-									id="wcsc-edit-page-btn" 
-									class="button button-secondary" 
-									target="_blank" 
-									style="<?php echo $edit_url ? 'display: inline-flex; align-items: center; gap: 4px;' : 'display: none; align-items: center; gap: 4px;'; ?>">
-									<span class="dashicons dashicons-edit" style="font-size: 16px; width: 16px; height: 16px;"></span>
-									<?php esc_html_e( 'Edit Page', 'wc-smart-checkout-builder' ); ?>
-								</a>
+							<div class="wcsc-alert-box">
+								<strong><?php esc_html_e( 'Tip:', 'wc-smart-checkout-builder' ); ?></strong>
+								<?php esc_html_e( 'Common conversion-focused slugs include "offer", "deal", "order", "special", or "checkout".', 'wc-smart-checkout-builder' ); ?>
 							</div>
-							<p class="description"><?php esc_html_e( 'Select the page to redirect customers to after a successful order. Ensure you add the "Thank You / Order Details" Elementor widget to this page.', 'wc-smart-checkout-builder' ); ?></p>
-						</td>
-					</tr>
-				</table>
+						</div>
+					</div>
 
-				<h2 class="title" style="margin-top: 30px;"><?php esc_html_e( 'Custom CSS', 'wc-smart-checkout-builder' ); ?></h2>
-				<table class="form-table">
-					<tr valign="top">
-						<th scope="row"><?php esc_html_e( 'Custom CSS Code', 'wc-smart-checkout-builder' ); ?></th>
-						<td>
-							<textarea name="wcsc_custom_css" id="wcsc_custom_css" rows="10" cols="60" class="large-text code" placeholder="/* Add custom CSS rules here... */"><?php echo esc_textarea( get_option( 'wcsc_custom_css', '' ) ); ?></textarea>
-							<p class="description"><?php esc_html_e( 'Custom CSS will automatically be loaded on frontend pages.', 'wc-smart-checkout-builder' ); ?></p>
-						</td>
-					</tr>
-				</table>
+					<!-- Tab 2: Thank You Page -->
+					<div class="wcsc-tab-pane" id="tab-thankyou">
+						<div class="wcsc-section-card">
+							<h2 class="wcsc-card-heading"><?php esc_html_e( 'Custom Thank You Page Redirection', 'wc-smart-checkout-builder' ); ?></h2>
+							<p class="wcsc-card-desc"><?php esc_html_e( 'Seamlessly redirect customers after a successful order to a dedicated confirmation page built with Elementor.', 'wc-smart-checkout-builder' ); ?></p>
 
-				<?php submit_button(); ?>
-			</form>
+							<div class="wcsc-form-group">
+								<label style="display: flex; align-items: center; gap: 8px; font-weight: 600; cursor: pointer;">
+									<input type="checkbox" name="wcsc_enable_thank_you" value="1" <?php checked( 1, get_option( 'wcsc_enable_thank_you' ), true ); ?> style="border-radius: 0;" />
+									<?php esc_html_e( 'Enable automatic redirection to a custom Thank You page upon order completion', 'wc-smart-checkout-builder' ); ?>
+								</label>
+							</div>
+
+							<div class="wcsc-form-group" style="margin-top: 20px;">
+								<label for="wcsc_thank_you_page_id" class="wcsc-form-label"><?php esc_html_e( 'Select Target Page', 'wc-smart-checkout-builder' ); ?></label>
+								<div style="display: flex; align-items: center; gap: 12px; flex-wrap: wrap;">
+									<select name="wcsc_thank_you_page_id" id="wcsc_thank_you_page_id" class="wcsc-select-field">
+										<option value=""><?php esc_html_e( '— Select a page —', 'wc-smart-checkout-builder' ); ?></option>
+										<?php foreach ( $all_pages as $p ) : ?>
+											<option value="<?php echo esc_attr( $p->ID ); ?>" <?php selected( $p->ID, $selected_id ); ?>>
+												<?php echo esc_html( $p->post_title . ' (' . $p->post_type . ')' ); ?>
+											</option>
+										<?php endforeach; ?>
+									</select>
+									<a href="<?php echo esc_url( $edit_url ? $edit_url : '#' ); ?>" 
+										id="wcsc-edit-page-btn" 
+										class="wcsc-button-secondary" 
+										target="_blank" 
+										style="<?php echo $edit_url ? 'display: inline-flex;' : 'display: none;'; ?>">
+										<span class="dashicons dashicons-edit"></span>
+										<?php esc_html_e( 'Edit Page', 'wc-smart-checkout-builder' ); ?>
+									</a>
+								</div>
+								<p class="description" style="margin-top: 8px;">
+									<?php esc_html_e( 'Remember to place the "Thank You / Order Details" Elementor widget onto this page to display order summary and customer details.', 'wc-smart-checkout-builder' ); ?>
+								</p>
+							</div>
+						</div>
+					</div>
+
+					<!-- Tab 3: Custom CSS -->
+					<div class="wcsc-tab-pane" id="tab-custom-css">
+						<div class="wcsc-section-card">
+							<h2 class="wcsc-card-heading"><?php esc_html_e( 'Global Custom CSS', 'wc-smart-checkout-builder' ); ?></h2>
+							<p class="wcsc-card-desc"><?php esc_html_e( 'Add custom CSS overrides that automatically load across all checkout and landing pages.', 'wc-smart-checkout-builder' ); ?></p>
+
+							<div class="wcsc-form-group">
+								<textarea name="wcsc_custom_css" id="wcsc_custom_css" rows="12" class="wcsc-code-textarea" placeholder="/* Add custom CSS rules here... */"><?php echo esc_textarea( get_option( 'wcsc_custom_css', '' ) ); ?></textarea>
+							</div>
+						</div>
+					</div>
+
+					<div style="margin-top: 30px; padding-top: 20px; border-top: 1px solid #e2e8f0;">
+						<?php submit_button( __( 'Save All Changes', 'wc-smart-checkout-builder' ), 'primary', 'submit', false, array( 'class' => 'wcsc-save-btn' ) ); ?>
+					</div>
+				</form>
+			</div>
 		</div>
 
 		<script>
 		document.addEventListener('DOMContentLoaded', function() {
+			// Tab switching
+			var tabButtons = document.querySelectorAll('.wcsc-tab-btn');
+			var tabPanes = document.querySelectorAll('.wcsc-tab-pane');
+
+			tabButtons.forEach(function(btn) {
+				btn.addEventListener('click', function() {
+					var targetTab = this.getAttribute('data-tab');
+
+					tabButtons.forEach(function(b) { b.classList.remove('active'); });
+					tabPanes.forEach(function(p) { p.classList.remove('active'); });
+
+					this.classList.add('active');
+					var activePane = document.getElementById(targetTab);
+					if (activePane) {
+						activePane.classList.add('active');
+					}
+				});
+			});
+
+			// Page selector edit button link
 			var select = document.getElementById('wcsc_thank_you_page_id');
 			var editBtn = document.getElementById('wcsc-edit-page-btn');
 			var adminPostUrl = '<?php echo esc_url( admin_url( 'post.php?action=edit&post=' ) ); ?>';
@@ -435,8 +727,6 @@ class Plugin {
 					if (val) {
 						editBtn.href = adminPostUrl + encodeURIComponent(val);
 						editBtn.style.display = 'inline-flex';
-						editBtn.style.alignItems = 'center';
-						editBtn.style.gap = '4px';
 					} else {
 						editBtn.style.display = 'none';
 					}

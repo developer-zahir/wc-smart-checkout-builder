@@ -644,7 +644,7 @@ class Elementor_Widget extends Widget_Base {
 		$this->start_controls_section(
 			'section_mobile_sticky_button',
 			array(
-				'label' => esc_html__( 'Floating Mobile Button (< 1024px)', 'wc-smart-checkout-builder' ),
+				'label' => esc_html__( 'Floating Button', 'wc-smart-checkout-builder' ),
 				'tab'   => Controls_Manager::TAB_CONTENT,
 			)
 		);
@@ -652,20 +652,20 @@ class Elementor_Widget extends Widget_Base {
 		$this->add_control(
 			'enable_mobile_sticky_button',
 			array(
-				'label'        => esc_html__( 'Enable Sticky Mobile Button', 'wc-smart-checkout-builder' ),
+				'label'        => esc_html__( 'Enable Floating Button', 'wc-smart-checkout-builder' ),
 				'type'         => Controls_Manager::SWITCHER,
 				'label_on'     => esc_html__( 'Yes', 'wc-smart-checkout-builder' ),
 				'label_off'    => esc_html__( 'No', 'wc-smart-checkout-builder' ),
 				'return_value' => 'yes',
 				'default'      => 'yes',
-				'description'  => esc_html__( 'Displays a fixed bottom bar on mobile and tablet screens (< 1024px) with shine animation. Smooth-scrolls to checkout.', 'wc-smart-checkout-builder' ),
+				'description'  => esc_html__( 'Displays a floating checkout button with shine animation. Smooth-scrolls to checkout.', 'wc-smart-checkout-builder' ),
 			)
 		);
 
 		$this->add_control(
 			'mobile_sticky_button_text',
 			array(
-				'label'       => esc_html__( 'Sticky Button Text', 'wc-smart-checkout-builder' ),
+				'label'       => esc_html__( 'Button Text', 'wc-smart-checkout-builder' ),
 				'type'        => Controls_Manager::TEXT,
 				'default'     => esc_html__( 'অর্ডার করুন', 'wc-smart-checkout-builder' ),
 				'condition'   => array(
@@ -1970,91 +1970,6 @@ class Elementor_Widget extends Widget_Base {
 
 		$this->end_controls_section();
 
-		// --- Section: Checkout Input Fields ---
-		$this->start_controls_section(
-			'section_style_checkout_form_inputs',
-			array(
-				'label' => esc_html__( 'Form Input Fields', 'wc-smart-checkout-builder' ),
-				'tab'   => Controls_Manager::TAB_STYLE,
-			)
-		);
-
-		$this->add_control(
-			'field_label_color',
-			array(
-				'label'     => esc_html__( 'Field Label Color', 'wc-smart-checkout-builder' ),
-				'type'      => Controls_Manager::COLOR,
-				'selectors' => array(
-					'{{WRAPPER}} .woocommerce form .form-row label' => 'color: {{VALUE}};',
-				),
-			)
-		);
-
-		$this->add_group_control(
-			Group_Control_Typography::get_type(),
-			array(
-				'name'     => 'field_label_typography',
-				'selector' => '{{WRAPPER}} .woocommerce form .form-row label',
-			)
-		);
-
-		$this->add_control(
-			'field_input_bg',
-			array(
-				'label'     => esc_html__( 'Input Background', 'wc-smart-checkout-builder' ),
-				'type'      => Controls_Manager::COLOR,
-				'selectors' => array(
-					'{{WRAPPER}} .woocommerce form .form-row input.input-text, {{WRAPPER}} .woocommerce form .form-row textarea, {{WRAPPER}} .woocommerce form .form-row select' => 'background-color: {{VALUE}};',
-				),
-			)
-		);
-
-		$this->add_control(
-			'field_input_border_color',
-			array(
-				'label'     => esc_html__( 'Input Border Color', 'wc-smart-checkout-builder' ),
-				'type'      => Controls_Manager::COLOR,
-				'selectors' => array(
-					'{{WRAPPER}} .woocommerce form .form-row input.input-text, {{WRAPPER}} .woocommerce form .form-row textarea, {{WRAPPER}} .woocommerce form .form-row select' => 'border-color: {{VALUE}};',
-				),
-			)
-		);
-
-		$this->add_control(
-			'field_input_error_border_color',
-			array(
-				'label'     => esc_html__( 'Error Field Border Color', 'wc-smart-checkout-builder' ),
-				'type'      => Controls_Manager::COLOR,
-				'default'   => '#ff0000',
-				'selectors' => array(
-					'{{WRAPPER}}' => '--wcsc-error-border-color: {{VALUE}};',
-					'{{WRAPPER}} .woocommerce form.checkout .woocommerce-invalid input.input-text, {{WRAPPER}} .woocommerce form.checkout .woocommerce-invalid textarea, {{WRAPPER}} .woocommerce form.checkout .woocommerce-invalid select, {{WRAPPER}} .woocommerce form.checkout input.input-text.wcsc-invalid, {{WRAPPER}} .woocommerce form.checkout textarea.wcsc-invalid, {{WRAPPER}} .woocommerce form.checkout select.wcsc-invalid, {{WRAPPER}} .wcas-checkout-wrapper .woocommerce-invalid input.input-text, {{WRAPPER}} .wcas-checkout-wrapper .woocommerce-invalid textarea, {{WRAPPER}} .wcas-checkout-wrapper .woocommerce-invalid select, {{WRAPPER}} .wcas-checkout-wrapper input.input-text.wcsc-invalid, {{WRAPPER}} .wcas-checkout-wrapper textarea.wcsc-invalid, {{WRAPPER}} .wcas-checkout-wrapper select.wcsc-invalid' => 'border-color: {{VALUE}} !important; box-shadow: 0 0 0 1px {{VALUE}} !important;',
-				),
-			)
-		);
-
-		$this->add_responsive_control(
-			'field_input_border_radius',
-			array(
-				'label'      => esc_html__( 'Input Border Radius', 'wc-smart-checkout-builder' ),
-				'type'       => Controls_Manager::DIMENSIONS,
-				'size_units' => array( 'px' ),
-				'default'    => array(
-					'top'      => '4',
-					'right'    => '4',
-					'bottom'   => '4',
-					'left'     => '4',
-					'unit'     => 'px',
-					'isLinked' => true,
-				),
-				'selectors'  => array(
-					'{{WRAPPER}} .woocommerce form .form-row input.input-text, {{WRAPPER}} .woocommerce form .form-row textarea, {{WRAPPER}} .woocommerce form .form-row select' => 'border-radius: {{TOP}}{{UNIT}} {{RIGHT}}{{UNIT}} {{BOTTOM}}{{UNIT}} {{LEFT}}{{UNIT}};',
-				),
-			)
-		);
-
-		$this->end_controls_section();
-
 		// --- Section: Order Now Button Styling ---
 		$this->start_controls_section(
 			'section_style_order_button',
@@ -2232,12 +2147,34 @@ class Elementor_Widget extends Widget_Base {
 			)
 		);
 
+		$this->add_control(
+			'order_button_solid_bg',
+			array(
+				'label'     => esc_html__( 'Button Color', 'wc-smart-checkout-builder' ),
+				'type'      => Controls_Manager::COLOR,
+				'selectors' => array(
+					'{{WRAPPER}} .wcas-checkout-wrapper .wcas-block-order-button #place_order, {{WRAPPER}} .wcas-checkout-wrapper .wcas-block-order-button .wcsc-order-now-btn, {{WRAPPER}} #place_order, {{WRAPPER}} .wcsc-order-now-btn' => 'background-color: {{VALUE}} !important; --wcsc-order-btn-bg: {{VALUE}} !important;',
+				),
+			)
+		);
+
 		$this->add_group_control(
 			Group_Control_Background::get_type(),
 			array(
 				'name'     => 'order_button_bg',
 				'types'    => array( 'classic', 'gradient' ),
 				'selector' => '{{WRAPPER}} .wcas-checkout-wrapper .wcas-block-order-button #place_order, {{WRAPPER}} .wcas-checkout-wrapper .wcas-block-order-button .wcsc-order-now-btn, {{WRAPPER}} #place_order, {{WRAPPER}} .wcsc-order-now-btn',
+			)
+		);
+
+		$this->add_control(
+			'order_button_pulse_color',
+			array(
+				'label'     => esc_html__( 'Pulse / Glow Animation Color', 'wc-smart-checkout-builder' ),
+				'type'      => Controls_Manager::COLOR,
+				'selectors' => array(
+					'{{WRAPPER}} .wcas-checkout-wrapper .wcas-block-order-button #place_order, {{WRAPPER}} .wcas-checkout-wrapper .wcas-block-order-button .wcsc-order-now-btn, {{WRAPPER}} #place_order, {{WRAPPER}} .wcsc-order-now-btn, {{WRAPPER}} .wcsc-anim-pulse' => '--wcsc-order-btn-bg: {{VALUE}} !important;',
+				),
 			)
 		);
 
@@ -2255,6 +2192,17 @@ class Elementor_Widget extends Widget_Base {
 				'type'      => Controls_Manager::COLOR,
 				'selectors' => array(
 					'{{WRAPPER}} .wcas-checkout-wrapper .wcas-block-order-button #place_order:hover, {{WRAPPER}} .wcas-checkout-wrapper .wcas-block-order-button .wcsc-order-now-btn:hover, {{WRAPPER}} #place_order:hover, {{WRAPPER}} .wcsc-order-now-btn:hover, {{WRAPPER}} #place_order:hover .wcsc-btn-text, {{WRAPPER}} .wcsc-order-now-btn:hover .wcsc-btn-text' => 'color: {{VALUE}} !important;',
+				),
+			)
+		);
+
+		$this->add_control(
+			'order_button_solid_bg_hover',
+			array(
+				'label'     => esc_html__( 'Button Color (Hover)', 'wc-smart-checkout-builder' ),
+				'type'      => Controls_Manager::COLOR,
+				'selectors' => array(
+					'{{WRAPPER}} .wcas-checkout-wrapper .wcas-block-order-button #place_order:hover, {{WRAPPER}} .wcas-checkout-wrapper .wcas-block-order-button .wcsc-order-now-btn:hover, {{WRAPPER}} #place_order:hover, {{WRAPPER}} .wcsc-order-now-btn:hover' => 'background-color: {{VALUE}} !important;',
 				),
 			)
 		);
@@ -2444,36 +2392,12 @@ class Elementor_Widget extends Widget_Base {
 			$this->end_controls_section();
 		}
 
-		// --- Section: Floating "Order Now" Button (< 1024px) Styling ---
+		// --- Section: Floating Button Styling ---
 		$this->start_controls_section(
 			'section_style_mobile_sticky_button',
 			array(
-				'label' => esc_html__( 'Floating Mobile Button (< 1024px)', 'wc-smart-checkout-builder' ),
+				'label' => esc_html__( 'Floating Button', 'wc-smart-checkout-builder' ),
 				'tab'   => Controls_Manager::TAB_STYLE,
-			)
-		);
-
-		$this->add_control(
-			'style_enable_mobile_sticky_button',
-			array(
-				'label'        => esc_html__( 'Enable Floating Button', 'wc-smart-checkout-builder' ),
-				'type'         => Controls_Manager::SWITCHER,
-				'label_on'     => esc_html__( 'Yes', 'wc-smart-checkout-builder' ),
-				'label_off'    => esc_html__( 'No', 'wc-smart-checkout-builder' ),
-				'return_value' => 'yes',
-				'default'      => 'yes',
-			)
-		);
-
-		$this->add_control(
-			'style_mobile_sticky_button_text',
-			array(
-				'label'       => esc_html__( 'Button Text', 'wc-smart-checkout-builder' ),
-				'type'        => Controls_Manager::TEXT,
-				'default'     => esc_html__( 'অর্ডার করুন', 'wc-smart-checkout-builder' ),
-				'condition'   => array(
-					'style_enable_mobile_sticky_button' => 'yes',
-				),
 			)
 		);
 
@@ -2483,9 +2407,6 @@ class Elementor_Widget extends Widget_Base {
 				'name'      => 'mobile_sticky_typography',
 				'label'     => esc_html__( 'Typography', 'wc-smart-checkout-builder' ),
 				'selector'  => '{{WRAPPER}} .wcsc-mobile-sticky-btn, {{WRAPPER}} .wcsc-mobile-sticky-btn .wcsc-sticky-text',
-				'condition' => array(
-					'style_enable_mobile_sticky_button' => 'yes',
-				),
 			)
 		);
 
@@ -2501,9 +2422,6 @@ class Elementor_Widget extends Widget_Base {
 				'selectors'  => array(
 					'{{WRAPPER}} .wcsc-mobile-sticky-btn' => 'min-height: {{SIZE}}{{UNIT}} !important; line-height: {{SIZE}}{{UNIT}};',
 				),
-				'condition'  => array(
-					'style_enable_mobile_sticky_button' => 'yes',
-				),
 			)
 		);
 
@@ -2515,9 +2433,6 @@ class Elementor_Widget extends Widget_Base {
 				'size_units' => array( 'px', 'em' ),
 				'selectors'  => array(
 					'{{WRAPPER}} .wcsc-mobile-sticky-btn' => 'padding: {{TOP}}{{UNIT}} {{RIGHT}}{{UNIT}} {{BOTTOM}}{{UNIT}} {{LEFT}}{{UNIT}} !important;',
-				),
-				'condition'  => array(
-					'style_enable_mobile_sticky_button' => 'yes',
 				),
 			)
 		);
@@ -2531,9 +2446,6 @@ class Elementor_Widget extends Widget_Base {
 				'selectors'  => array(
 					'{{WRAPPER}} .wcsc-mobile-sticky-bar, {{WRAPPER}} .wcsc-mobile-sticky-btn' => 'margin: {{TOP}}{{UNIT}} {{RIGHT}}{{UNIT}} {{BOTTOM}}{{UNIT}} {{LEFT}}{{UNIT}} !important;',
 				),
-				'condition'  => array(
-					'style_enable_mobile_sticky_button' => 'yes',
-				),
 			)
 		);
 
@@ -2542,9 +2454,6 @@ class Elementor_Widget extends Widget_Base {
 			array(
 				'name'      => 'mobile_sticky_border',
 				'selector'  => '{{WRAPPER}} .wcsc-mobile-sticky-btn',
-				'condition' => array(
-					'style_enable_mobile_sticky_button' => 'yes',
-				),
 			)
 		);
 
@@ -2557,9 +2466,6 @@ class Elementor_Widget extends Widget_Base {
 				'selectors'  => array(
 					'{{WRAPPER}} .wcsc-mobile-sticky-btn' => 'border-radius: {{TOP}}{{UNIT}} {{RIGHT}}{{UNIT}} {{BOTTOM}}{{UNIT}} {{LEFT}}{{UNIT}} !important;',
 				),
-				'condition'  => array(
-					'style_enable_mobile_sticky_button' => 'yes',
-				),
 			)
 		);
 
@@ -2568,20 +2474,10 @@ class Elementor_Widget extends Widget_Base {
 			array(
 				'name'      => 'mobile_sticky_box_shadow',
 				'selector'  => '{{WRAPPER}} .wcsc-mobile-sticky-bar, {{WRAPPER}} .wcsc-mobile-sticky-btn',
-				'condition' => array(
-					'style_enable_mobile_sticky_button' => 'yes',
-				),
 			)
 		);
 
-		$this->start_controls_tabs(
-			'tabs_mobile_sticky_states',
-			array(
-				'condition' => array(
-					'style_enable_mobile_sticky_button' => 'yes',
-				),
-			)
-		);
+		$this->start_controls_tabs( 'tabs_mobile_sticky_states' );
 
 		$this->start_controls_tab(
 			'tab_mobile_sticky_normal',
@@ -2740,6 +2636,18 @@ class Elementor_Widget extends Widget_Base {
 			)
 		);
 
+		$checkout_input_sel = '{{WRAPPER}} .wcas-checkout-wrapper input.input-text, {{WRAPPER}} .wcas-checkout-wrapper input[type="text"], {{WRAPPER}} .wcas-checkout-wrapper input[type="tel"], {{WRAPPER}} .wcas-checkout-wrapper input[type="email"], {{WRAPPER}} .wcas-checkout-wrapper input[type="password"], {{WRAPPER}} .wcas-checkout-wrapper textarea, {{WRAPPER}} .wcas-checkout-wrapper select, {{WRAPPER}} .woocommerce form .form-row input.input-text, {{WRAPPER}} .woocommerce form .form-row input[type="text"], {{WRAPPER}} .woocommerce form .form-row input[type="tel"], {{WRAPPER}} .woocommerce form .form-row input[type="email"], {{WRAPPER}} .woocommerce form .form-row textarea, {{WRAPPER}} .woocommerce form .form-row select';
+
+		$checkout_input_height_sel = '{{WRAPPER}} .wcas-checkout-wrapper input.input-text, {{WRAPPER}} .wcas-checkout-wrapper input[type="text"], {{WRAPPER}} .wcas-checkout-wrapper input[type="tel"], {{WRAPPER}} .wcas-checkout-wrapper input[type="email"], {{WRAPPER}} .wcas-checkout-wrapper select, {{WRAPPER}} .woocommerce form .form-row input.input-text, {{WRAPPER}} .woocommerce form .form-row input[type="text"], {{WRAPPER}} .woocommerce form .form-row input[type="tel"], {{WRAPPER}} .woocommerce form .form-row input[type="email"], {{WRAPPER}} .woocommerce form .form-row select';
+
+		$checkout_input_focus_sel = '{{WRAPPER}} .wcas-checkout-wrapper input.input-text:focus, {{WRAPPER}} .wcas-checkout-wrapper input[type="text"]:focus, {{WRAPPER}} .wcas-checkout-wrapper input[type="tel"]:focus, {{WRAPPER}} .wcas-checkout-wrapper input[type="email"]:focus, {{WRAPPER}} .wcas-checkout-wrapper textarea:focus, {{WRAPPER}} .wcas-checkout-wrapper select:focus, {{WRAPPER}} .woocommerce form .form-row input.input-text:focus, {{WRAPPER}} .woocommerce form .form-row input[type="text"]:focus, {{WRAPPER}} .woocommerce form .form-row input[type="tel"]:focus, {{WRAPPER}} .woocommerce form .form-row input[type="email"]:focus, {{WRAPPER}} .woocommerce form .form-row textarea:focus, {{WRAPPER}} .woocommerce form .form-row select:focus';
+
+		$checkout_input_placeholder_sel = '{{WRAPPER}} .wcas-checkout-wrapper input.input-text::placeholder, {{WRAPPER}} .wcas-checkout-wrapper input[type="text"]::placeholder, {{WRAPPER}} .wcas-checkout-wrapper input[type="tel"]::placeholder, {{WRAPPER}} .wcas-checkout-wrapper input[type="email"]::placeholder, {{WRAPPER}} .wcas-checkout-wrapper textarea::placeholder, {{WRAPPER}} .woocommerce form .form-row input.input-text::placeholder, {{WRAPPER}} .woocommerce form .form-row input[type="text"]::placeholder, {{WRAPPER}} .woocommerce form .form-row input[type="tel"]::placeholder, {{WRAPPER}} .woocommerce form .form-row input[type="email"]::placeholder, {{WRAPPER}} .woocommerce form .form-row textarea::placeholder';
+
+		$checkout_input_error_sel = '{{WRAPPER}} .woocommerce form .form-row.woocommerce-invalid input.input-text, {{WRAPPER}} .woocommerce form .form-row.woocommerce-invalid textarea, {{WRAPPER}} .woocommerce form .form-row.woocommerce-invalid select, {{WRAPPER}} .woocommerce form.checkout input.input-text.wcsc-invalid, {{WRAPPER}} .woocommerce form.checkout textarea.wcsc-invalid, {{WRAPPER}} .woocommerce form.checkout select.wcsc-invalid, {{WRAPPER}} .wcas-checkout-wrapper .woocommerce-invalid input.input-text, {{WRAPPER}} .wcas-checkout-wrapper .woocommerce-invalid textarea, {{WRAPPER}} .wcas-checkout-wrapper .woocommerce-invalid select, {{WRAPPER}} .wcas-checkout-wrapper input.input-text.wcsc-invalid, {{WRAPPER}} .wcas-checkout-wrapper textarea.wcsc-invalid, {{WRAPPER}} .wcas-checkout-wrapper select.wcsc-invalid';
+
+		$checkout_label_sel = '{{WRAPPER}} .woocommerce form .form-row label, {{WRAPPER}} .wcas-checkout-wrapper .form-row label, {{WRAPPER}} .wcas-checkout-wrapper label';
+
 		$this->start_controls_tabs( 'tabs_checkout_fields_style' );
 
 		// Normal Tab
@@ -2753,7 +2661,22 @@ class Elementor_Widget extends Widget_Base {
 			array(
 				'name'     => 'checkout_fields_typography',
 				'label'    => esc_html__( 'Typography', 'wc-smart-checkout-builder' ),
-				'selector' => '{{WRAPPER}} .woocommerce form .form-row input.input-text, {{WRAPPER}} .woocommerce form .form-row textarea, {{WRAPPER}} .woocommerce form .form-row select',
+				'selector' => $checkout_input_sel,
+			)
+		);
+
+		$this->add_responsive_control(
+			'checkout_fields_height',
+			array(
+				'label'      => esc_html__( 'Input Height', 'wc-smart-checkout-builder' ),
+				'type'       => Controls_Manager::SLIDER,
+				'size_units' => array( 'px', 'em' ),
+				'range'      => array(
+					'px' => array( 'min' => 30, 'max' => 90 ),
+				),
+				'selectors'  => array(
+					$checkout_input_height_sel => 'height: {{SIZE}}{{UNIT}} !important; line-height: {{SIZE}}{{UNIT}} !important;',
+				),
 			)
 		);
 
@@ -2763,9 +2686,7 @@ class Elementor_Widget extends Widget_Base {
 				'label'     => esc_html__( 'Text Color', 'wc-smart-checkout-builder' ),
 				'type'      => Controls_Manager::COLOR,
 				'selectors' => array(
-					'{{WRAPPER}} .woocommerce form .form-row input.input-text' => 'color: {{VALUE}};',
-					'{{WRAPPER}} .woocommerce form .form-row textarea'         => 'color: {{VALUE}};',
-					'{{WRAPPER}} .woocommerce form .form-row select'           => 'color: {{VALUE}};',
+					$checkout_input_sel => 'color: {{VALUE}} !important;',
 				),
 			)
 		);
@@ -2776,8 +2697,7 @@ class Elementor_Widget extends Widget_Base {
 				'label'     => esc_html__( 'Placeholder Color', 'wc-smart-checkout-builder' ),
 				'type'      => Controls_Manager::COLOR,
 				'selectors' => array(
-					'{{WRAPPER}} .woocommerce form .form-row input.input-text::placeholder' => 'color: {{VALUE}};',
-					'{{WRAPPER}} .woocommerce form .form-row textarea::placeholder'         => 'color: {{VALUE}};',
+					$checkout_input_placeholder_sel => 'color: {{VALUE}} !important;',
 				),
 			)
 		);
@@ -2788,9 +2708,7 @@ class Elementor_Widget extends Widget_Base {
 				'label'     => esc_html__( 'Background Color', 'wc-smart-checkout-builder' ),
 				'type'      => Controls_Manager::COLOR,
 				'selectors' => array(
-					'{{WRAPPER}} .woocommerce form .form-row input.input-text' => 'background-color: {{VALUE}};',
-					'{{WRAPPER}} .woocommerce form .form-row textarea'         => 'background-color: {{VALUE}};',
-					'{{WRAPPER}} .woocommerce form .form-row select'           => 'background-color: {{VALUE}};',
+					$checkout_input_sel => 'background-color: {{VALUE}} !important;',
 				),
 			)
 		);
@@ -2800,7 +2718,7 @@ class Elementor_Widget extends Widget_Base {
 			array(
 				'name'     => 'checkout_fields_border',
 				'label'    => esc_html__( 'Border', 'wc-smart-checkout-builder' ),
-				'selector' => '{{WRAPPER}} .woocommerce form .form-row input.input-text, {{WRAPPER}} .woocommerce form .form-row textarea, {{WRAPPER}} .woocommerce form .form-row select',
+				'selector' => $checkout_input_sel,
 			)
 		);
 
@@ -2811,10 +2729,17 @@ class Elementor_Widget extends Widget_Base {
 				'type'       => Controls_Manager::DIMENSIONS,
 				'size_units' => array( 'px', '%' ),
 				'selectors'  => array(
-					'{{WRAPPER}} .woocommerce form .form-row input.input-text' => 'border-radius: {{TOP}}{{UNIT}} {{RIGHT}}{{UNIT}} {{BOTTOM}}{{UNIT}} {{LEFT}}{{UNIT}};',
-					'{{WRAPPER}} .woocommerce form .form-row textarea'         => 'border-radius: {{TOP}}{{UNIT}} {{RIGHT}}{{UNIT}} {{BOTTOM}}{{UNIT}} {{LEFT}}{{UNIT}};',
-					'{{WRAPPER}} .woocommerce form .form-row select'           => 'border-radius: {{TOP}}{{UNIT}} {{RIGHT}}{{UNIT}} {{BOTTOM}}{{UNIT}} {{LEFT}}{{UNIT}};',
+					$checkout_input_sel => 'border-radius: {{TOP}}{{UNIT}} {{RIGHT}}{{UNIT}} {{BOTTOM}}{{UNIT}} {{LEFT}}{{UNIT}} !important;',
 				),
+			)
+		);
+
+		$this->add_group_control(
+			Group_Control_Box_Shadow::get_type(),
+			array(
+				'name'     => 'checkout_fields_box_shadow',
+				'label'    => esc_html__( 'Box Shadow', 'wc-smart-checkout-builder' ),
+				'selector' => $checkout_input_sel,
 			)
 		);
 
@@ -2825,9 +2750,7 @@ class Elementor_Widget extends Widget_Base {
 				'type'       => Controls_Manager::DIMENSIONS,
 				'size_units' => array( 'px', 'em', '%' ),
 				'selectors'  => array(
-					'{{WRAPPER}} .woocommerce form .form-row input.input-text' => 'padding: {{TOP}}{{UNIT}} {{RIGHT}}{{UNIT}} {{BOTTOM}}{{UNIT}} {{LEFT}}{{UNIT}};',
-					'{{WRAPPER}} .woocommerce form .form-row textarea'         => 'padding: {{TOP}}{{UNIT}} {{RIGHT}}{{UNIT}} {{BOTTOM}}{{UNIT}} {{LEFT}}{{UNIT}};',
-					'{{WRAPPER}} .woocommerce form .form-row select'           => 'padding: {{TOP}}{{UNIT}} {{RIGHT}}{{UNIT}} {{BOTTOM}}{{UNIT}} {{LEFT}}{{UNIT}};',
+					$checkout_input_sel => 'padding: {{TOP}}{{UNIT}} {{RIGHT}}{{UNIT}} {{BOTTOM}}{{UNIT}} {{LEFT}}{{UNIT}} !important;',
 				),
 			)
 		);
@@ -2839,9 +2762,7 @@ class Elementor_Widget extends Widget_Base {
 				'type'       => Controls_Manager::DIMENSIONS,
 				'size_units' => array( 'px', 'em', '%' ),
 				'selectors'  => array(
-					'{{WRAPPER}} .woocommerce form .form-row input.input-text' => 'margin: {{TOP}}{{UNIT}} {{RIGHT}}{{UNIT}} {{BOTTOM}}{{UNIT}} {{LEFT}}{{UNIT}};',
-					'{{WRAPPER}} .woocommerce form .form-row textarea'         => 'margin: {{TOP}}{{UNIT}} {{RIGHT}}{{UNIT}} {{BOTTOM}}{{UNIT}} {{LEFT}}{{UNIT}};',
-					'{{WRAPPER}} .woocommerce form .form-row select'           => 'margin: {{TOP}}{{UNIT}} {{RIGHT}}{{UNIT}} {{BOTTOM}}{{UNIT}} {{LEFT}}{{UNIT}};',
+					$checkout_input_sel => 'margin: {{TOP}}{{UNIT}} {{RIGHT}}{{UNIT}} {{BOTTOM}}{{UNIT}} {{LEFT}}{{UNIT}} !important;',
 				),
 			)
 		);
@@ -2860,9 +2781,7 @@ class Elementor_Widget extends Widget_Base {
 				'label'     => esc_html__( 'Text Color', 'wc-smart-checkout-builder' ),
 				'type'      => Controls_Manager::COLOR,
 				'selectors' => array(
-					'{{WRAPPER}} .woocommerce form .form-row input.input-text:focus' => 'color: {{VALUE}};',
-					'{{WRAPPER}} .woocommerce form .form-row textarea:focus'         => 'color: {{VALUE}};',
-					'{{WRAPPER}} .woocommerce form .form-row select:focus'           => 'color: {{VALUE}};',
+					$checkout_input_focus_sel => 'color: {{VALUE}} !important;',
 				),
 			)
 		);
@@ -2873,9 +2792,7 @@ class Elementor_Widget extends Widget_Base {
 				'label'     => esc_html__( 'Background Color', 'wc-smart-checkout-builder' ),
 				'type'      => Controls_Manager::COLOR,
 				'selectors' => array(
-					'{{WRAPPER}} .woocommerce form .form-row input.input-text:focus' => 'background-color: {{VALUE}};',
-					'{{WRAPPER}} .woocommerce form .form-row textarea:focus'         => 'background-color: {{VALUE}};',
-					'{{WRAPPER}} .woocommerce form .form-row select:focus'           => 'background-color: {{VALUE}};',
+					$checkout_input_focus_sel => 'background-color: {{VALUE}} !important;',
 				),
 			)
 		);
@@ -2886,10 +2803,17 @@ class Elementor_Widget extends Widget_Base {
 				'label'     => esc_html__( 'Active Border Color', 'wc-smart-checkout-builder' ),
 				'type'      => Controls_Manager::COLOR,
 				'selectors' => array(
-					'{{WRAPPER}} .woocommerce form .form-row input.input-text:focus' => 'border-color: {{VALUE}}; outline-color: {{VALUE}}; box-shadow: 0 0 0 1px {{VALUE}};',
-					'{{WRAPPER}} .woocommerce form .form-row textarea:focus'         => 'border-color: {{VALUE}}; outline-color: {{VALUE}}; box-shadow: 0 0 0 1px {{VALUE}};',
-					'{{WRAPPER}} .woocommerce form .form-row select:focus'           => 'border-color: {{VALUE}}; outline-color: {{VALUE}}; box-shadow: 0 0 0 1px {{VALUE}};',
+					$checkout_input_focus_sel => 'border-color: {{VALUE}} !important; outline-color: {{VALUE}} !important; box-shadow: 0 0 0 1px {{VALUE}} !important;',
 				),
+			)
+		);
+
+		$this->add_group_control(
+			Group_Control_Box_Shadow::get_type(),
+			array(
+				'name'     => 'checkout_fields_focus_box_shadow',
+				'label'    => esc_html__( 'Focus Box Shadow', 'wc-smart-checkout-builder' ),
+				'selector' => $checkout_input_focus_sel,
 			)
 		);
 
@@ -2907,9 +2831,7 @@ class Elementor_Widget extends Widget_Base {
 				'label'     => esc_html__( 'Error Text Color', 'wc-smart-checkout-builder' ),
 				'type'      => Controls_Manager::COLOR,
 				'selectors' => array(
-					'{{WRAPPER}} .woocommerce form .form-row.woocommerce-invalid input.input-text' => 'color: {{VALUE}} !important;',
-					'{{WRAPPER}} .woocommerce form .form-row.woocommerce-invalid textarea'         => 'color: {{VALUE}} !important;',
-					'{{WRAPPER}} .woocommerce form .form-row.woocommerce-invalid select'           => 'color: {{VALUE}} !important;',
+					$checkout_input_error_sel => 'color: {{VALUE}} !important;',
 				),
 			)
 		);
@@ -2920,9 +2842,7 @@ class Elementor_Widget extends Widget_Base {
 				'label'     => esc_html__( 'Error Background Color', 'wc-smart-checkout-builder' ),
 				'type'      => Controls_Manager::COLOR,
 				'selectors' => array(
-					'{{WRAPPER}} .woocommerce form .form-row.woocommerce-invalid input.input-text' => 'background-color: {{VALUE}} !important;',
-					'{{WRAPPER}} .woocommerce form .form-row.woocommerce-invalid textarea'         => 'background-color: {{VALUE}} !important;',
-					'{{WRAPPER}} .woocommerce form .form-row.woocommerce-invalid select'           => 'background-color: {{VALUE}} !important;',
+					$checkout_input_error_sel => 'background-color: {{VALUE}} !important;',
 				),
 			)
 		);
@@ -2933,9 +2853,8 @@ class Elementor_Widget extends Widget_Base {
 				'label'     => esc_html__( 'Error Border Color', 'wc-smart-checkout-builder' ),
 				'type'      => Controls_Manager::COLOR,
 				'selectors' => array(
-					'{{WRAPPER}} .woocommerce form .form-row.woocommerce-invalid input.input-text' => 'border-color: {{VALUE}} !important;',
-					'{{WRAPPER}} .woocommerce form .form-row.woocommerce-invalid textarea'         => 'border-color: {{VALUE}} !important;',
-					'{{WRAPPER}} .woocommerce form .form-row.woocommerce-invalid select'           => 'border-color: {{VALUE}} !important;',
+					'{{WRAPPER}}'             => '--wcsc-error-border-color: {{VALUE}} !important;',
+					$checkout_input_error_sel => 'border-color: {{VALUE}} !important; box-shadow: 0 0 0 1px {{VALUE}} !important;',
 				),
 			)
 		);
@@ -2953,7 +2872,7 @@ class Elementor_Widget extends Widget_Base {
 			array(
 				'name'     => 'checkout_fields_label_typography',
 				'label'    => esc_html__( 'Label Typography', 'wc-smart-checkout-builder' ),
-				'selector' => '{{WRAPPER}} .woocommerce form .form-row label',
+				'selector' => $checkout_label_sel,
 			)
 		);
 
@@ -2963,7 +2882,7 @@ class Elementor_Widget extends Widget_Base {
 				'label'     => esc_html__( 'Label Color', 'wc-smart-checkout-builder' ),
 				'type'      => Controls_Manager::COLOR,
 				'selectors' => array(
-					'{{WRAPPER}} .woocommerce form .form-row label' => 'color: {{VALUE}};',
+					$checkout_label_sel => 'color: {{VALUE}} !important;',
 				),
 			)
 		);
@@ -2974,7 +2893,7 @@ class Elementor_Widget extends Widget_Base {
 				'label'     => esc_html__( 'Required Indicator (*) Color', 'wc-smart-checkout-builder' ),
 				'type'      => Controls_Manager::COLOR,
 				'selectors' => array(
-					'{{WRAPPER}} .woocommerce form .form-row label .required' => 'color: {{VALUE}};',
+					'{{WRAPPER}} .woocommerce form .form-row label .required, {{WRAPPER}} .wcas-checkout-wrapper label .required' => 'color: {{VALUE}} !important;',
 				),
 			)
 		);
@@ -2986,7 +2905,7 @@ class Elementor_Widget extends Widget_Base {
 				'type'       => Controls_Manager::SLIDER,
 				'size_units' => array( 'px', 'em' ),
 				'selectors'  => array(
-					'{{WRAPPER}} .woocommerce form .form-row label' => 'margin-bottom: {{SIZE}}{{UNIT}};',
+					$checkout_label_sel => 'margin-bottom: {{SIZE}}{{UNIT}} !important;',
 				),
 			)
 		);

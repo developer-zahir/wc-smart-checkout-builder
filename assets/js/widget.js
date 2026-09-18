@@ -56,6 +56,7 @@
 			}
 
 			this.initMobileStickyObserver();
+			this.syncOrderButtonAnimationColor();
 		},
 
 		bindEvents: function () {
@@ -636,6 +637,17 @@
 					rootMargin: '0px 0px 0px 0px'
 				});
 				observer.observe(targetEl);
+			}
+		},
+
+		syncOrderButtonAnimationColor: function () {
+			var $btn = this.$container.find('.wcsc-order-now-btn, #place_order');
+			if ($btn.length) {
+				var el = $btn[0];
+				var computedBg = window.getComputedStyle(el).backgroundColor;
+				if (computedBg && computedBg !== 'rgba(0, 0, 0, 0)' && computedBg !== 'transparent') {
+					el.style.setProperty('--wcsc-order-btn-bg', computedBg);
+				}
 			}
 		},
 
