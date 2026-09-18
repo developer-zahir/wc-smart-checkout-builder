@@ -188,19 +188,6 @@
 			var $wrapper = this.$container.find('.wcas-checkout-wrapper');
 			if (!$wrapper.length) return;
 
-			// After WooCommerce AJAX updates, #shipping_method radio list may
-			// have been re-injected into #order_review (which we strip at PHP
-			// level but WooCommerce may re-add via the AJAX fragment). Move it
-			// back to the plugin-owned .wcas-block-shipping container.
-			var $reviewMethods = $wrapper.find('#order_review #shipping_method');
-			if ($reviewMethods.length) {
-				var $shippingBlock = $wrapper.find('.wcas-block-shipping');
-				if ($shippingBlock.length) {
-					$reviewMethods.remove();
-					$shippingBlock.append($reviewMethods);
-				}
-			}
-
 			// Ship methods are rendered natively inside the plugin-owned
 			// .wcas-block-shipping container by the PHP layer. JS only adds
 			// the interactive card classes (.wcsc-shipping-card / .is-active)

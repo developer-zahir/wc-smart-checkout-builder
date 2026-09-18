@@ -414,95 +414,122 @@
    4. Plugin-owned Checkout Block Layout (req 27-45)
    ========================================================================== */
 
-/* Root layout container. Its DIRECT children are the plugin-owned blocks. */
+/* Root layout container. */
 .wcas-checkout-wrapper {
 	width: 100%;
 	display: flex;
 	flex-direction: column;
 	gap: var(--wcsc-row-gap, 20px);
+	box-sizing: border-box;
 }
 
-.wcas-checkout-wrapper > .wcas-block {
+.wcas-checkout-wrapper .wcas-block {
 	width: 100%;
 	box-sizing: border-box;
 }
 
-/* Block order defaults (req 31/33). Elementor responsive "Block Order"
-   controls override these per-device. */
-.wcas-checkout-wrapper .wcas-block-checkout-form   { order: 10; }
-.wcas-checkout-wrapper .wcas-block-shipping        { order: 30; }
-.wcas-checkout-wrapper .wcas-block-order-review   { order: 20; }
-.wcas-checkout-wrapper .wcas-block-payment         { order: 40; }
-.wcas-checkout-wrapper .wcas-block-order-button   { order: 50; }
-
-/* Elementor responsive order overrides (higher specificity than layout defaults). */
-.wcsc-product-checkout-widget .wcas-block-checkout-form  { order: 10; }
-.wcsc-product-checkout-widget .wcas-block-shipping       { order: 30; }
-.wcsc-product-checkout-widget .wcas-block-order-review  { order: 20; }
-.wcsc-product-checkout-widget .wcas-block-payment        { order: 40; }
-.wcsc-product-checkout-widget .wcas-block-order-button  { order: 50; }
-
-/* --- 2 Column (side-by-side) — independent layout class (req 43) --- */
+/* --- 2 Column Layout (Side-by-Side on Desktop) --- */
+.wcas-layout-two-column.wcas-checkout-wrapper,
 .wcas-layout-two-column .wcas-checkout-wrapper {
 	display: flex;
-	flex-wrap: wrap;
-	gap: var(--wcsc-row-gap, 24px) var(--wcsc-col-gap, 30px);
+	flex-direction: row;
+	flex-wrap: nowrap;
+	gap: var(--wcsc-col-gap, 30px);
 	align-items: flex-start;
 }
 
-.wcas-layout-two-column .wcas-checkout-wrapper > .wcas-block {
-	flex: 1 1 calc(50% - var(--wcsc-col-gap, 30px));
+.wcas-layout-two-column.wcas-checkout-wrapper > .wcas-checkout-column,
+.wcas-layout-two-column .wcas-checkout-wrapper > .wcas-checkout-column {
+	flex: 1 1 calc(50% - (var(--wcsc-col-gap, 30px) / 2));
+	max-width: calc(50% - (var(--wcsc-col-gap, 30px) / 2));
+	width: calc(50% - (var(--wcsc-col-gap, 30px) / 2));
+	display: flex;
+	flex-direction: column;
+	gap: var(--wcsc-row-gap, 24px);
+	box-sizing: border-box;
 }
 
-/* Order Now button spans full width on its own row by default (req 32) */
-.wcas-layout-two-column .wcas-checkout-wrapper > .wcas-block-order-button {
-	flex: 1 1 100%;
-}
-
-/* --- 1 Column (stacked) — independent layout class (req 43) --- */
+/* --- 1 Column Layout (Stacked) --- */
+.wcas-layout-one-column.wcas-checkout-wrapper,
 .wcas-layout-one-column .wcas-checkout-wrapper {
 	display: flex;
 	flex-direction: column;
 	gap: var(--wcsc-row-gap, 20px);
 }
 
-.wcas-layout-one-column .wcas-checkout-wrapper > .wcas-block {
-	flex: 1 1 100%;
+.wcas-layout-one-column.wcas-checkout-wrapper > .wcas-checkout-column,
+.wcas-layout-one-column .wcas-checkout-wrapper > .wcas-checkout-column {
+	display: contents;
 }
 
-/* One Column: Billing/Shipping fields must be genuinely full width (req 42).
-   Scoped to our One Column layout class only — never leaks into Two Column. */
-.wcas-layout-one-column #customer_details,
-.wcas-layout-one-column #customer_details.col2-set,
-.wcas-layout-one-column .col2-set#customer_details,
-.wcas-layout-one-column #customer_details .col-1,
-.wcas-layout-one-column #customer_details .col-2,
-.wcas-layout-one-column #customer_details .form-row,
-.wcas-layout-one-column #customer_details .form-row-first,
-.wcas-layout-one-column #customer_details .form-row-last,
-.wcas-layout-one-column #customer_details .form-row-wide {
+/* In One-Column layout, ensure standard top-to-bottom block stack */
+.wcas-layout-one-column .wcas-block-checkout-form { order: 10; }
+.wcas-layout-one-column .wcas-block-shipping      { order: 20; }
+.wcas-layout-one-column .wcas-block-order-review  { order: 30; }
+.wcas-layout-one-column .wcas-block-payment       { order: 40; }
+.wcas-layout-one-column .wcas-block-order-button  { order: 999 !important; }
+
+/* Checkout Form Must ALWAYS Remain One Field Per Row (100% Width) */
+/* Scoped to .wcas-checkout-wrapper so it applies across ALL layouts (One & Two Column) */
+.wcas-checkout-wrapper #customer_details,
+.wcas-checkout-wrapper #customer_details.col2-set,
+.wcas-checkout-wrapper .col2-set#customer_details,
+.wcas-checkout-wrapper #customer_details .col-1,
+.wcas-checkout-wrapper #customer_details .col-2,
+.wcas-checkout-wrapper .woocommerce-billing-fields,
+.wcas-checkout-wrapper .woocommerce-shipping-fields,
+.wcas-checkout-wrapper .woocommerce-billing-fields__field-wrapper,
+.wcas-checkout-wrapper .woocommerce-shipping-fields__field-wrapper,
+.wcas-checkout-wrapper .woocommerce-additional-fields__field-wrapper,
+.wcas-checkout-wrapper .wcas-block-checkout-form .form-row,
+.wcas-checkout-wrapper .wcas-block-checkout-form .form-row-first,
+.wcas-checkout-wrapper .wcas-block-checkout-form .form-row-last,
+.wcas-checkout-wrapper .wcas-block-checkout-form .form-row-wide,
+.wcas-checkout-wrapper #customer_details .form-row,
+.wcas-checkout-wrapper #customer_details .form-row-first,
+.wcas-checkout-wrapper #customer_details .form-row-last,
+.wcas-checkout-wrapper #customer_details .form-row-wide {
 	width: 100% !important;
 	max-width: 100% !important;
 	flex: 1 1 100% !important;
 	float: none !important;
 	clear: both !important;
 	margin-right: 0 !important;
+	margin-left: 0 !important;
+	display: block !important;
+	box-sizing: border-box !important;
 }
 
-.wcas-layout-one-column #customer_details {
-	display: block !important;
+.wcas-checkout-wrapper .woocommerce-billing-fields__field-wrapper,
+.wcas-checkout-wrapper .woocommerce-shipping-fields__field-wrapper {
+	display: flex !important;
+	flex-direction: column !important;
+	width: 100% !important;
+	grid-template-columns: none !important;
+}
+
+.wcas-checkout-wrapper .wcas-block-checkout-form input.input-text,
+.wcas-checkout-wrapper .wcas-block-checkout-form select,
+.wcas-checkout-wrapper .wcas-block-checkout-form textarea {
+	width: 100% !important;
+	max-width: 100% !important;
+	box-sizing: border-box !important;
 }
 
 /* ==========================================================================
-   5. Responsive — 2-column stacks on Tablet & Mobile (req 33)
+   5. Responsive — Stacking & Mobile Behavior
    ========================================================================== */
 @media (max-width: 1024px) {
+	.wcas-layout-two-column.wcas-checkout-wrapper,
 	.wcas-layout-two-column .wcas-checkout-wrapper {
+		flex-direction: column;
 		gap: var(--wcsc-row-gap, 24px);
 	}
-	.wcas-layout-two-column .wcas-checkout-wrapper > .wcas-block,
-	.wcas-layout-two-column .wcas-checkout-wrapper > .wcas-block-order-button {
+	.wcas-layout-two-column.wcas-checkout-wrapper > .wcas-checkout-column,
+	.wcas-layout-two-column .wcas-checkout-wrapper > .wcas-checkout-column {
 		flex: 1 1 100%;
+		max-width: 100%;
+		width: 100%;
 	}
 }
 
@@ -521,10 +548,26 @@
 		width: 100%;
 	}
 
-	/* Mobile One Column: Order Now MUST always be the final block (req 49).
-	   This overrides any desktop position configuration. */
+	/* Mobile: Flatten columns so all blocks participate in single flex container */
+	.wcas-checkout-wrapper {
+		display: flex !important;
+		flex-direction: column !important;
+		gap: var(--wcsc-row-gap, 20px) !important;
+	}
+
+	.wcas-checkout-wrapper > .wcas-checkout-column {
+		display: contents !important;
+	}
+
+	.wcas-checkout-wrapper .wcas-block-checkout-form { order: 10 !important; }
+	.wcas-checkout-wrapper .wcas-block-shipping      { order: 20 !important; }
+	.wcas-checkout-wrapper .wcas-block-order-review  { order: 30 !important; }
+	.wcas-checkout-wrapper .wcas-block-payment       { order: 40 !important; }
+
+	/* Mobile One Column: Order Now MUST ALWAYS be the final block (Requirement 11) */
 	.wcas-checkout-wrapper .wcas-block-order-button {
 		order: 999 !important;
+		width: 100% !important;
 		flex: 1 1 100% !important;
 	}
 }
@@ -606,11 +649,19 @@
 	font-weight: 600;
 }
 
-/* Shipping Totals Row (read-only cost line kept in the order review table) */
+/* Shipping Totals Row (calculated cost line kept in the order review table) */
 .wcsc-product-checkout-widget table.shop_table tfoot tr.woocommerce-shipping-totals,
 .wcsc-product-checkout-widget table.shop_table tfoot tr.woocommerce-shipping-totals th,
-.wcsc-product-checkout-widget table.shop_table tfoot tr.woocommerce-shipping-totals td {
+.wcsc-product-checkout-widget table.shop_table tfoot tr.woocommerce-shipping-totals td,
+.wcsc-product-checkout-widget table.shop_table tfoot tr.wcas-order-review-shipping,
+.wcsc-product-checkout-widget table.shop_table tfoot tr.wcas-order-review-shipping th,
+.wcsc-product-checkout-widget table.shop_table tfoot tr.wcas-order-review-shipping td {
 	background-color: #ffffff;
+}
+
+.wcsc-product-checkout-widget table.shop_table tbody td.product-total,
+.wcsc-product-checkout-widget table.shop_table tfoot td {
+	text-align: right !important;
 }
 
 /* Order Total Row Background Covering Full Row (TH & TD) */

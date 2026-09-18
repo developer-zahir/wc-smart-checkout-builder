@@ -508,6 +508,24 @@ $this->end_controls_section();
 		);
 
 		$this->add_control(
+			'order_button_position',
+			array(
+				'label'       => esc_html__( 'Button Position (Desktop)', 'wc-smart-checkout-builder' ),
+				'type'        => Controls_Manager::SELECT,
+				'options'     => array(
+					'under_order_review' => esc_html__( 'Under Order Review (Right Side)', 'wc-smart-checkout-builder' ),
+					'under_shipping'     => esc_html__( 'Under Shipping Selection (Left Side)', 'wc-smart-checkout-builder' ),
+					'under_payment'      => esc_html__( 'Under Payment Methods (Right Side)', 'wc-smart-checkout-builder' ),
+				),
+				'default'     => 'under_order_review',
+				'description' => esc_html__( 'Note: In mobile 1-column layout, the button is always placed at the very end.', 'wc-smart-checkout-builder' ),
+				'condition'   => array(
+					'show_checkout_order_button' => 'yes',
+				),
+			)
+		);
+
+		$this->add_control(
 			'order_button_text',
 			array(
 				'label'       => esc_html__( 'Button Text', 'wc-smart-checkout-builder' ),

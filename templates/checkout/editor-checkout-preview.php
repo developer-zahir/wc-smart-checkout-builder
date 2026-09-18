@@ -42,6 +42,7 @@ $show_shipping     = ! isset( $settings['show_checkout_shipping'] ) || 'yes' ===
 $show_payment      = ! isset( $settings['show_checkout_payment'] ) || 'yes' === $settings['show_checkout_payment'];
 $show_order_button = ! isset( $settings['show_checkout_order_button'] ) || 'yes' === $settings['show_checkout_order_button'];
 $checkout_layout   = ! empty( $settings['checkout_layout'] ) ? $settings['checkout_layout'] : '2_columns';
+$order_button_pos  = ! empty( $settings['order_button_position'] ) ? $settings['order_button_position'] : 'under_order_review';
 
 // Button Icon & Price
 $animation   = ! empty( $settings['order_button_animation'] ) ? sanitize_html_class( $settings['order_button_animation'] ) : 'border_run';
@@ -65,7 +66,12 @@ if ( ! empty( $settings['order_button_icon'] ) && class_exists( '\Elementor\Icon
 	}
 }
 
-$wrapper_classes = array( 'wcsc-editor-checkout-preview', 'wcas-checkout-wrapper', 'woocommerce' );
+$wrapper_classes = array(
+	'wcsc-editor-checkout-preview',
+	'wcas-checkout-wrapper',
+	'woocommerce',
+	'wcas-order-btn-pos-' . sanitize_html_class( str_replace( '_', '-', $order_button_pos ) ),
+);
 if ( '1_column' === $checkout_layout ) {
 	$wrapper_classes[] = 'wcsc-layout-1-col';
 	$wrapper_classes[] = 'wcas-layout-one-column';
@@ -81,146 +87,13 @@ if ( '1_column' === $checkout_layout ) {
 	<form name="checkout" class="checkout woocommerce-checkout wcsc-checkout-form" onsubmit="return false;">
 		<?php if ( $show_order_review || $show_shipping || $show_payment || $show_order_button ) : ?>
 
-			<?php /* --- Checkout Form Block (billing + shipping fields) --- */ ?>
-			<div class="wcas-block wcas-block-checkout-form">
-				<div class="col2-set" id="customer_details">
-					<div class="col-1">
-						<div class="woocommerce-billing-fields">
-							<h3 class="wcsc-section-title"><?php echo esc_html( $billing_heading_text ); ?></h3>
-
-							<div class="woocommerce-billing-fields__field-wrapper">
-								<p class="form-row form-row-first validate-required" id="billing_first_name_field">
-									<label for="editor_billing_first_name"><?php esc_html_e( 'Full Name', 'wc-smart-checkout-builder' ); ?> <abbr class="required" title="required">*</abbr></label>
-									<span class="woocommerce-input-wrapper">
-										<input type="text" class="input-text" name="billing_first_name" id="editor_billing_first_name" placeholder="<?php esc_attr_e( 'John Doe', 'wc-smart-checkout-builder' ); ?>" value="" readonly />
-									</span>
-								</p>
-
-								<p class="form-row form-row-last validate-required validate-phone" id="billing_phone_field">
-									<label for="editor_billing_phone"><?php esc_html_e( 'Phone Number', 'wc-smart-checkout-builder' ); ?> <abbr class="required" title="required">*</abbr></label>
-									<span class="woocommerce-input-wrapper">
-										<input type="tel" class="input-text" name="billing_phone" id="editor_billing_phone" placeholder="<?php esc_attr_e( '017XXXXXXXX', 'wc-smart-checkout-builder' ); ?>" value="" readonly />
-									</span>
-								</p>
-
-								<p class="form-row form-row-wide address-field validate-required" id="billing_address_1_field">
-									<label for="editor_billing_address_1"><?php esc_html_e( 'Street Address', 'wc-smart-checkout-builder' ); ?> <abbr class="required" title="required">*</abbr></label>
-									<span class="woocommerce-input-wrapper">
-										<input type="text" class="input-text" name="billing_address_1" id="editor_billing_address_1" placeholder="<?php esc_attr_e( 'House, Road, Area details', 'wc-smart-checkout-builder' ); ?>" value="" readonly />
-									</span>
-								</p>
-
-								<p class="form-row form-row-wide address-field validate-required" id="billing_city_field">
-									<label for="editor_billing_city"><?php esc_html_e( 'Town / City', 'wc-smart-checkout-builder' ); ?> <abbr class="required" title="required">*</abbr></label>
-									<span class="woocommerce-input-wrapper">
-										<input type="text" class="input-text" name="billing_city" id="editor_billing_city" placeholder="<?php esc_attr_e( 'Dhaka / Your City', 'wc-smart-checkout-builder' ); ?>" value="" readonly />
-									</span>
-								</p>
-
-								<p class="form-row form-row-wide notes" id="order_comments_field">
-									<label for="editor_order_comments"><?php esc_html_e( 'Order Notes (optional)', 'wc-smart-checkout-builder' ); ?></label>
-									<span class="woocommerce-input-wrapper">
-										<textarea name="order_comments" class="input-text" id="editor_order_comments" placeholder="<?php esc_attr_e( 'Special delivery notes...', 'wc-smart-checkout-builder' ); ?>" rows="2" readonly></textarea>
-									</span>
-								</p>
-							</div>
-						</div>
-					</div>
-					<div class="col-2">
-						<div class="woocommerce-shipping-fields">
-							<h3 class="wcsc-section-title"><?php echo esc_html( $billing_heading_text ); ?></h3>
-							<div class="woocommerce-shipping-fields__field-wrapper">
-								<p class="form-row form-row-wide address-field validate-required" id="shipping_address_1_field">
-									<label for="editor_shipping_address_1"><?php esc_html_e( 'Street Address', 'wc-smart-checkout-builder' ); ?> <abbr class="required" title="required">*</abbr></label>
-									<span class="woocommerce-input-wrapper">
-										<input type="text" class="input-text" name="shipping_address_1" id="editor_shipping_address_1" placeholder="<?php esc_attr_e( 'House, Road, Area details', 'wc-smart-checkout-builder' ); ?>" value="" readonly />
-									</span>
-								</p>
-							</div>
-						</div>
-					</div>
-				</div>
-			</div>
-
-			<?php if ( $show_shipping ) : ?>
-				<?php /* --- Shipping Block --- */ ?>
-				<div class="wcas-block wcas-block-shipping">
-					<h3 class="wcsc-section-title wcsc-shipping-heading"><?php echo esc_html( $shipping_label_text ); ?></h3>
-					<ul id="shipping_method" class="woocommerce-shipping-methods">
-						<li class="wcsc-shipping-card is-active">
-							<label>
-								<input type="radio" name="shipping_method[0]" data-index="0" id="shipping_method_0_flat_rate" value="flat_rate" class="shipping_method" checked="checked" />
-								<?php esc_html_e( 'Standard Delivery: ', 'wc-smart-checkout-builder' ); ?><span class="woocommerce-Price-amount amount"><?php echo wc_price( 0 ); ?></span>
-							</label>
-						</li>
-					</ul>
-				</div>
-			<?php endif; ?>
-
-			<?php if ( $show_order_review ) : ?>
-				<?php /* --- Order Review Block --- */ ?>
-				<div class="wcas-block wcas-block-order-review">
-					<h3 id="order_review_heading" class="wcsc-section-title"><?php echo esc_html( $order_review_heading_text ); ?></h3>
-					<div id="order_review" class="woocommerce-checkout-review-order">
-						<table class="shop_table woocommerce-checkout-review-order-table">
-							<thead>
-								<tr>
-									<th class="product-name"><?php echo esc_html( $product_label_text ); ?></th>
-									<th class="product-total"><?php echo esc_html( $subtotal_label_text ); ?></th>
-								</tr>
-							</thead>
-							<tbody>
-								<tr class="cart_item">
-									<td class="product-name">
-										<span class="wcsc-preview-item-title"><?php echo esc_html( $product_name ); ?></span>
-										<strong class="product-quantity">&times;&nbsp;1</strong>
-									</td>
-									<td class="product-total">
-										<span class="wcsc-preview-item-price"><?php echo wp_kses_post( $price_html ); ?></span>
-									</td>
-								</tr>
-							</tbody>
-							<tfoot>
-								<tr class="cart-subtotal">
-									<th><?php echo esc_html( $subtotal_label_text ); ?></th>
-									<td><span class="woocommerce-Price-amount amount wcsc-preview-subtotal"><?php echo wp_kses_post( $price_html ); ?></span></td>
-								</tr>
-								<tr class="woocommerce-shipping-totals shipping">
-									<th><?php echo esc_html( $shipping_label_text ); ?></th>
-									<td><span class="woocommerce-Price-amount amount wcsc-preview-shipping"><?php echo wp_kses_post( wc_price( 70 ) ); ?></span></td>
-								</tr>
-								<tr class="order-total">
-									<th><?php echo esc_html( $total_label_text ); ?></th>
-									<td><strong><span class="woocommerce-Price-amount amount wcsc-preview-total"><?php echo wp_kses_post( $price_html ); ?></span></strong></td>
-								</tr>
-							</tfoot>
-						</table>
-					</div>
-				</div>
-			<?php endif; ?>
-
-			<?php if ( $show_payment ) : ?>
-				<?php /* --- Payment Block --- */ ?>
-				<div class="wcas-block wcas-block-payment">
-					<div id="payment" class="woocommerce-checkout-payment">
-						<ul class="wc_payment_methods payment_methods methods">
-							<li class="wc_payment_method payment_method_cod">
-								<input id="payment_method_cod" type="radio" class="input-radio" name="payment_method" value="cod" checked="checked" />
-								<label for="payment_method_cod"><?php esc_html_e( 'Cash on Delivery', 'wc-smart-checkout-builder' ); ?></label>
-								<div class="payment_box payment_method_cod">
-									<p><?php esc_html_e( 'Pay with cash upon delivery.', 'wc-smart-checkout-builder' ); ?></p>
-								</div>
-							</li>
-						</ul>
-					</div>
-				</div>
-			<?php endif; ?>
-
-			<?php if ( $show_order_button ) : ?>
-				<?php /* --- Order Button Block --- */ ?>
+			<?php
+			// Render Order Button markup helper
+			$render_order_button_html = function () use ( $anim_class, $order_button_text, $icon_align, $icon_html ) {
+				?>
 				<div class="wcas-block wcas-block-order-button">
 					<div class="form-row place-order">
-						<button type="button" class="button alt wp-element-button wcsc-order-now-btn <?php echo esc_attr( $anim_class ); ?>" id="place_order" value="<?php echo esc_attr( $order_button_text ); ?>" data-value="<?php echo esc_attr( $order_button_text ); ?>">
+						<button type="button" class="button alt wp-element-button wcsc-order-now-btn <?php echo esc_attr( $anim_class ); ?>" id="place_order" value="<?php echo esc_attr( wp_strip_all_tags( $order_button_text ) ); ?>" data-value="<?php echo esc_attr( wp_strip_all_tags( $order_button_text ) ); ?>">
 							<span class="wcsc-btn-beam wcsc-beam-top"></span>
 							<span class="wcsc-btn-beam wcsc-beam-bottom"></span>
 							<span class="wcsc-btn-content">
@@ -235,7 +108,170 @@ if ( '1_column' === $checkout_layout ) {
 						</button>
 					</div>
 				</div>
-			<?php endif; ?>
+				<?php
+			};
+			?>
+
+			<div class="wcas-checkout-column wcas-checkout-column-left">
+				<?php /* --- Checkout Form Block (100% full width, 1 field per row) --- */ ?>
+				<div class="wcas-block wcas-block-checkout-form">
+					<div class="col2-set" id="customer_details">
+						<div class="col-1">
+							<div class="woocommerce-billing-fields">
+								<h3 class="wcsc-section-title"><?php echo esc_html( $billing_heading_text ); ?></h3>
+
+								<div class="woocommerce-billing-fields__field-wrapper">
+									<p class="form-row form-row-wide validate-required" id="billing_first_name_field">
+										<label for="editor_billing_first_name"><?php esc_html_e( 'Full Name', 'wc-smart-checkout-builder' ); ?> <abbr class="required" title="required">*</abbr></label>
+										<span class="woocommerce-input-wrapper">
+											<input type="text" class="input-text" name="billing_first_name" id="editor_billing_first_name" placeholder="<?php esc_attr_e( 'John Doe', 'wc-smart-checkout-builder' ); ?>" value="" readonly />
+										</span>
+									</p>
+
+									<p class="form-row form-row-wide validate-required validate-phone" id="billing_phone_field">
+										<label for="editor_billing_phone"><?php esc_html_e( 'Phone Number', 'wc-smart-checkout-builder' ); ?> <abbr class="required" title="required">*</abbr></label>
+										<span class="woocommerce-input-wrapper">
+											<input type="tel" class="input-text" name="billing_phone" id="editor_billing_phone" placeholder="<?php esc_attr_e( '017XXXXXXXX', 'wc-smart-checkout-builder' ); ?>" value="" readonly />
+										</span>
+									</p>
+
+									<p class="form-row form-row-wide address-field validate-required" id="billing_address_1_field">
+										<label for="editor_billing_address_1"><?php esc_html_e( 'Street Address', 'wc-smart-checkout-builder' ); ?> <abbr class="required" title="required">*</abbr></label>
+										<span class="woocommerce-input-wrapper">
+											<input type="text" class="input-text" name="billing_address_1" id="editor_billing_address_1" placeholder="<?php esc_attr_e( 'House, Road, Area details', 'wc-smart-checkout-builder' ); ?>" value="" readonly />
+										</span>
+									</p>
+
+									<p class="form-row form-row-wide address-field validate-required" id="billing_city_field">
+										<label for="editor_billing_city"><?php esc_html_e( 'Town / City', 'wc-smart-checkout-builder' ); ?> <abbr class="required" title="required">*</abbr></label>
+										<span class="woocommerce-input-wrapper">
+											<input type="text" class="input-text" name="billing_city" id="editor_billing_city" placeholder="<?php esc_attr_e( 'Dhaka / Your City', 'wc-smart-checkout-builder' ); ?>" value="" readonly />
+										</span>
+									</p>
+
+									<p class="form-row form-row-wide notes" id="order_comments_field">
+										<label for="editor_order_comments"><?php esc_html_e( 'Order Notes (optional)', 'wc-smart-checkout-builder' ); ?></label>
+										<span class="woocommerce-input-wrapper">
+											<textarea name="order_comments" class="input-text" id="editor_order_comments" placeholder="<?php esc_attr_e( 'Special delivery notes...', 'wc-smart-checkout-builder' ); ?>" rows="2" readonly></textarea>
+										</span>
+									</p>
+								</div>
+							</div>
+						</div>
+						<div class="col-2" style="display:none;">
+							<div class="woocommerce-shipping-fields">
+								<h3 class="wcsc-section-title"><?php echo esc_html( $billing_heading_text ); ?></h3>
+								<div class="woocommerce-shipping-fields__field-wrapper">
+									<p class="form-row form-row-wide address-field validate-required" id="shipping_address_1_field">
+										<label for="editor_shipping_address_1"><?php esc_html_e( 'Street Address', 'wc-smart-checkout-builder' ); ?> <abbr class="required" title="required">*</abbr></label>
+										<span class="woocommerce-input-wrapper">
+											<input type="text" class="input-text" name="shipping_address_1" id="editor_shipping_address_1" placeholder="<?php esc_attr_e( 'House, Road, Area details', 'wc-smart-checkout-builder' ); ?>" value="" readonly />
+										</span>
+									</p>
+								</div>
+							</div>
+						</div>
+					</div>
+				</div>
+
+				<?php if ( $show_shipping ) : ?>
+					<?php /* --- Dedicated Shipping Selection Block --- */ ?>
+					<div class="wcas-block wcas-block-shipping">
+						<h3 class="wcsc-section-title wcsc-shipping-heading"><?php echo esc_html( $shipping_label_text ); ?></h3>
+						<div class="wcas-shipping-methods-wrapper">
+							<ul id="shipping_method" class="woocommerce-shipping-methods">
+								<li class="wcsc-shipping-card is-active">
+									<input type="radio" name="shipping_method[0]" data-index="0" id="shipping_method_0_flat_rate" value="flat_rate" class="shipping_method" checked="checked" />
+									<label for="shipping_method_0_flat_rate">
+										<?php esc_html_e( 'Inside Dhaka: ', 'wc-smart-checkout-builder' ); ?><span class="woocommerce-Price-amount amount"><?php echo wc_price( 60 ); ?></span>
+									</label>
+								</li>
+								<li class="wcsc-shipping-card">
+									<input type="radio" name="shipping_method[0]" data-index="0" id="shipping_method_0_flat_rate_out" value="flat_rate_out" class="shipping_method" />
+									<label for="shipping_method_0_flat_rate_out">
+										<?php esc_html_e( 'Outside Dhaka: ', 'wc-smart-checkout-builder' ); ?><span class="woocommerce-Price-amount amount"><?php echo wc_price( 120 ); ?></span>
+									</label>
+								</li>
+							</ul>
+						</div>
+					</div>
+				<?php endif; ?>
+
+				<?php if ( 'under_shipping' === $order_button_pos && $show_order_button ) : ?>
+					<?php $render_order_button_html(); ?>
+				<?php endif; ?>
+			</div>
+
+			<div class="wcas-checkout-column wcas-checkout-column-right">
+				<?php if ( $show_order_review ) : ?>
+					<?php /* --- Order Review Block --- */ ?>
+					<div class="wcas-block wcas-block-order-review">
+						<h3 id="order_review_heading" class="wcsc-section-title"><?php echo esc_html( $order_review_heading_text ); ?></h3>
+						<div id="order_review" class="woocommerce-checkout-review-order">
+							<table class="shop_table woocommerce-checkout-review-order-table">
+								<thead>
+									<tr>
+										<th class="product-name"><?php echo esc_html( $product_label_text ); ?></th>
+										<th class="product-total"><?php echo esc_html( $subtotal_label_text ); ?></th>
+									</tr>
+								</thead>
+								<tbody>
+									<tr class="cart_item wcas-order-review-product">
+										<td class="product-name">
+											<span class="wcsc-preview-item-title"><?php echo esc_html( $product_name ); ?></span>
+											<strong class="product-quantity">&times;&nbsp;1</strong>
+										</td>
+										<td class="product-total">
+											<span class="wcsc-preview-item-price"><?php echo wp_kses_post( $price_html ); ?></span>
+										</td>
+									</tr>
+								</tbody>
+								<tfoot>
+									<tr class="cart-subtotal wcas-order-review-subtotal">
+										<th><?php echo esc_html( $subtotal_label_text ); ?></th>
+										<td><span class="woocommerce-Price-amount amount wcsc-preview-subtotal"><?php echo wp_kses_post( $price_html ); ?></span></td>
+									</tr>
+									<tr class="woocommerce-shipping-totals shipping wcas-order-review-shipping">
+										<th><?php echo esc_html( $shipping_label_text ); ?></th>
+										<td data-title="<?php echo esc_attr( $shipping_label_text ); ?>">
+											<span class="woocommerce-Price-amount amount wcsc-preview-shipping"><?php echo wp_kses_post( wc_price( 60 ) ); ?></span>
+										</td>
+									</tr>
+									<tr class="order-total wcas-order-review-total">
+										<th><?php echo esc_html( $total_label_text ); ?></th>
+										<td><strong><span class="woocommerce-Price-amount amount wcsc-preview-total"><?php echo wp_kses_post( $price_html ); ?></span></strong></td>
+									</tr>
+								</tfoot>
+							</table>
+						</div>
+					</div>
+				<?php endif; ?>
+
+				<?php if ( 'under_order_review' === $order_button_pos && $show_order_button ) : ?>
+					<?php $render_order_button_html(); ?>
+				<?php endif; ?>
+
+				<?php if ( $show_payment ) : ?>
+					<?php /* --- Payment Block --- */ ?>
+					<div class="wcas-block wcas-block-payment">
+						<div id="payment" class="woocommerce-checkout-payment">
+							<ul class="wc_payment_methods payment_methods methods">
+								<li class="wc_payment_method payment_method_cod">
+									<input id="payment_method_cod" type="radio" class="input-radio" name="payment_method" value="cod" checked="checked" />
+									<label for="payment_method_cod"><?php esc_html_e( 'Cash on Delivery', 'wc-smart-checkout-builder' ); ?></label>
+									<div class="payment_box payment_method_cod">
+										<p><?php esc_html_e( 'Pay with cash upon delivery.', 'wc-smart-checkout-builder' ); ?></p>
+									</div>
+								</li>
+							</ul>
+						</div>
+					</div>
+				<?php endif; ?>
+
+				<?php if ( 'under_payment' === $order_button_pos && $show_order_button ) : ?>
+					<?php $render_order_button_html(); ?>
+				<?php endif; ?>
+			</div>
 
 		<?php endif; ?>
 	</form>

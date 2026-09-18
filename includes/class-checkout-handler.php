@@ -306,11 +306,15 @@ class Checkout_Handler {
 			$layout_class = 'wcas-layout-two-column';
 		}
 
+		// Configurable Order Now button position (req 9 & 10)
+		$order_button_pos = ! empty( $settings['order_button_position'] ) ? $settings['order_button_position'] : 'under_order_review';
+		$pos_class        = 'wcas-order-btn-pos-' . sanitize_html_class( str_replace( '_', '-', $order_button_pos ) );
+
 		// ----------------------------------------------------------------------
 		// Per-block visibility (conditional rendering — req 35/36).
 		// A block is only rendered when enabled AND meaningful. When a block is
 		// disabled its wrapper is omitted entirely (no empty wrappers / gaps).
-		// The Checkout Form block is always rendered (billing toggle removed — req 41).
+		// The Checkout Form block is always rendered.
 		// ----------------------------------------------------------------------
 		$blocks_enabled = array(
 			'checkout_form' => true,
@@ -320,14 +324,9 @@ class Checkout_Handler {
 			'order_button'  => self::is_enabled( $settings, 'show_checkout_order_button' ),
 		);
 
-		// Default DOM order (desktop). Visual order per device is controlled through
-		// Elementor's responsive "Block Order" controls (CSS `order`), so the DOM
-		// order here is a sensible fallback only.
-		$block_order = array( 'checkout_form', 'shipping', 'order_review', 'payment', 'order_button' );
-
 		?>
 		<form name="checkout" method="post" class="checkout woocommerce-checkout" action="<?php echo esc_url( wc_get_checkout_url() ); ?>" enctype="multipart/form-data">
-			<div class="wcas-checkout-wrapper <?php echo esc_attr( $layout_class ); ?>"
+			<div class="wcas-checkout-wrapper <?php echo esc_attr( $layout_class . ' ' . $pos_class ); ?>"
 				<?php echo self::render_data_attrs( $settings ); // phpcs:ignore WordPress.Security.EscapeOutput.OutputNotEscaped ?>>
 				<div class="wcsc-loading-overlay">
 					<div class="wcsc-spinner"></div>
@@ -337,33 +336,38 @@ class Checkout_Handler {
 				if ( function_exists( 'wc_print_notices' ) ) {
 					wc_print_notices();
 				}
-
-				// Render each enabled block. Native WooCommerce functionality is used
-				// for the content of every block; the wrapper/layout is plugin-owned.
-				foreach ( $block_order as $block_name ) {
-					if ( empty( $blocks_enabled[ $block_name ] ) ) {
-						continue;
-					}
-
-					switch ( $block_name ) {
-						case 'checkout_form':
-							self::render_checkout_form_block();
-							break;
-						case 'shipping':
-							self::render_shipping_block();
-							break;
-						case 'order_review':
-							self::render_order_review_block();
-							break;
-						case 'payment':
-							self::render_payment_block();
-							break;
-						case 'order_button':
-							self::render_order_button_block();
-							break;
-					}
-				}
 				?>
+
+				<div class="wcas-checkout-column wcas-checkout-column-left">
+					<?php
+					if ( ! empty( $blocks_enabled['checkout_form'] ) ) {
+						self::render_checkout_form_block();
+					}
+					if ( ! empty( $blocks_enabled['shipping'] ) ) {
+						self::render_shipping_block();
+					}
+					if ( 'under_shipping' === $order_button_pos && ! empty( $blocks_enabled['order_button'] ) ) {
+						self::render_order_button_block();
+					}
+					?>
+				</div>
+
+				<div class="wcas-checkout-column wcas-checkout-column-right">
+					<?php
+					if ( ! empty( $blocks_enabled['order_review'] ) ) {
+						self::render_order_review_block();
+					}
+					if ( 'under_order_review' === $order_button_pos && ! empty( $blocks_enabled['order_button'] ) ) {
+						self::render_order_button_block();
+					}
+					if ( ! empty( $blocks_enabled['payment'] ) ) {
+						self::render_payment_block();
+					}
+					if ( 'under_payment' === $order_button_pos && ! empty( $blocks_enabled['order_button'] ) ) {
+						self::render_order_button_block();
+					}
+					?>
+				</div>
 			</div>
 		</form>
 		<?php
@@ -413,8 +417,7 @@ class Checkout_Handler {
 		<div class="wcas-block wcas-block-checkout-form">
 			<?php
 			// Native WooCommerce customer details (billing + shipping fields).
-			// do_action callbacks render the native form-billing.php / form-shipping.php
-			// templates so all field names, validation and processing keep working.
+			// Rendered 1 field per row, 100% full-width across all layout modes.
 			?>
 			<div class="col2-set" id="customer_details">
 				<div class="col-1">
@@ -429,101 +432,333 @@ class Checkout_Handler {
 	}
 
 	/**
-	 * Capture the native WooCommerce review-order HTML once per render cycle.
-	 *
-	 * Both the Shipping block and the Order Review block need this output:
-	 * - Shipping block extracts #shipping_method radios from it
-	 * - Order Review block strips #shipping_method (keeping the shipping COST row)
+	 * Get the custom or translated label for Shipping.
 	 *
 	 * @return string
 	 */
-	private static function capture_review_order_html() {
-		if ( self::$review_order_html !== null ) {
-			return self::$review_order_html;
-		}
+	public static function get_shipping_label() {
+		return ! empty( self::$active_widget_settings['shipping_label_text'] )
+			? sanitize_text_field( self::$active_widget_settings['shipping_label_text'] )
+			: esc_html__( 'Shipping', 'wc-smart-checkout-builder' );
+	}
 
-		self::$review_order_html = '';
+	/**
+	 * Get the custom or translated label for Product.
+	 *
+	 * @return string
+	 */
+	public static function get_product_label() {
+		return ! empty( self::$active_widget_settings['product_label_text'] )
+			? sanitize_text_field( self::$active_widget_settings['product_label_text'] )
+			: esc_html__( 'Product', 'wc-smart-checkout-builder' );
+	}
 
-		$checkout = WC()->checkout();
-		if ( ! $checkout || ! function_exists( 'wc_get_template' ) ) {
+	/**
+	 * Get the custom or translated label for Subtotal.
+	 *
+	 * @return string
+	 */
+	public static function get_subtotal_label() {
+		return ! empty( self::$active_widget_settings['subtotal_label_text'] )
+			? sanitize_text_field( self::$active_widget_settings['subtotal_label_text'] )
+			: esc_html__( 'Subtotal', 'wc-smart-checkout-builder' );
+	}
+
+	/**
+	 * Get the custom or translated label for Total.
+	 *
+	 * @return string
+	 */
+	public static function get_total_label() {
+		return ! empty( self::$active_widget_settings['total_label_text'] )
+			? sanitize_text_field( self::$active_widget_settings['total_label_text'] )
+			: esc_html__( 'Total', 'wc-smart-checkout-builder' );
+	}
+
+	/**
+	 * Render WooCommerce shipping method options for the dedicated Shipping block.
+	 *
+	 * Outputs selectable shipping rates natively using WooCommerce session data.
+	 *
+	 * @return string
+	 */
+	public static function render_shipping_methods_html() {
+		if ( ! function_exists( 'WC' ) || ! WC()->cart || ! WC()->cart->needs_shipping() ) {
 			return '';
 		}
 
-		ob_start();
-		wc_get_template( 'checkout/review-order.php', array( 'checkout' => $checkout ) );
-		self::$review_order_html = (string) ob_get_clean();
+		$packages = WC()->shipping()->get_packages();
+		if ( empty( $packages ) ) {
+			return '<p class="woocommerce-shipping-no-methods">' . esc_html__( 'No shipping options available.', 'wc-smart-checkout-builder' ) . '</p>';
+		}
 
-		return self::$review_order_html;
+		$chosen_methods = WC()->session ? WC()->session->get( 'chosen_shipping_methods', array() ) : array();
+
+		ob_start();
+		?>
+		<ul id="shipping_method" class="woocommerce-shipping-methods">
+			<?php
+			foreach ( $packages as $i => $package ) :
+				$chosen_method     = isset( $chosen_methods[ $i ] ) ? $chosen_methods[ $i ] : '';
+				$available_methods = isset( $package['rates'] ) ? $package['rates'] : array();
+
+				if ( empty( $available_methods ) ) :
+					?>
+					<li class="wcsc-no-shipping-methods">
+						<?php echo wp_kses_post( apply_filters( 'woocommerce_no_shipping_available_html', __( 'There are no shipping options available. Please ensure that your address has been entered correctly.', 'woocommerce' ) ) ); ?>
+					</li>
+					<?php
+				else :
+					// If no chosen method is set or the chosen method is not in available methods, pick the first
+					if ( empty( $chosen_method ) || ! isset( $available_methods[ $chosen_method ] ) ) {
+						$first_key     = array_key_first( $available_methods );
+						$chosen_method = $first_key;
+					}
+
+					foreach ( $available_methods as $method ) :
+						$checked   = checked( $method->id, $chosen_method, false );
+						$is_active = ( $method->id === $chosen_method ) ? ' is-active' : '';
+						?>
+						<li class="wcsc-shipping-card<?php echo esc_attr( $is_active ); ?>">
+							<input type="radio" 
+								name="shipping_method[<?php echo esc_attr( $i ); ?>]" 
+								data-index="<?php echo esc_attr( $i ); ?>" 
+								id="shipping_method_<?php echo esc_attr( $i ); ?>_<?php echo esc_attr( sanitize_title( $method->id ) ); ?>" 
+								value="<?php echo esc_attr( $method->id ); ?>" 
+								class="shipping_method" 
+								<?php echo $checked; ?> />
+							<label for="shipping_method_<?php echo esc_attr( $i ); ?>_<?php echo esc_attr( sanitize_title( $method->id ) ); ?>">
+								<?php echo wc_cart_totals_shipping_method_label( $method ); // phpcs:ignore WordPress.Security.EscapeOutput.OutputNotEscaped ?>
+							</label>
+						</li>
+						<?php
+					endforeach;
+				endif;
+			endforeach;
+			?>
+		</ul>
+		<?php
+		return ob_get_clean();
+	}
+
+	/**
+	 * Get the real WooCommerce calculated shipping charge HTML for the Order Review table.
+	 *
+	 * Returns ONLY the calculated cost (e.g. ৳120 or Free!) without any radio buttons
+	 * or selection interface.
+	 *
+	 * @return string
+	 */
+	public static function get_formatted_shipping_charge_html() {
+		if ( ! function_exists( 'WC' ) || ! WC()->cart || ! WC()->cart->needs_shipping() ) {
+			return '<span class="woocommerce-Price-amount amount">' . wc_price( 0 ) . '</span>';
+		}
+
+		$packages       = WC()->shipping()->get_packages();
+		$chosen_methods = WC()->session ? WC()->session->get( 'chosen_shipping_methods', array() ) : array();
+
+		$total_shipping_cost = 0;
+		$has_methods         = false;
+
+		if ( ! empty( $packages ) ) {
+			foreach ( $packages as $i => $package ) {
+				$chosen = isset( $chosen_methods[ $i ] ) ? $chosen_methods[ $i ] : '';
+				if ( $chosen && isset( $package['rates'][ $chosen ] ) ) {
+					$rate                 = $package['rates'][ $chosen ];
+					$cost                 = (float) $rate->get_cost();
+					$tax                  = (float) $rate->get_shipping_tax();
+					$total_shipping_cost += ( $cost + $tax );
+					$has_methods          = true;
+				} elseif ( ! empty( $package['rates'] ) ) {
+					$first_rate           = reset( $package['rates'] );
+					$cost                 = (float) $first_rate->get_cost();
+					$tax                  = (float) $first_rate->get_shipping_tax();
+					$total_shipping_cost += ( $cost + $tax );
+					$has_methods          = true;
+				}
+			}
+		}
+
+		if ( $has_methods ) {
+			if ( $total_shipping_cost > 0 ) {
+				return wc_price( $total_shipping_cost );
+			} else {
+				return '<span class="woocommerce-Price-amount amount">' . wc_price( 0 ) . '</span>';
+			}
+		}
+
+		// Fallback to WC()->cart calculated shipping total
+		$cart_shipping = WC()->cart->get_cart_shipping_total();
+		if ( ! empty( $cart_shipping ) ) {
+			return $cart_shipping;
+		}
+
+		return '<span class="woocommerce-Price-amount amount">' . wc_price( 0 ) . '</span>';
 	}
 
 	/**
 	 * Block 2 — Shipping (shipping method selection).
 	 *
-	 * The #shipping_method radios are extracted from the native review-order
-	 * template and rendered here as an independent plugin-owned block.
-	 * This block contains ONLY the method/location selection UI — never the
-	 * shipping cost (that lives in the Order Review block).
+	 * Rendered as an independent plugin-owned block (.wcas-block-shipping).
+	 * This block contains ONLY the method/rate selection UI — never the
+	 * shipping cost (which is displayed inside the Order Review block).
 	 */
 	private static function render_shipping_block() {
 		if ( ! function_exists( 'WC' ) || ! WC()->cart || ! WC()->cart->needs_shipping() ) {
 			return;
 		}
 
-		$review_html = self::capture_review_order_html();
+		$heading      = self::get_shipping_label();
+		$methods_html = self::render_shipping_methods_html();
 
-		// Extract the selectable shipping methods list from the review order HTML.
-		// In WooCommerce checkout context, #shipping_method radios are part of the
-		// review-order.php shipping totals row.
-		$method_list = '';
-		if ( preg_match( '/<ul[^>]*id="shipping_method"[^>]*>.*?<\/ul>/is', $review_html, $match ) ) {
-			$method_list = $match[0];
-		}
-
-		if ( '' === $method_list ) {
-			// No selectable methods to show — do NOT render an empty wrapper (req 35/36).
+		if ( empty( $methods_html ) ) {
 			return;
 		}
-
-		$heading = ! empty( self::$active_widget_settings['shipping_label_text'] )
-			? sanitize_text_field( self::$active_widget_settings['shipping_label_text'] )
-			: esc_html__( 'Shipping', 'wc-smart-checkout-builder' );
 		?>
 		<div class="wcas-block wcas-block-shipping">
 			<h3 class="wcsc-section-title wcsc-shipping-heading"><?php echo esc_html( $heading ); ?></h3>
-			<?php echo $method_list; // phpcs:ignore WordPress.Security.EscapeOutput.OutputNotEscaped ?>
+			<div class="wcas-shipping-methods-wrapper">
+				<?php echo $methods_html; // phpcs:ignore WordPress.Security.EscapeOutput.OutputNotEscaped ?>
+			</div>
 		</div>
 		<?php
 	}
 
 	/**
+	 * Render the complete WooCommerce order review table.
+	 *
+	 * Ensures clean plugin-owned wrappers on every row:
+	 *   - .wcas-order-review-product
+	 *   - .wcas-order-review-subtotal
+	 *   - .wcas-order-review-shipping (calculated shipping charge row ONLY, no selection UI)
+	 *   - .wcas-order-review-total
+	 *
+	 * @return string
+	 */
+	public static function render_order_review_table_html() {
+		if ( ! function_exists( 'WC' ) || ! WC()->cart ) {
+			return '';
+		}
+
+		$product_label  = self::get_product_label();
+		$subtotal_label = self::get_subtotal_label();
+		$shipping_label = self::get_shipping_label();
+		$total_label    = self::get_total_label();
+
+		ob_start();
+		?>
+		<table class="shop_table woocommerce-checkout-review-order-table">
+			<thead>
+				<tr>
+					<th class="product-name"><?php echo esc_html( $product_label ); ?></th>
+					<th class="product-total"><?php echo esc_html( $subtotal_label ); ?></th>
+				</tr>
+			</thead>
+			<tbody>
+				<?php
+				do_action( 'woocommerce_review_order_before_cart_contents' );
+
+				foreach ( WC()->cart->get_cart() as $cart_item_key => $cart_item ) {
+					$_product = apply_filters( 'woocommerce_cart_item_product', $cart_item['data'], $cart_item, $cart_item_key );
+
+					if ( $_product && $_product->exists() && $cart_item['quantity'] > 0 && apply_filters( 'woocommerce_checkout_cart_item_visible', true, $cart_item, $cart_item_key ) ) {
+						?>
+						<tr class="<?php echo esc_attr( apply_filters( 'woocommerce_cart_item_class', 'cart_item wcas-order-review-product', $cart_item, $cart_item_key ) ); ?>">
+							<td class="product-name">
+								<?php echo wp_kses_post( apply_filters( 'woocommerce_cart_item_name', $_product->get_name(), $cart_item, $cart_item_key ) ) . '&nbsp;'; ?>
+								<?php echo apply_filters( 'woocommerce_checkout_cart_item_quantity', ' <strong class="product-quantity">' . sprintf( '&times;&nbsp;%s', $cart_item['quantity'] ) . '</strong>', $cart_item, $cart_item_key ); // phpcs:ignore WordPress.Security.EscapeOutput.OutputNotEscaped ?>
+								<?php echo wc_get_formatted_cart_item_data( $cart_item ); // phpcs:ignore WordPress.Security.EscapeOutput.OutputNotEscaped ?>
+							</td>
+							<td class="product-total">
+								<?php echo apply_filters( 'woocommerce_cart_item_subtotal', WC()->cart->get_product_subtotal( $_product, $cart_item['quantity'] ), $cart_item, $cart_item_key ); // phpcs:ignore WordPress.Security.EscapeOutput.OutputNotEscaped ?>
+							</td>
+						</tr>
+						<?php
+					}
+				}
+
+				do_action( 'woocommerce_review_order_after_cart_contents' );
+				?>
+			</tbody>
+			<tfoot>
+
+				<tr class="cart-subtotal wcas-order-review-subtotal">
+					<th><?php echo esc_html( $subtotal_label ); ?></th>
+					<td><?php wc_cart_totals_subtotal_html(); ?></td>
+				</tr>
+
+				<?php foreach ( WC()->cart->get_coupons() as $code => $coupon ) : ?>
+					<tr class="cart-discount coupon-<?php echo esc_attr( sanitize_title( $code ) ); ?>">
+						<th><?php wc_cart_totals_coupon_label( $coupon ); ?></th>
+						<td><?php wc_cart_totals_coupon_html( $coupon ); ?></td>
+					</tr>
+				<?php endforeach; ?>
+
+				<?php if ( WC()->cart->needs_shipping() && WC()->cart->show_shipping() ) : ?>
+					<?php do_action( 'woocommerce_review_order_before_shipping' ); ?>
+					<tr class="woocommerce-shipping-totals shipping wcas-order-review-shipping">
+						<th><?php echo esc_html( $shipping_label ); ?></th>
+						<td data-title="<?php echo esc_attr( $shipping_label ); ?>">
+							<?php echo self::get_formatted_shipping_charge_html(); // phpcs:ignore WordPress.Security.EscapeOutput.OutputNotEscaped ?>
+						</td>
+					</tr>
+					<?php do_action( 'woocommerce_review_order_after_shipping' ); ?>
+				<?php endif; ?>
+
+				<?php foreach ( WC()->cart->get_fees() as $fee ) : ?>
+					<tr class="fee">
+						<th><?php echo esc_html( $fee->name ); ?></th>
+						<td><?php wc_cart_totals_fee_html( $fee ); ?></td>
+					</tr>
+				<?php endforeach; ?>
+
+				<?php if ( wc_tax_enabled() && ! WC()->cart->display_prices_including_tax() ) : ?>
+					<?php if ( 'itemized' === get_option( 'woocommerce_tax_total_display' ) ) : ?>
+						<?php foreach ( WC()->cart->get_tax_totals() as $code => $tax ) : // phpcs:ignore WordPress.WP.GlobalVariablesOverride.Prohibited ?>
+							<tr class="tax-rate tax-rate-<?php echo esc_attr( sanitize_title( $code ) ); ?>">
+								<th><?php echo esc_html( $tax->label ); ?></th>
+								<td><?php echo wp_kses_post( $tax->formatted_amount ); ?></td>
+							</tr>
+						<?php endforeach; ?>
+					<?php else : ?>
+						<tr class="tax-total">
+							<th><?php echo esc_html( WC()->countries->tax_or_vat() ); ?></th>
+							<td><?php wc_cart_totals_taxes_total_html(); ?></td>
+						</tr>
+					<?php endif; ?>
+				<?php endif; ?>
+
+				<?php do_action( 'woocommerce_review_order_before_order_total' ); ?>
+
+				<tr class="order-total wcas-order-review-total">
+					<th><?php echo esc_html( $total_label ); ?></th>
+					<td><?php wc_cart_totals_order_total_html(); ?></td>
+				</tr>
+
+				<?php do_action( 'woocommerce_review_order_after_order_total' ); ?>
+
+			</tfoot>
+		</table>
+		<?php
+		return ob_get_clean();
+	}
+
+	/**
 	 * Block 3 — Order Review (ordered products, subtotal, SHIPPING CHARGE, total).
 	 *
-	 * The shipping method radios (#shipping_method) are stripped from this output
-	 * so they are NOT duplicated here — they live in the dedicated Shipping block.
-	 * The SHIPPING COST row is preserved so WooCommerce's calculated shipping
-	 * charge is displayed inside the Order Review.
-	 *
-	 * The order review table retains the `woocommerce-checkout-review-order`
-	 * class so WooCommerce's AJAX "update order review" response continues
-	 * to replace it correctly.
+	 * The shipping charge (.wcas-order-review-shipping) is displayed inside this
+	 * Order Review table as an individual row using real WooCommerce calculations.
+	 * The shipping method selection interface NEVER appears here.
 	 */
 	private static function render_order_review_block() {
-		$checkout = WC()->checkout();
-		$heading  = ! empty( self::$active_widget_settings['order_review_heading_text'] )
+		$heading = ! empty( self::$active_widget_settings['order_review_heading_text'] )
 			? sanitize_text_field( self::$active_widget_settings['order_review_heading_text'] )
 			: esc_html__( 'Your order', 'wc-smart-checkout-builder' );
-
-		// Use the cached review-order HTML (shared with the Shipping block).
-		$review_html = self::capture_review_order_html();
-
-		// Strip the #shipping_method radios from the review order HTML so they
-		// are not duplicated here. The SHIPPING COST row remains intact.
-		$review_html = self::strip_shipping_method_radios( $review_html );
 		?>
 		<div class="wcas-block wcas-block-order-review">
 			<h3 id="order_review_heading" class="wcsc-section-title"><?php echo esc_html( $heading ); ?></h3>
 			<div id="order_review" class="woocommerce-checkout-review-order">
-				<?php echo $review_html; // phpcs:ignore WordPress.Security.EscapeOutput.OutputNotEscaped ?>
+				<?php echo self::render_order_review_table_html(); // phpcs:ignore WordPress.Security.EscapeOutput.OutputNotEscaped ?>
 			</div>
 		</div>
 		<?php
@@ -587,8 +822,8 @@ class Checkout_Handler {
 	 * here so submission keeps working exactly as WooCommerce expects.
 	 */
 	private static function render_order_button_block() {
-		$settings = self::$active_widget_settings;
-		$btn_text = ! empty( $settings['order_button_text'] ) ? sanitize_text_field( $settings['order_button_text'] ) : __( 'Order Now', 'wc-smart-checkout-builder' );
+		$settings  = self::$active_widget_settings;
+		$btn_text  = ! empty( $settings['order_button_text'] ) ? sanitize_text_field( $settings['order_button_text'] ) : __( 'Order Now', 'wc-smart-checkout-builder' );
 		$btn_value = wp_strip_all_tags( $btn_text );
 
 		$default_button = sprintf(
@@ -626,46 +861,31 @@ class Checkout_Handler {
 	}
 
 	/**
-	 * Strip the #shipping_method radios from captured review-order HTML so they
-	 * are not duplicated inside the Order Review block. The SHIPPING COST row
-	 * (the calculated charge from WooCommerce) remains intact.
-	 *
-	 * @param string $html
-	 * @return string
-	 */
-	private static function strip_shipping_method_radios( $html ) {
-		return (string) preg_replace( '/<ul[^>]*id="shipping_method"[^>]*>.*?<\/ul>\s*/is', '', (string) $html );
-	}
-
-	/**
 	 * Sanitise WooCommerce's AJAX "update order review" fragments so no blocks
-	 * are duplicated after checkout recalculation.
+	 * are duplicated or misplaced after checkout recalculation.
 	 *
-	 * 1. The place order button is stripped from the .woocommerce-checkout-payment
-	 *    fragment (it lives in the plugin-owned Order Button block — req 32/39).
-	 * 2. The #shipping_method radios are stripped from the #order_review fragment
-	 *    (they live in the plugin-owned Shipping block — req 30/34).
-	 *    The shipping COST row is preserved in #order_review.
+	 * 1. .woocommerce-checkout-review-order-table is updated with our clean table,
+	 *    displaying the updated shipping charge row without any method radios.
+	 * 2. .wcas-shipping-methods-wrapper is updated with the refreshed shipping methods.
+	 * 3. The place order button is stripped from .woocommerce-checkout-payment.
 	 *
 	 * @param array $fragments
 	 * @return array
 	 */
 	public static function filter_update_order_review_fragments( $fragments ) {
+		// Update the order review table with real WooCommerce calculations & shipping charge row
+		$fragments['.woocommerce-checkout-review-order-table'] = self::render_order_review_table_html();
+
+		// Update the selectable shipping methods in the dedicated Shipping block
+		$fragments['.wcas-shipping-methods-wrapper'] = '<div class="wcas-shipping-methods-wrapper">' . self::render_shipping_methods_html() . '</div>';
+
+		// Strip place-order button from payment gateway fragment if present
 		if ( isset( $fragments['.woocommerce-checkout-payment'] ) ) {
 			$fragments['.woocommerce-checkout-payment'] = (string) preg_replace(
 				'/<div[^>]*\sclass="[^"]*form-row[^"]*place-order[^"]*"[^>]*>.*?<\/div>\s*/is',
 				'',
 				$fragments['.woocommerce-checkout-payment']
 			);
-		}
-
-		// Strip shipping METHOD radios from the order review AJAX fragment so
-		// they are not duplicated inside #order_review. The shipping COST row
-		// is preserved.
-		foreach ( array( '#order_review', '.woocommerce-checkout-review-order' ) as $key ) {
-			if ( isset( $fragments[ $key ] ) ) {
-				$fragments[ $key ] = self::strip_shipping_method_radios( $fragments[ $key ] );
-			}
 		}
 
 		return $fragments;

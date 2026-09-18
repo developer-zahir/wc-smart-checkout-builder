@@ -262,14 +262,14 @@ class ThankYou_Widget extends Widget_Base {
 		// Custom styles for clean, modern Thank You page output
 		echo '<style>
 			.wcsc-thank-you-wrapper { width: 100%; box-sizing: border-box; font-family: inherit; }
-			.wcsc-ty-success-msg { max-width: 500px; margin: 0 auto 28px auto; padding: 24px 20px; display: flex; flex-direction: column; align-items: center; text-align: center; background-color: #ecfdf5; color: #065f46; border: 1px solid #a7f3d0; border-radius: 10px; box-sizing: border-box; }
+			.wcsc-ty-success-msg { max-width: 100%; margin: 0 auto 28px auto; padding: 24px 20px; display: flex; flex-direction: column; align-items: center; text-align: center; background-color: #ecfdf5; color: #065f46; border: 1px solid #a7f3d0; border-radius: 10px; box-sizing: border-box; }
 			.wcsc-ty-success-msg.align-left { align-items: flex-start; text-align: left; margin-left: 0; }
 			.wcsc-ty-success-msg.align-right { align-items: flex-end; text-align: right; margin-right: 0; }
 			.wcsc-ty-success-icon { margin-bottom: 12px; color: #10b981; }
 			.wcsc-ty-success-icon svg { width: 44px; height: 44px; stroke: currentColor; fill: none; stroke-width: 2.2; stroke-linecap: round; stroke-linejoin: round; }
 			.wcsc-ty-success-title { font-size: 1.25rem; font-weight: 600; margin: 0; line-height: 1.4; color: inherit; max-width: 100%; }
 			
-			.wcsc-ty-order-info { width: 100%; max-width: 600px; border-collapse: collapse; margin: 0 0 30px 0; background: #ffffff; border: 1px solid #e2e8f0; border-radius: 8px; overflow: hidden; }
+			.wcsc-ty-order-info { width: 100%; max-width: 100%; border-collapse: collapse; margin: 0 0 30px 0; background: #ffffff; border: 1px solid #e2e8f0; border-radius: 8px; overflow: hidden; }
 			.wcsc-ty-order-info tr { border-bottom: 1px solid #edf2f7; }
 			.wcsc-ty-order-info tr:last-child { border-bottom: none; }
 			.wcsc-ty-order-info th { padding: 12px 16px; text-align: left; font-weight: 600; color: #4a5568; vertical-align: middle; width: 40%; background: #f8fafc; }
@@ -281,7 +281,7 @@ class ThankYou_Widget extends Widget_Base {
 				.wcsc-ty-order-info td { padding-bottom: 10px; }
 			}
 			
-			.wcsc-ty-items-list { width: 100%; max-width: 600px; margin-bottom: 24px; }
+			.wcsc-ty-items-list { width: 100%; max-width: 100%; margin-bottom: 24px; }
 			.wcsc-ty-item { display: flex; align-items: center; gap: 16px; border: 1px solid #e2e8f0; border-radius: 8px; padding: 14px 16px; margin-bottom: 10px; background: #ffffff; }
 			.wcsc-ty-item-img { flex-shrink: 0; }
 			.wcsc-ty-item-img img { max-width: 120px; width: auto; height: auto; object-fit: cover; border-radius: 6px; display: block; }
@@ -291,13 +291,13 @@ class ThankYou_Widget extends Widget_Base {
 			.wcsc-ty-item-qty { display: inline-block; background: #f1f5f9; color: #475569; padding: 2px 8px; border-radius: 4px; font-size: 0.825rem; font-weight: 500; }
 			.wcsc-ty-item-subtotal { font-weight: 700; color: #1a202c; font-size: 1rem; white-space: nowrap; }
 
-			.wcsc-ty-totals { width: 100%; max-width: 600px; border-collapse: collapse; margin-top: 20px; background: #ffffff; border: 1px solid #e2e8f0; border-radius: 8px; overflow: hidden; }
+			.wcsc-ty-totals { width: 100%; max-width: 100%; border-collapse: collapse; margin-top: 20px; background: #ffffff; border: 1px solid #e2e8f0; border-radius: 8px; overflow: hidden; }
 			.wcsc-ty-totals th, .wcsc-ty-totals td { padding: 12px 16px; border-bottom: 1px solid #edf2f7; text-align: left; }
 			.wcsc-ty-totals th { color: #4a5568; font-weight: 500; }
 			.wcsc-ty-totals td { text-align: right; color: #1a202c; font-weight: 600; }
 			.wcsc-ty-totals tr:last-child th, .wcsc-ty-totals tr:last-child td { border-bottom: none; font-weight: 700; font-size: 1.05rem; background: #f8fafc; }
 			
-			.wcsc-ty-customer-details { display: flex; flex-wrap: wrap; gap: 24px; max-width: 600px; margin-top: 28px; }
+			.wcsc-ty-customer-details { display: flex; flex-wrap: wrap; gap: 24px; max-width: 100%; margin-top: 28px; }
 			.wcsc-ty-address-col { flex: 1 1 240px; border: 1px solid #e2e8f0; border-radius: 8px; padding: 16px; background: #ffffff; }
 			.wcsc-ty-address-col h3 { margin: 0 0 10px 0; font-size: 1.05rem; font-weight: 600; color: #1a202c; }
 			.wcsc-ty-address-col address { font-style: normal; line-height: 1.5; color: #4a5568; font-size: 0.925rem; }
