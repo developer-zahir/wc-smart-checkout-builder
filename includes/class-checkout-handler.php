@@ -1126,12 +1126,35 @@ class Checkout_Handler {
 		if ( $product->is_type( 'variable' ) ) {
 			$available_variations = $product->get_available_variations();
 			if ( ! empty( $available_variations ) ) {
-				$first_variation = $available_variations[0];
+				$selected_variation = null;
+				$default_attributes = method_exists( $product, 'get_default_attributes' ) ? $product->get_default_attributes() : array();
+
+				if ( ! empty( $default_attributes ) ) {
+					foreach ( $available_variations as $variation ) {
+						$match = true;
+						foreach ( $default_attributes as $attr_key => $attr_val ) {
+							$var_attr_key = 'attribute_' . $attr_key;
+							if ( isset( $variation['attributes'][ $var_attr_key ] ) && '' !== $variation['attributes'][ $var_attr_key ] && $variation['attributes'][ $var_attr_key ] !== $attr_val ) {
+								$match = false;
+								break;
+							}
+						}
+						if ( $match ) {
+							$selected_variation = $variation;
+							break;
+						}
+					}
+				}
+
+				if ( ! $selected_variation ) {
+					$selected_variation = $available_variations[0];
+				}
+
 				$cart->add_to_cart(
 					$product_id,
 					1,
-					$first_variation['variation_id'],
-					$first_variation['attributes']
+					$selected_variation['variation_id'],
+					$selected_variation['attributes']
 				);
 			}
 		} else {

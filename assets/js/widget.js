@@ -129,6 +129,24 @@
 				self.applyCustomTexts();
 				self.styleShippingMethods();
 
+				// Suppress any WooCommerce error notices injected during AJAX
+				$('.woocommerce-NoticeGroup-checkout, .woocommerce-NoticeGroup, .woocommerce-error, .checkout-inline-error-message').hide().remove();
+
+				// Ensure Order Review item thumbnail matches current selected variation
+				if (self.currentVariationId && self.variations.length) {
+					for (var i = 0; i < self.variations.length; i++) {
+						if (self.variations[i].variation_id === self.currentVariationId) {
+							if (self.variations[i].image && self.variations[i].image.src) {
+								var $cartImg = self.$container.find('.wcsc-cart-item-image');
+								if ($cartImg.length) {
+									$cartImg.attr('src', self.variations[i].image.src).removeAttr('srcset');
+								}
+							}
+							break;
+						}
+					}
+				}
+
 				// CRITICAL BUG FIX: Ensure secondary duplicate order buttons injected into #payment by native WC AJAX are removed
 				self.$container.find('.wcas-block-payment #place_order, .wcas-block-payment .place-order').remove();
 			});
@@ -136,6 +154,7 @@
 			$(document.body).on('checkout_error', function () {
 				self.hideLoading();
 				self.styleShippingMethods();
+				$('.woocommerce-NoticeGroup-checkout, .woocommerce-NoticeGroup, .woocommerce-error, .checkout-inline-error-message').hide().remove();
 			});
 
 			// Make shipping cards clickable
@@ -151,9 +170,13 @@
 				self.styleShippingMethods();
 			});
 
-			// Mobile sticky order button click -> scroll smoothly to checkout
+			// Mobile sticky order button click -> scroll smoothly to checkout and immediately hide
 			this.$container.on('click', '.wcsc-mobile-sticky-btn', function (e) {
 				e.preventDefault();
+				var stickyBar = self.$container.find('.wcsc-mobile-sticky-bar')[0] || document.getElementById('wcsc-mobile-sticky-bar');
+				if (stickyBar) {
+					$(stickyBar).addClass('is-hidden');
+				}
 				var $target = self.$container.find('.wcas-checkout-wrapper');
 				if ($target.length) {
 					$('html, body').animate({
@@ -179,21 +202,71 @@
 				}
 			});
 
-			// Intercept checkout submit for Bangladeshi phone validation
+			// Intercept checkout submit for client-side required field validation & phone validation
 			this.$container.on('click', '#place_order, .wcsc-order-now-btn', function (e) {
-				var $hasValidation = self.$container.find('input[name="wcsc_bd_phone_validation"]');
-				if ($hasValidation.length && $hasValidation.val() === '1') {
-					var $phone = self.$container.find('input[name="billing_phone"]');
-					if ($phone.length) {
-						var rawPhone = $.trim($phone.val() || '').replace(/[\s\-\(\)]/g, '');
-						var bdPhoneRegex = /^(?:\+?880|880|0)?1[3-9]\d{8}$/;
-						if (!bdPhoneRegex.test(rawPhone)) {
-							e.preventDefault();
-							e.stopImmediatePropagation();
-							$('#wcsc-phone-modal').fadeIn(200);
-							return false;
+				var $form = self.$container.find('form.checkout');
+				if ($form.length) {
+					var hasInvalid = false;
+					var $firstInvalid = null;
+
+					// Clear previous error states
+					$form.find('.wcsc-invalid').removeClass('wcsc-invalid');
+					$form.find('.form-row.woocommerce-invalid').removeClass('woocommerce-invalid');
+
+					// Validate all visible required fields
+					$form.find('input[required], textarea[required], select[required], .validate-required input.input-text, .validate-required textarea, .validate-required select').each(function () {
+						var $field = $(this);
+						if (!$field.is(':visible') || $field.is(':disabled')) {
+							return;
+						}
+						var val = $.trim($field.val() || '');
+						if (!val) {
+							hasInvalid = true;
+							$field.addClass('wcsc-invalid');
+							$field.closest('.form-row').addClass('woocommerce-invalid');
+							if (!$firstInvalid) {
+								$firstInvalid = $field;
+							}
+						}
+					});
+
+					// Validate BD phone if enabled
+					var $hasValidation = self.$container.find('input[name="wcsc_bd_phone_validation"]');
+					if ($hasValidation.length && $hasValidation.val() === '1') {
+						var $phone = self.$container.find('input[name="billing_phone"]');
+						if ($phone.length && $phone.is(':visible')) {
+							var rawPhone = $.trim($phone.val() || '').replace(/[\s\-\(\)]/g, '');
+							var bdPhoneRegex = /^(?:\+?880|880|0)?1[3-9]\d{8}$/;
+							if (!bdPhoneRegex.test(rawPhone)) {
+								hasInvalid = true;
+								$phone.addClass('wcsc-invalid');
+								$phone.closest('.form-row').addClass('woocommerce-invalid');
+								e.preventDefault();
+								e.stopImmediatePropagation();
+								$('#wcsc-phone-modal').fadeIn(200);
+								return false;
+							}
 						}
 					}
+
+					if (hasInvalid && $firstInvalid) {
+						e.preventDefault();
+						e.stopImmediatePropagation();
+						$('html, body').animate({
+							scrollTop: $firstInvalid.offset().top - 100
+						}, 300);
+						$firstInvalid.focus();
+						return false;
+					}
+				}
+			});
+
+			// Clear invalid state on user input/change
+			this.$container.on('input change', 'input, textarea, select', function () {
+				var $input = $(this);
+				if ($.trim($input.val() || '')) {
+					$input.removeClass('wcsc-invalid');
+					$input.closest('.form-row').removeClass('woocommerce-invalid');
 				}
 			});
 		},
@@ -330,6 +403,16 @@
 					this.$mainImg.attr('src', matchedVariation.image.src);
 				} else if (this.originImgSrc && this.$mainImg.length) {
 					this.$mainImg.attr('src', this.originImgSrc);
+				}
+
+				// Update Order Review item thumbnail
+				var $cartItemImg = this.$container.find('.wcsc-cart-item-image');
+				if ($cartItemImg.length) {
+					if (matchedVariation.image && matchedVariation.image.src) {
+						$cartItemImg.attr('src', matchedVariation.image.src).removeAttr('srcset');
+					} else if (this.originImgSrc) {
+						$cartItemImg.attr('src', this.originImgSrc).removeAttr('srcset');
+					}
 				}
 
 				// Update Stock
@@ -490,7 +573,6 @@
 			if ($previewPrice.length && variation.price_html) {
 				$previewPrice.html(variation.price_html);
 			}
-
 			// Update button price text
 			if (variation.display_price) {
 				var currencySymbol = '$';
@@ -499,6 +581,12 @@
 					currencySymbol = $existingAmount.first().text();
 				}
 				this.updateButtonPrice(currencySymbol + variation.display_price);
+			}
+
+			// Update preview item thumbnail
+			var $cartItemImg = this.$container.find('.wcsc-cart-item-image');
+			if ($cartItemImg.length && variation.image && variation.image.src) {
+				$cartItemImg.attr('src', variation.image.src).removeAttr('srcset');
 			}
 		}
 	};

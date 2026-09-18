@@ -304,8 +304,8 @@ class Elementor_Widget extends Widget_Base {
 				'label'   => esc_html__( 'Checkout Layout', 'wc-smart-checkout-builder' ),
 				'type'    => Controls_Manager::SELECT,
 				'options' => array(
-					'2_columns' => esc_html__( '2 Columns (Side-by-Side)', 'wc-smart-checkout-builder' ),
-					'1_column'  => esc_html__( '1 Column (Stacked)', 'wc-smart-checkout-builder' ),
+					'2_columns' => esc_html__( '2 Columns', 'wc-smart-checkout-builder' ),
+					'1_column'  => esc_html__( '1 Column', 'wc-smart-checkout-builder' ),
 				),
 				'default' => '2_columns',
 			)
@@ -490,7 +490,7 @@ class Elementor_Widget extends Widget_Base {
 	$this->start_controls_section(
 		'section_order_button',
 		array(
-			'label' => esc_html__( 'Order Button', 'wc-smart-checkout-builder' ),
+			'label' => esc_html__( 'Order Now Button', 'wc-smart-checkout-builder' ),
 			'tab'   => Controls_Manager::TAB_CONTENT,
 		)
 	);
@@ -498,7 +498,7 @@ class Elementor_Widget extends Widget_Base {
 		$this->add_control(
 			'order_button_position',
 			array(
-				'label'   => esc_html__( 'Button Position (Two-Column Mode)', 'wc-smart-checkout-builder' ),
+				'label'   => esc_html__( 'Button Position', 'wc-smart-checkout-builder' ),
 				'type'    => Controls_Manager::SELECT,
 				'options' => array(
 					'left_column'  => esc_html__( 'Left Column', 'wc-smart-checkout-builder' ),
@@ -2036,6 +2036,19 @@ class Elementor_Widget extends Widget_Base {
 			)
 		);
 
+		$this->add_control(
+			'field_input_error_border_color',
+			array(
+				'label'     => esc_html__( 'Error Field Border Color', 'wc-smart-checkout-builder' ),
+				'type'      => Controls_Manager::COLOR,
+				'default'   => '#ff0000',
+				'selectors' => array(
+					'{{WRAPPER}}' => '--wcsc-error-border-color: {{VALUE}};',
+					'{{WRAPPER}} .woocommerce form.checkout .woocommerce-invalid input.input-text, {{WRAPPER}} .woocommerce form.checkout .woocommerce-invalid textarea, {{WRAPPER}} .woocommerce form.checkout .woocommerce-invalid select, {{WRAPPER}} .woocommerce form.checkout input.input-text.wcsc-invalid, {{WRAPPER}} .woocommerce form.checkout textarea.wcsc-invalid, {{WRAPPER}} .woocommerce form.checkout select.wcsc-invalid, {{WRAPPER}} .wcas-checkout-wrapper .woocommerce-invalid input.input-text, {{WRAPPER}} .wcas-checkout-wrapper .woocommerce-invalid textarea, {{WRAPPER}} .wcas-checkout-wrapper .woocommerce-invalid select, {{WRAPPER}} .wcas-checkout-wrapper input.input-text.wcsc-invalid, {{WRAPPER}} .wcas-checkout-wrapper textarea.wcsc-invalid, {{WRAPPER}} .wcas-checkout-wrapper select.wcsc-invalid' => 'border-color: {{VALUE}} !important; box-shadow: 0 0 0 1px {{VALUE}} !important;',
+				),
+			)
+		);
+
 		$this->add_responsive_control(
 			'field_input_border_radius',
 			array(
@@ -2062,7 +2075,7 @@ class Elementor_Widget extends Widget_Base {
 		$this->start_controls_section(
 			'section_style_order_button',
 			array(
-				'label'     => esc_html__( 'Order Button', 'wc-smart-checkout-builder' ),
+				'label'     => esc_html__( 'Order Now Button', 'wc-smart-checkout-builder' ),
 				'tab'       => Controls_Manager::TAB_STYLE,
 				'condition' => array(
 					'show_checkout' => 'yes',
@@ -2189,6 +2202,14 @@ class Elementor_Widget extends Widget_Base {
 			)
 		);
 
+		$this->add_group_control(
+			Group_Control_Border::get_type(),
+			array(
+				'name'     => 'order_button_border',
+				'selector' => '{{WRAPPER}} #place_order, {{WRAPPER}} .wcsc-order-now-btn',
+			)
+		);
+
 		$this->start_controls_tabs( 'tabs_order_button_states' );
 
 		$this->start_controls_tab(
@@ -2255,12 +2276,12 @@ class Elementor_Widget extends Widget_Base {
 
 		$blocks = array(
 			'checkout_form' => array(
-				'label'          => esc_html__( 'Customer Information Block (Form)', 'wc-smart-checkout-builder' ),
+				'label'          => esc_html__( 'Customer Info Block', 'wc-smart-checkout-builder' ),
 				'selector'       => '{{WRAPPER}} .wcas-checkout-wrapper .wcas-block-checkout-form',
 				'title_selector' => '{{WRAPPER}} .wcas-checkout-wrapper .wcas-block-checkout-form .wcas-block-title',
 			),
 			'shipping'      => array(
-				'label'          => esc_html__( 'Shipping Selection Block', 'wc-smart-checkout-builder' ),
+				'label'          => esc_html__( 'Shipping Block', 'wc-smart-checkout-builder' ),
 				'selector'       => '{{WRAPPER}} .wcas-checkout-wrapper .wcas-block-shipping',
 				'title_selector' => '{{WRAPPER}} .wcas-checkout-wrapper .wcas-block-shipping .wcas-block-title',
 			),

@@ -1086,18 +1086,40 @@
 }
 
 /* ==========================================================================
-   9. Checkout Error Handling (scoped inline errors only)
+   9. Checkout Error Handling & Validation Overhaul
    ========================================================================== */
-.wcsc-product-checkout-widget .woocommerce form.checkout .checkout-inline-error-message,
-.wcsc-product-checkout-widget .woocommerce form.checkout .woocommerce-error {
+.wcsc-product-checkout-widget .checkout-inline-error-message,
+.wcsc-product-checkout-widget .woocommerce-NoticeGroup-checkout,
+.wcsc-product-checkout-widget .woocommerce-NoticeGroup,
+.wcsc-product-checkout-widget .woocommerce-error,
+.wcas-checkout-wrapper .checkout-inline-error-message,
+.wcas-checkout-wrapper .woocommerce-NoticeGroup-checkout,
+.wcas-checkout-wrapper .woocommerce-NoticeGroup,
+.wcas-checkout-wrapper .woocommerce-error,
+.woocommerce-NoticeGroup-checkout,
+.checkout-inline-error-message {
 	display: none !important;
 }
 
-/* Invalid Input Red Border */
+/* Invalid Input Error Border (Default: #ff0000) */
+:root {
+	--wcsc-error-border-color: #ff0000;
+}
+
 .wcsc-product-checkout-widget .woocommerce form.checkout .woocommerce-invalid input.input-text,
-.wcsc-product-checkout-widget .woocommerce form.checkout .woocommerce-invalid select {
-	border-color: #e53e3e !important;
-	box-shadow: 0 0 0 1px #e53e3e !important;
+.wcsc-product-checkout-widget .woocommerce form.checkout .woocommerce-invalid textarea,
+.wcsc-product-checkout-widget .woocommerce form.checkout .woocommerce-invalid select,
+.wcsc-product-checkout-widget .woocommerce form.checkout input.input-text.wcsc-invalid,
+.wcsc-product-checkout-widget .woocommerce form.checkout textarea.wcsc-invalid,
+.wcsc-product-checkout-widget .woocommerce form.checkout select.wcsc-invalid,
+.wcas-checkout-wrapper .woocommerce-invalid input.input-text,
+.wcas-checkout-wrapper .woocommerce-invalid textarea,
+.wcas-checkout-wrapper .woocommerce-invalid select,
+.wcas-checkout-wrapper input.input-text.wcsc-invalid,
+.wcas-checkout-wrapper textarea.wcsc-invalid,
+.wcas-checkout-wrapper select.wcsc-invalid {
+	border-color: var(--wcsc-error-border-color, #ff0000) !important;
+	box-shadow: 0 0 0 1px var(--wcsc-error-border-color, #ff0000) !important;
 }
 
 /* Cart Item Image in Order Review & Inline Title + Quantity */

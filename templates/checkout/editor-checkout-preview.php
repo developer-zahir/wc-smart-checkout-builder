@@ -184,40 +184,107 @@ if ( '1_column' === $checkout_layout ) {
 						<div class="col-1">
 							<div class="woocommerce-billing-fields">
 								<div class="woocommerce-billing-fields__field-wrapper">
-									<p class="form-row form-row-wide validate-required" id="billing_first_name_field">
-										<label for="editor_billing_first_name"><?php esc_html_e( 'Full Name', 'wc-smart-checkout-builder' ); ?> <abbr class="required" title="required">*</abbr></label>
-										<span class="woocommerce-input-wrapper">
-											<input type="text" class="input-text" name="billing_first_name" id="editor_billing_first_name" placeholder="<?php esc_attr_e( 'John Doe', 'wc-smart-checkout-builder' ); ?>" value="" readonly />
-										</span>
-									</p>
+									<?php
+									// Retrieve checkout fields respecting custom snippets and 3rd party plugins
+									$checkout_obj = ( function_exists( 'WC' ) && WC()->checkout() ) ? WC()->checkout() : null;
+									if ( ! $checkout_obj && class_exists( '\WC_Checkout' ) ) {
+										$checkout_obj = new \WC_Checkout();
+									}
 
-									<p class="form-row form-row-wide validate-required validate-phone" id="billing_phone_field">
-										<label for="editor_billing_phone"><?php esc_html_e( 'Phone Number', 'wc-smart-checkout-builder' ); ?> <abbr class="required" title="required">*</abbr></label>
-										<span class="woocommerce-input-wrapper">
-											<input type="tel" class="input-text" name="billing_phone" id="editor_billing_phone" placeholder="<?php esc_attr_e( '017XXXXXXXX', 'wc-smart-checkout-builder' ); ?>" value="" readonly />
-										</span>
-									</p>
+									$preview_billing_fields = array();
+									if ( $checkout_obj ) {
+										$preview_billing_fields = $checkout_obj->get_checkout_fields( 'billing' );
+									} elseif ( function_exists( 'WC' ) && isset( WC()->countries ) ) {
+										$preview_billing_fields = WC()->countries->get_address_fields( '', 'billing_' );
+										$preview_billing_fields = apply_filters( 'woocommerce_billing_fields', $preview_billing_fields );
+										$all_filtered           = apply_filters( 'woocommerce_checkout_fields', array( 'billing' => $preview_billing_fields ) );
+										$preview_billing_fields = isset( $all_filtered['billing'] ) ? $all_filtered['billing'] : $preview_billing_fields;
+									}
 
-									<p class="form-row form-row-wide address-field validate-required" id="billing_address_1_field">
-										<label for="editor_billing_address_1"><?php esc_html_e( 'Street Address', 'wc-smart-checkout-builder' ); ?> <abbr class="required" title="required">*</abbr></label>
-										<span class="woocommerce-input-wrapper">
-											<input type="text" class="input-text" name="billing_address_1" id="editor_billing_address_1" placeholder="<?php esc_attr_e( 'House, Road, Area details', 'wc-smart-checkout-builder' ); ?>" value="" readonly />
-										</span>
-									</p>
+									// Strictly ensure woocommerce_checkout_fields filter hook is applied
+									if ( ! empty( $preview_billing_fields ) ) {
+										$all_filtered = apply_filters( 'woocommerce_checkout_fields', array( 'billing' => $preview_billing_fields ) );
+										if ( isset( $all_filtered['billing'] ) && is_array( $all_filtered['billing'] ) ) {
+											$preview_billing_fields = $all_filtered['billing'];
+										}
+									}
 
-									<p class="form-row form-row-wide address-field validate-required" id="billing_city_field">
-										<label for="editor_billing_city"><?php esc_html_e( 'Town / City', 'wc-smart-checkout-builder' ); ?> <abbr class="required" title="required">*</abbr></label>
-										<span class="woocommerce-input-wrapper">
-											<input type="text" class="input-text" name="billing_city" id="editor_billing_city" placeholder="<?php esc_attr_e( 'Dhaka / Your City', 'wc-smart-checkout-builder' ); ?>" value="" readonly />
-										</span>
-									</p>
+									// Fallback if WooCommerce returned empty fields array
+									if ( empty( $preview_billing_fields ) ) {
+										$preview_billing_fields = array(
+											'billing_first_name' => array(
+												'type'        => 'text',
+												'label'       => __( 'Full Name', 'wc-smart-checkout-builder' ),
+												'placeholder' => __( 'John Doe', 'wc-smart-checkout-builder' ),
+												'required'    => true,
+												'class'       => array( 'form-row-wide' ),
+											),
+											'billing_phone'      => array(
+												'type'        => 'tel',
+												'label'       => __( 'Phone Number', 'wc-smart-checkout-builder' ),
+												'placeholder' => __( '017XXXXXXXX', 'wc-smart-checkout-builder' ),
+												'required'    => true,
+												'class'       => array( 'form-row-wide', 'validate-phone' ),
+											),
+											'billing_address_1'  => array(
+												'type'        => 'text',
+												'label'       => __( 'Street Address', 'wc-smart-checkout-builder' ),
+												'placeholder' => __( 'House, Road, Area details', 'wc-smart-checkout-builder' ),
+												'required'    => true,
+												'class'       => array( 'form-row-wide', 'address-field' ),
+											),
+											'billing_city'       => array(
+												'type'        => 'text',
+												'label'       => __( 'Town / City', 'wc-smart-checkout-builder' ),
+												'placeholder' => __( 'Dhaka / Your City', 'wc-smart-checkout-builder' ),
+												'required'    => true,
+												'class'       => array( 'form-row-wide', 'address-field' ),
+											),
+										);
+									}
 
-									<p class="form-row form-row-wide notes" id="order_comments_field">
-										<label for="editor_order_comments"><?php esc_html_e( 'Order Notes (optional)', 'wc-smart-checkout-builder' ); ?></label>
-										<span class="woocommerce-input-wrapper">
-											<textarea name="order_comments" class="input-text" id="editor_order_comments" placeholder="<?php esc_attr_e( 'Special delivery notes...', 'wc-smart-checkout-builder' ); ?>" rows="2" readonly></textarea>
-										</span>
-									</p>
+									if ( function_exists( 'woocommerce_form_field' ) ) {
+										foreach ( $preview_billing_fields as $key => $field ) {
+											if ( empty( $field ) || ! is_array( $field ) ) {
+												continue;
+											}
+											woocommerce_form_field( $key, $field, '' );
+										}
+
+										// Render order notes if active in order fields
+										$preview_order_fields = $checkout_obj ? $checkout_obj->get_checkout_fields( 'order' ) : array();
+										if ( empty( $preview_order_fields ) ) {
+											$all_filtered         = apply_filters( 'woocommerce_checkout_fields', array() );
+											$preview_order_fields = isset( $all_filtered['order'] ) ? $all_filtered['order'] : array();
+										}
+										if ( ! empty( $preview_order_fields ) && is_array( $preview_order_fields ) ) {
+											foreach ( $preview_order_fields as $key => $field ) {
+												if ( empty( $field ) || ! is_array( $field ) ) {
+													continue;
+												}
+												woocommerce_form_field( $key, $field, '' );
+											}
+										}
+									} else {
+										// Static HTML fallback if woocommerce_form_field unavailable
+										foreach ( $preview_billing_fields as $key => $field ) {
+											if ( empty( $field ) || ! is_array( $field ) ) {
+												continue;
+											}
+											$label = isset( $field['label'] ) ? $field['label'] : $key;
+											$req   = ! empty( $field['required'] ) ? ' <abbr class="required" title="required">*</abbr>' : '';
+											$ph    = isset( $field['placeholder'] ) ? $field['placeholder'] : '';
+											?>
+											<p class="form-row form-row-wide" id="<?php echo esc_attr( $key ); ?>_field">
+												<label for="editor_<?php echo esc_attr( $key ); ?>"><?php echo esc_html( $label ) . $req; // phpcs:ignore WordPress.Security.EscapeOutput.OutputNotEscaped ?></label>
+												<span class="woocommerce-input-wrapper">
+													<input type="text" class="input-text" name="<?php echo esc_attr( $key ); ?>" id="editor_<?php echo esc_attr( $key ); ?>" placeholder="<?php echo esc_attr( $ph ); ?>" value="" readonly />
+												</span>
+											</p>
+											<?php
+										}
+									}
+									?>
 								</div>
 							</div>
 						</div>
@@ -284,7 +351,37 @@ if ( '1_column' === $checkout_layout ) {
 									$show_cart_item_image = ! isset( $settings['show_cart_item_image'] ) || 'yes' === $settings['show_cart_item_image'];
 									$preview_img_url      = '';
 									if ( $product ) {
-										$image_id = $product->get_image_id();
+										$image_id = 0;
+										if ( $product->is_type( 'variable' ) ) {
+											$default_attributes   = method_exists( $product, 'get_default_attributes' ) ? $product->get_default_attributes() : array();
+											$available_variations = $product->get_available_variations();
+											$selected_var         = null;
+											if ( ! empty( $default_attributes ) && ! empty( $available_variations ) ) {
+												foreach ( $available_variations as $var_data ) {
+													$match = true;
+													foreach ( $default_attributes as $attr_k => $attr_v ) {
+														$vkey = 'attribute_' . $attr_k;
+														if ( isset( $var_data['attributes'][ $vkey ] ) && '' !== $var_data['attributes'][ $vkey ] && $var_data['attributes'][ $vkey ] !== $attr_v ) {
+															$match = false;
+															break;
+														}
+													}
+													if ( $match ) {
+														$selected_var = $var_data;
+														break;
+													}
+												}
+											}
+											if ( ! $selected_var && ! empty( $available_variations ) ) {
+												$selected_var = $available_variations[0];
+											}
+											if ( $selected_var && ! empty( $selected_var['image_id'] ) ) {
+												$image_id = $selected_var['image_id'];
+											}
+										}
+										if ( ! $image_id ) {
+											$image_id = $product->get_image_id();
+										}
 										if ( $image_id ) {
 											$preview_img_url = wp_get_attachment_image_url( $image_id, 'thumbnail' );
 										}
