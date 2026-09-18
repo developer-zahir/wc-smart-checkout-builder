@@ -294,11 +294,13 @@ class Checkout_Handler {
 			self::ensure_product_in_cart( $product );
 		}
 
-		$wrapper_classes = array( 'wcsc-native-checkout-wrapper', 'woocommerce' );
+		$wrapper_classes = array( 'wcsc-native-checkout-wrapper', 'wcas-checkout-wrapper', 'woocommerce' );
 		if ( ! empty( $settings['checkout_layout'] ) && '1_column' === $settings['checkout_layout'] ) {
 			$wrapper_classes[] = 'wcsc-layout-1-col';
+			$wrapper_classes[] = 'wcas-layout-one-column';
 		} else {
 			$wrapper_classes[] = 'wcsc-layout-2-col';
+			$wrapper_classes[] = 'wcas-layout-two-column';
 		}
 
 		if ( isset( $settings['show_checkout_billing'] ) && 'yes' !== $settings['show_checkout_billing'] ) {

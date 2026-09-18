@@ -74,13 +74,13 @@ class ThankYou_Widget extends Widget_Base {
 		// Styles
 		$this->start_controls_section( 'section_style_success', [ 'label' => 'Success Message', 'tab' => Controls_Manager::TAB_STYLE ] );
 		$this->add_group_control( Group_Control_Typography::get_type(), [ 'name' => 'success_typography', 'selector' => '{{WRAPPER}} .wcsc-ty-success-msg .wcsc-ty-success-title' ] );
-		$this->add_control( 'success_color', [ 'label' => 'Color', 'type' => Controls_Manager::COLOR, 'default' => '#155724', 'selectors' => [ '{{WRAPPER}} .wcsc-ty-success-msg' => 'color: {{VALUE}};' ] ] );
-		$this->add_control( 'success_bg', [ 'label' => 'Background', 'type' => Controls_Manager::COLOR, 'default' => '#d4edda', 'selectors' => [ '{{WRAPPER}} .wcsc-ty-success-msg' => 'background-color: {{VALUE}};' ] ] );
-		$this->add_responsive_control( 'success_padding', [ 'label' => 'Padding', 'type' => Controls_Manager::DIMENSIONS, 'default' => [ 'top' => '30', 'right' => '20', 'bottom' => '30', 'left' => '20', 'unit' => 'px', 'isLinked' => false ], 'selectors' => [ '{{WRAPPER}} .wcsc-ty-success-msg' => 'padding: {{TOP}}{{UNIT}} {{RIGHT}}{{UNIT}} {{BOTTOM}}{{UNIT}} {{LEFT}}{{UNIT}};' ] ] );
+		$this->add_control( 'success_color', [ 'label' => 'Color', 'type' => Controls_Manager::COLOR, 'default' => '#065f46', 'selectors' => [ '{{WRAPPER}} .wcsc-ty-success-msg' => 'color: {{VALUE}};' ] ] );
+		$this->add_control( 'success_bg', [ 'label' => 'Background', 'type' => Controls_Manager::COLOR, 'default' => '#ecfdf5', 'selectors' => [ '{{WRAPPER}} .wcsc-ty-success-msg' => 'background-color: {{VALUE}};' ] ] );
+		$this->add_responsive_control( 'success_padding', [ 'label' => 'Padding', 'type' => Controls_Manager::DIMENSIONS, 'default' => [ 'top' => '24', 'right' => '20', 'bottom' => '24', 'left' => '20', 'unit' => 'px', 'isLinked' => false ], 'selectors' => [ '{{WRAPPER}} .wcsc-ty-success-msg' => 'padding: {{TOP}}{{UNIT}} {{RIGHT}}{{UNIT}} {{BOTTOM}}{{UNIT}} {{LEFT}}{{UNIT}};' ] ] );
 		$this->add_responsive_control( 'success_margin', [ 'label' => 'Margin', 'type' => Controls_Manager::DIMENSIONS, 'default' => [ 'top' => '0', 'right' => 'auto', 'bottom' => '25', 'left' => 'auto', 'unit' => 'px', 'isLinked' => false ], 'selectors' => [ '{{WRAPPER}} .wcsc-ty-success-msg' => 'margin: {{TOP}}{{UNIT}} {{RIGHT}}{{UNIT}} {{BOTTOM}}{{UNIT}} {{LEFT}}{{UNIT}};' ] ] );
 		$this->add_control( 'success_align', [ 'label' => 'Alignment', 'type' => Controls_Manager::CHOOSE, 'default' => 'center', 'options' => [ 'left' => [ 'icon' => 'eicon-text-align-left' ], 'center' => [ 'icon' => 'eicon-text-align-center' ], 'right' => [ 'icon' => 'eicon-text-align-right' ] ], 'selectors' => [ '{{WRAPPER}} .wcsc-ty-success-msg' => 'align-items: flex-start; text-align: left;', '{{WRAPPER}} .wcsc-ty-success-msg.align-center' => 'align-items: center; text-align: center;', '{{WRAPPER}} .wcsc-ty-success-msg.align-right' => 'align-items: flex-end; text-align: right;' ] ] );
 		$this->add_group_control( Group_Control_Border::get_type(), [ 'name' => 'success_border', 'selector' => '{{WRAPPER}} .wcsc-ty-success-msg' ] );
-		$this->add_control( 'success_radius', [ 'label' => 'Border Radius', 'type' => Controls_Manager::DIMENSIONS, 'default' => [ 'top' => '8', 'right' => '8', 'bottom' => '8', 'left' => '8', 'unit' => 'px', 'isLinked' => true ], 'selectors' => [ '{{WRAPPER}} .wcsc-ty-success-msg' => 'border-radius: {{TOP}}px {{RIGHT}}px {{BOTTOM}}px {{LEFT}}px;' ] ] );
+		$this->add_control( 'success_radius', [ 'label' => 'Border Radius', 'type' => Controls_Manager::DIMENSIONS, 'default' => [ 'top' => '10', 'right' => '10', 'bottom' => '10', 'left' => '10', 'unit' => 'px', 'isLinked' => true ], 'selectors' => [ '{{WRAPPER}} .wcsc-ty-success-msg' => 'border-radius: {{TOP}}px {{RIGHT}}px {{BOTTOM}}px {{LEFT}}px;' ] ] );
 		$this->end_controls_section();
 
 		$this->start_controls_section( 'section_style_order_info', [ 'label' => 'Order Information', 'tab' => Controls_Manager::TAB_STYLE ] );
@@ -210,14 +210,20 @@ class ThankYou_Widget extends Widget_Base {
 		foreach ( $order->get_items() as $item_id => $item ) {
 			$product = $item->get_product();
 			
-			// Get image
+			// Get image (variation image first, fallback to parent product image, then placeholder)
 			$img_src = '';
 			if ( $product ) {
 				$image_id = $product->get_image_id();
+				if ( ! $image_id && $product->is_type( 'variation' ) ) {
+					$parent = wc_get_product( $product->get_parent_id() );
+					if ( $parent ) {
+						$image_id = $parent->get_image_id();
+					}
+				}
 				if ( $image_id ) {
 					$img_src = wp_get_attachment_image_url( $image_id, 'thumbnail' );
 				} else {
-					$img_src = wc_placeholder_img_src('thumbnail');
+					$img_src = wc_placeholder_img_src( 'thumbnail' );
 				}
 			}
 
@@ -253,35 +259,48 @@ class ThankYou_Widget extends Widget_Base {
 	}
 
 	private function render_html_output( $settings, $order_num, $date, $status, $payment, $subtotal, $shipping, $total, $items, $billing, $shipping_addr ) {
-		// Custom styles for grid layouts since Elementor doesn't perfectly sandbox all custom layouts
+		// Custom styles for clean, modern Thank You page output
 		echo '<style>
-			.wcsc-ty-success-msg { max-width: 500px; display: flex; flex-direction: column; line-height: 1.4; }
-			.wcsc-ty-success-icon { margin-bottom: 15px; color: inherit; }
-			.wcsc-ty-success-icon svg { width: 48px; height: 48px; stroke: currentColor; fill: none; stroke-width: 2; stroke-linecap: round; stroke-linejoin: round; }
-			.wcsc-ty-success-title { font-size: 1.5rem; font-weight: 600; margin: 0; }
+			.wcsc-thank-you-wrapper { width: 100%; box-sizing: border-box; font-family: inherit; }
+			.wcsc-ty-success-msg { max-width: 500px; margin: 0 auto 28px auto; padding: 24px 20px; display: flex; flex-direction: column; align-items: center; text-align: center; background-color: #ecfdf5; color: #065f46; border: 1px solid #a7f3d0; border-radius: 10px; box-sizing: border-box; }
+			.wcsc-ty-success-msg.align-left { align-items: flex-start; text-align: left; margin-left: 0; }
+			.wcsc-ty-success-msg.align-right { align-items: flex-end; text-align: right; margin-right: 0; }
+			.wcsc-ty-success-icon { margin-bottom: 12px; color: #10b981; }
+			.wcsc-ty-success-icon svg { width: 44px; height: 44px; stroke: currentColor; fill: none; stroke-width: 2.2; stroke-linecap: round; stroke-linejoin: round; }
+			.wcsc-ty-success-title { font-size: 1.25rem; font-weight: 600; margin: 0; line-height: 1.4; color: inherit; max-width: 100%; }
 			
-			.wcsc-ty-order-info { width: 100%; max-width: 600px; border-collapse: collapse; margin-bottom: 30px; }
-			.wcsc-ty-order-info tr { border-bottom: 1px solid #e2e8f0; }
-			.wcsc-ty-order-info th { padding: 12px 10px 12px 0; text-align: left; font-weight: 600; color: #4a5568; vertical-align: top; width: 40%; }
-			.wcsc-ty-order-info td { padding: 12px 10px 12px 0; text-align: left; font-weight: 700; color: #1a202c; vertical-align: top; }
-			@media (max-width: 480px) {
-				.wcsc-ty-order-info th, .wcsc-ty-order-info td { display: block; width: 100%; padding: 6px 0; }
-				.wcsc-ty-order-info th { padding-top: 12px; border-bottom: none; padding-bottom: 2px; }
-				.wcsc-ty-order-info td { padding-bottom: 12px; font-weight: 600; }
+			.wcsc-ty-order-info { width: 100%; max-width: 600px; border-collapse: collapse; margin: 0 0 30px 0; background: #ffffff; border: 1px solid #e2e8f0; border-radius: 8px; overflow: hidden; }
+			.wcsc-ty-order-info tr { border-bottom: 1px solid #edf2f7; }
+			.wcsc-ty-order-info tr:last-child { border-bottom: none; }
+			.wcsc-ty-order-info th { padding: 12px 16px; text-align: left; font-weight: 600; color: #4a5568; vertical-align: middle; width: 40%; background: #f8fafc; }
+			.wcsc-ty-order-info td { padding: 12px 16px; text-align: left; font-weight: 600; color: #1a202c; vertical-align: middle; }
+			@media (max-width: 540px) {
+				.wcsc-ty-order-info, .wcsc-ty-order-info tbody, .wcsc-ty-order-info tr { display: block; width: 100%; }
+				.wcsc-ty-order-info th, .wcsc-ty-order-info td { display: block; width: 100%; box-sizing: border-box; padding: 8px 14px; }
+				.wcsc-ty-order-info th { padding-top: 10px; padding-bottom: 2px; border-bottom: none; }
+				.wcsc-ty-order-info td { padding-bottom: 10px; }
 			}
 			
-			.wcsc-ty-customer-details { display: flex; flex-wrap: wrap; gap: 40px; }
-			.wcsc-ty-address-col { flex: 1; min-width: 250px; }
-			.wcsc-ty-item { display: flex; align-items: center; gap: 15px; border-bottom: 1px solid #e2e8f0; padding: 15px 0; }
-			.wcsc-ty-item:last-child { border-bottom: none; }
-			.wcsc-ty-item-details { flex: 1; }
-			.wcsc-ty-item-name { margin: 0 0 5px; font-weight: 600; }
-			.wcsc-ty-item-meta { font-size: 0.85em; color: #718096; margin: 0 0 5px; }
-			.wcsc-ty-item-qty { display: inline-block; background: #edf2f7; padding: 2px 8px; border-radius: 4px; font-size: 0.85em; }
-			.wcsc-ty-totals { width: 100%; border-collapse: collapse; margin-top: 20px; }
-			.wcsc-ty-totals th, .wcsc-ty-totals td { padding: 10px 0; border-bottom: 1px solid #e2e8f0; text-align: left; }
-			.wcsc-ty-totals tr:last-child th, .wcsc-ty-totals tr:last-child td { border-bottom: none; font-weight: bold; }
-			.wcsc-ty-totals td { text-align: right; }
+			.wcsc-ty-items-list { width: 100%; max-width: 600px; margin-bottom: 24px; }
+			.wcsc-ty-item { display: flex; align-items: center; gap: 16px; border: 1px solid #e2e8f0; border-radius: 8px; padding: 14px 16px; margin-bottom: 10px; background: #ffffff; }
+			.wcsc-ty-item-img { flex-shrink: 0; }
+			.wcsc-ty-item-img img { max-width: 120px; width: auto; height: auto; object-fit: cover; border-radius: 6px; display: block; }
+			.wcsc-ty-item-details { flex: 1; min-width: 0; }
+			.wcsc-ty-item-name { margin: 0 0 4px; font-weight: 600; font-size: 1rem; color: #1a202c; }
+			.wcsc-ty-item-meta { font-size: 0.85rem; color: #718096; margin: 0 0 6px; }
+			.wcsc-ty-item-qty { display: inline-block; background: #f1f5f9; color: #475569; padding: 2px 8px; border-radius: 4px; font-size: 0.825rem; font-weight: 500; }
+			.wcsc-ty-item-subtotal { font-weight: 700; color: #1a202c; font-size: 1rem; white-space: nowrap; }
+
+			.wcsc-ty-totals { width: 100%; max-width: 600px; border-collapse: collapse; margin-top: 20px; background: #ffffff; border: 1px solid #e2e8f0; border-radius: 8px; overflow: hidden; }
+			.wcsc-ty-totals th, .wcsc-ty-totals td { padding: 12px 16px; border-bottom: 1px solid #edf2f7; text-align: left; }
+			.wcsc-ty-totals th { color: #4a5568; font-weight: 500; }
+			.wcsc-ty-totals td { text-align: right; color: #1a202c; font-weight: 600; }
+			.wcsc-ty-totals tr:last-child th, .wcsc-ty-totals tr:last-child td { border-bottom: none; font-weight: 700; font-size: 1.05rem; background: #f8fafc; }
+			
+			.wcsc-ty-customer-details { display: flex; flex-wrap: wrap; gap: 24px; max-width: 600px; margin-top: 28px; }
+			.wcsc-ty-address-col { flex: 1 1 240px; border: 1px solid #e2e8f0; border-radius: 8px; padding: 16px; background: #ffffff; }
+			.wcsc-ty-address-col h3 { margin: 0 0 10px 0; font-size: 1.05rem; font-weight: 600; color: #1a202c; }
+			.wcsc-ty-address-col address { font-style: normal; line-height: 1.5; color: #4a5568; font-size: 0.925rem; }
 		</style>';
 
 		if ( 'yes' === $settings['show_success_msg'] ) {

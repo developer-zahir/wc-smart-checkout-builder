@@ -369,79 +369,287 @@
 	border-bottom: 2px solid #edf2f7;
 }
 
-/* Neutralize theme checkout layouts (e.g., Blocksy's .ct-woocommerce-checkout) */
-.wcas-checkout-wrapper form.checkout.ct-woocommerce-checkout,
-body .wcas-checkout-wrapper form.checkout.ct-woocommerce-checkout,
-.wcas-checkout-wrapper .woocommerce form.checkout,
-.wcas-checkout-wrapper .ct-woocommerce-checkout {
-	display: block !important;
-	grid-template-columns: none !important;
-	margin: 0;
-}
-
+/* Theme Isolation: Neutralize theme-specific resets like Blocksy's .ct-order-review */
 .wcas-checkout-wrapper .ct-order-review {
-	padding: initial;
-	border: initial;
+	box-sizing: border-box;
 }
 
-.wcas-checkout-wrapper .woocommerce form.checkout .col2-set,
-body .wcas-checkout-wrapper form.checkout .col2-set {
-	display: flex !important;
-	flex-wrap: wrap;
-	gap: var(--wcsc-col-gap, 28px);
-	margin: 0 0 var(--wcsc-row-gap, 20px) 0;
-}
-
-.wcas-checkout-wrapper .woocommerce form.checkout .col-1,
-.wcas-checkout-wrapper .woocommerce form.checkout .col-2,
-body .wcas-checkout-wrapper form.checkout .col-1,
-body .wcas-checkout-wrapper form.checkout .col-2 {
-	flex: 1 1 340px !important;
-	min-width: 0;
-	float: none !important;
-	width: auto !important;
-}
-
-/* 1 Column Layout Option */
-.wcas-checkout-wrapper .wcsc-layout-1-col form.checkout #customer_details.col2-set,
-.wcas-checkout-wrapper .wcsc-layout-1-col form.checkout .col2-set,
-body .wcas-checkout-wrapper .wcsc-layout-1-col form.checkout #customer_details.col2-set,
-body .wcas-checkout-wrapper .wcsc-layout-1-col form.checkout .col2-set {
-	display: block !important;
+/* ==========================================================================
+   2 Column Checkout Layout Option
+   ========================================================================== */
+.wcas-checkout-wrapper.wcsc-layout-2-col form.checkout,
+.wcas-checkout-wrapper.wcas-layout-two-column form.checkout,
+.wcas-checkout-wrapper .wcsc-layout-2-col form.checkout,
+.wcas-checkout-wrapper .wcas-layout-two-column form.checkout,
+body .wcas-checkout-wrapper.wcsc-layout-2-col form.checkout,
+body .wcas-checkout-wrapper.wcas-layout-two-column form.checkout,
+body .wcas-checkout-wrapper .wcsc-layout-2-col form.checkout,
+body .wcas-checkout-wrapper .wcas-layout-two-column form.checkout {
+	display: grid !important;
+	grid-template-columns: minmax(0, 1.15fr) minmax(0, 0.85fr) !important;
+	gap: var(--wcsc-col-gap, 30px) !important;
+	row-gap: var(--wcsc-row-gap, 24px) !important;
+	align-items: start !important;
 	width: 100% !important;
 	margin: 0 !important;
+	float: none !important;
 }
 
-.wcas-checkout-wrapper .wcsc-layout-1-col form.checkout {
+/* 2 Column Left Side: Customer Details */
+.wcas-checkout-wrapper.wcsc-layout-2-col form.checkout #customer_details,
+.wcas-checkout-wrapper.wcas-layout-two-column form.checkout #customer_details,
+.wcas-checkout-wrapper .wcsc-layout-2-col form.checkout #customer_details,
+.wcas-checkout-wrapper .wcas-layout-two-column form.checkout #customer_details,
+body .wcas-checkout-wrapper.wcsc-layout-2-col form.checkout #customer_details,
+body .wcas-checkout-wrapper.wcas-layout-two-column form.checkout #customer_details {
+	grid-column: 1 !important;
+	display: block !important;
+	width: 100% !important;
+	max-width: 100% !important;
+	margin: 0 !important;
+	float: none !important;
+}
+
+.wcas-checkout-wrapper.wcsc-layout-2-col form.checkout #customer_details .col-1,
+.wcas-checkout-wrapper.wcsc-layout-2-col form.checkout #customer_details .col-2,
+.wcas-checkout-wrapper.wcas-layout-two-column form.checkout #customer_details .col-1,
+.wcas-checkout-wrapper.wcas-layout-two-column form.checkout #customer_details .col-2,
+.wcas-checkout-wrapper .wcsc-layout-2-col form.checkout #customer_details .col-1,
+.wcas-checkout-wrapper .wcsc-layout-2-col form.checkout #customer_details .col-2 {
+	width: 100% !important;
+	max-width: 100% !important;
+	float: none !important;
+	margin: 0 0 16px 0 !important;
+}
+
+.wcas-checkout-wrapper.wcsc-layout-2-col form.checkout .wcsc-custom-shipping-container,
+.wcas-checkout-wrapper.wcas-layout-two-column form.checkout .wcsc-custom-shipping-container,
+.wcas-checkout-wrapper .wcsc-layout-2-col form.checkout .wcsc-custom-shipping-container,
+.wcas-checkout-wrapper .wcas-layout-two-column form.checkout .wcsc-custom-shipping-container {
+	grid-column: 1 !important;
+	width: 100% !important;
+	margin: 0 0 20px 0 !important;
+}
+
+/* 2 Column Right Side: Order Review & Payment */
+.wcas-checkout-wrapper.wcsc-layout-2-col form.checkout #order_review_heading,
+.wcas-checkout-wrapper.wcas-layout-two-column form.checkout #order_review_heading,
+.wcas-checkout-wrapper .wcsc-layout-2-col form.checkout #order_review_heading,
+.wcas-checkout-wrapper .wcas-layout-two-column form.checkout #order_review_heading {
+	grid-column: 2 !important;
+	margin: 0 0 16px 0 !important;
+}
+
+.wcas-checkout-wrapper.wcsc-layout-2-col form.checkout #order_review,
+.wcas-checkout-wrapper.wcsc-layout-2-col form.checkout .woocommerce-checkout-review-order,
+.wcas-checkout-wrapper.wcas-layout-two-column form.checkout #order_review,
+.wcas-checkout-wrapper.wcas-layout-two-column form.checkout .woocommerce-checkout-review-order,
+.wcas-checkout-wrapper .wcsc-layout-2-col form.checkout #order_review,
+.wcas-checkout-wrapper .wcsc-layout-2-col form.checkout .woocommerce-checkout-review-order,
+body .wcas-checkout-wrapper.wcsc-layout-2-col form.checkout #order_review,
+body .wcas-checkout-wrapper.wcas-layout-two-column form.checkout #order_review {
+	grid-column: 2 !important;
+	display: block !important;
+	width: 100% !important;
+	max-width: 100% !important;
+	margin: 0 !important;
+	float: none !important;
+}
+
+/* 2 Column Responsive Viewport (Tablet/Mobile) */
+@media (max-width: 991px) {
+	.wcas-checkout-wrapper.wcsc-layout-2-col form.checkout,
+	.wcas-checkout-wrapper.wcas-layout-two-column form.checkout,
+	.wcas-checkout-wrapper .wcsc-layout-2-col form.checkout,
+	.wcas-checkout-wrapper .wcas-layout-two-column form.checkout,
+	body .wcas-checkout-wrapper.wcsc-layout-2-col form.checkout,
+	body .wcas-checkout-wrapper.wcas-layout-two-column form.checkout,
+	body .wcas-checkout-wrapper .wcsc-layout-2-col form.checkout,
+	body .wcas-checkout-wrapper .wcas-layout-two-column form.checkout {
+		grid-template-columns: 1fr !important;
+	}
+
+	.wcas-checkout-wrapper.wcsc-layout-2-col form.checkout #customer_details,
+	.wcas-checkout-wrapper.wcsc-layout-2-col form.checkout .wcsc-custom-shipping-container,
+	.wcas-checkout-wrapper.wcsc-layout-2-col form.checkout #order_review_heading,
+	.wcas-checkout-wrapper.wcsc-layout-2-col form.checkout #order_review,
+	.wcas-checkout-wrapper.wcas-layout-two-column form.checkout #customer_details,
+	.wcas-checkout-wrapper.wcas-layout-two-column form.checkout .wcsc-custom-shipping-container,
+	.wcas-checkout-wrapper.wcas-layout-two-column form.checkout #order_review_heading,
+	.wcas-checkout-wrapper.wcas-layout-two-column form.checkout #order_review {
+		grid-column: 1 !important;
+	}
+}
+
+/* ==========================================================================
+   1 Column Checkout Layout Option — True Vertical Flow
+   ========================================================================== */
+.wcas-checkout-wrapper.wcsc-layout-1-col form.checkout,
+.wcas-checkout-wrapper.wcas-layout-one-column form.checkout,
+.wcas-checkout-wrapper .wcsc-layout-1-col form.checkout,
+.wcas-checkout-wrapper .wcas-layout-one-column form.checkout,
+body .wcas-checkout-wrapper.wcsc-layout-1-col form.checkout,
+body .wcas-checkout-wrapper.wcas-layout-one-column form.checkout,
+body .wcas-checkout-wrapper .wcsc-layout-1-col form.checkout,
+body .wcas-checkout-wrapper .wcas-layout-one-column form.checkout {
 	display: flex !important;
 	flex-direction: column !important;
 	gap: var(--wcsc-row-gap, 20px) !important;
+	width: 100% !important;
+	margin: 0 !important;
+	float: none !important;
 }
 
-/* Move Payment / Order Button to the bottom in 1 Column Layout */
-.wcas-checkout-wrapper .wcsc-layout-1-col form.checkout #payment,
-.wcas-checkout-wrapper .wcsc-layout-1-col form.checkout .woocommerce-checkout-payment {
-	order: 99 !important;
-	margin-top: auto !important;
+/* 1 Column #customer_details: Full width block container */
+.wcas-checkout-wrapper.wcsc-layout-1-col div#customer_details,
+.wcas-checkout-wrapper.wcsc-layout-1-col #customer_details.col2-set,
+.wcas-checkout-wrapper.wcsc-layout-1-col .col2-set,
+.wcas-checkout-wrapper.wcas-layout-one-column div#customer_details,
+.wcas-checkout-wrapper.wcas-layout-one-column #customer_details.col2-set,
+.wcas-checkout-wrapper.wcas-layout-one-column .col2-set,
+.wcas-checkout-wrapper .wcsc-layout-1-col div#customer_details,
+.wcas-checkout-wrapper .wcsc-layout-1-col #customer_details.col2-set,
+.wcas-checkout-wrapper .wcsc-layout-1-col .col2-set,
+body .wcas-checkout-wrapper.wcsc-layout-1-col div#customer_details,
+body .wcas-checkout-wrapper.wcas-layout-one-column div#customer_details,
+body .wcas-checkout-wrapper .wcsc-layout-1-col form.checkout div#customer_details,
+body .wcas-checkout-wrapper .wcas-layout-one-column form.checkout div#customer_details {
+	display: block !important;
+	width: 100% !important;
+	max-width: 100% !important;
+	float: none !important;
+	margin: 0 !important;
+	order: 1 !important;
 }
 
-.wcas-checkout-wrapper .wcsc-layout-1-col form.checkout #order_review,
-.wcas-checkout-wrapper .wcsc-layout-1-col form.checkout .woocommerce-checkout-review-order {
-	order: 98 !important;
-	display: flex !important;
-	flex-direction: column !important;
-}
-
+/* 1 Column Col-1 and Col-2: 100% Full Width */
+.wcas-checkout-wrapper.wcsc-layout-1-col form.checkout .col-1,
+.wcas-checkout-wrapper.wcsc-layout-1-col form.checkout .col-2,
+.wcas-checkout-wrapper.wcas-layout-one-column form.checkout .col-1,
+.wcas-checkout-wrapper.wcas-layout-one-column form.checkout .col-2,
 .wcas-checkout-wrapper .wcsc-layout-1-col form.checkout .col-1,
 .wcas-checkout-wrapper .wcsc-layout-1-col form.checkout .col-2,
-body .wcas-checkout-wrapper .wcsc-layout-1-col form.checkout .col-1,
-body .wcas-checkout-wrapper .wcsc-layout-1-col form.checkout .col-2,
+.wcas-checkout-wrapper .wcas-layout-one-column form.checkout .col-1,
+.wcas-checkout-wrapper .wcas-layout-one-column form.checkout .col-2,
+body .wcas-checkout-wrapper.wcsc-layout-1-col form.checkout .col-1,
+body .wcas-checkout-wrapper.wcsc-layout-1-col form.checkout .col-2,
+body .wcas-checkout-wrapper.wcas-layout-one-column form.checkout .col-1,
+body .wcas-checkout-wrapper.wcas-layout-one-column form.checkout .col-2,
 .wcas-checkout-wrapper .wcsc-col-fullwidth {
+	display: block !important;
 	width: 100% !important;
 	max-width: 100% !important;
 	flex: 1 1 100% !important;
 	float: none !important;
+	margin: 0 0 16px 0 !important;
+}
+
+/* 1 Column: ALL Billing & Shipping form fields 100% full width */
+.wcas-checkout-wrapper.wcsc-layout-1-col form.checkout .woocommerce-billing-fields .form-row,
+.wcas-checkout-wrapper.wcsc-layout-1-col form.checkout .woocommerce-shipping-fields .form-row,
+.wcas-checkout-wrapper.wcsc-layout-1-col form.checkout .woocommerce-additional-fields .form-row,
+.wcas-checkout-wrapper.wcsc-layout-1-col form.checkout .form-row-first,
+.wcas-checkout-wrapper.wcsc-layout-1-col form.checkout .form-row-last,
+.wcas-checkout-wrapper.wcsc-layout-1-col form.checkout .form-row-wide,
+.wcas-checkout-wrapper.wcas-layout-one-column form.checkout .woocommerce-billing-fields .form-row,
+.wcas-checkout-wrapper.wcas-layout-one-column form.checkout .woocommerce-shipping-fields .form-row,
+.wcas-checkout-wrapper.wcas-layout-one-column form.checkout .form-row-first,
+.wcas-checkout-wrapper.wcas-layout-one-column form.checkout .form-row-last,
+.wcas-checkout-wrapper.wcas-layout-one-column form.checkout .form-row-wide,
+.wcas-checkout-wrapper .wcsc-layout-1-col form.checkout .woocommerce-billing-fields .form-row,
+.wcas-checkout-wrapper .wcsc-layout-1-col form.checkout .woocommerce-shipping-fields .form-row,
+.wcas-checkout-wrapper .wcsc-layout-1-col form.checkout .form-row-first,
+.wcas-checkout-wrapper .wcsc-layout-1-col form.checkout .form-row-last,
+.wcas-checkout-wrapper .wcsc-layout-1-col form.checkout .form-row-wide,
+body .wcas-checkout-wrapper.wcsc-layout-1-col form.checkout .form-row,
+body .wcas-checkout-wrapper.wcsc-layout-1-col form.checkout .form-row-first,
+body .wcas-checkout-wrapper.wcsc-layout-1-col form.checkout .form-row-last,
+body .wcas-checkout-wrapper.wcsc-layout-1-col form.checkout .form-row-wide,
+body .wcas-checkout-wrapper.wcas-layout-one-column form.checkout .form-row,
+body .wcas-checkout-wrapper.wcas-layout-one-column form.checkout .form-row-first,
+body .wcas-checkout-wrapper.wcas-layout-one-column form.checkout .form-row-last,
+body .wcas-checkout-wrapper.wcas-layout-one-column form.checkout .form-row-wide {
+	width: 100% !important;
+	max-width: 100% !important;
+	float: none !important;
+	clear: both !important;
+	margin-right: 0 !important;
+}
+
+/* 1 Column Shipping */
+.wcas-checkout-wrapper.wcsc-layout-1-col .wcsc-custom-shipping-container,
+.wcas-checkout-wrapper.wcas-layout-one-column .wcsc-custom-shipping-container,
+.wcas-checkout-wrapper .wcsc-layout-1-col .wcsc-custom-shipping-container,
+.wcas-checkout-wrapper .wcas-layout-one-column .wcsc-custom-shipping-container {
+	order: 2 !important;
+	width: 100% !important;
 	margin: 0 !important;
+}
+
+/* 1 Column Order Review Heading */
+.wcas-checkout-wrapper.wcsc-layout-1-col form.checkout #order_review_heading,
+.wcas-checkout-wrapper.wcas-layout-one-column form.checkout #order_review_heading,
+.wcas-checkout-wrapper .wcsc-layout-1-col form.checkout #order_review_heading,
+.wcas-checkout-wrapper .wcas-layout-one-column form.checkout #order_review_heading {
+	order: 3 !important;
+	width: 100% !important;
+	margin: 0 !important;
+}
+
+/* 1 Column Order Review Container */
+.wcas-checkout-wrapper.wcsc-layout-1-col form.checkout #order_review,
+.wcas-checkout-wrapper.wcsc-layout-1-col form.checkout .woocommerce-checkout-review-order,
+.wcas-checkout-wrapper.wcas-layout-one-column form.checkout #order_review,
+.wcas-checkout-wrapper.wcas-layout-one-column form.checkout .woocommerce-checkout-review-order,
+.wcas-checkout-wrapper .wcsc-layout-1-col form.checkout #order_review,
+.wcas-checkout-wrapper .wcsc-layout-1-col form.checkout .woocommerce-checkout-review-order,
+.wcas-checkout-wrapper .wcas-layout-one-column form.checkout #order_review,
+.wcas-checkout-wrapper .wcas-layout-one-column form.checkout .woocommerce-checkout-review-order,
+body .wcas-checkout-wrapper.wcsc-layout-1-col form.checkout #order_review,
+body .wcas-checkout-wrapper.wcas-layout-one-column form.checkout #order_review {
+	order: 4 !important;
+	display: flex !important;
+	flex-direction: column !important;
+	width: 100% !important;
+	max-width: 100% !important;
+	margin: 0 !important;
+	float: none !important;
+}
+
+/* 1 Column: Table -> Payment -> Place Order Button */
+.wcas-checkout-wrapper.wcsc-layout-1-col form.checkout table.woocommerce-checkout-review-order-table,
+.wcas-checkout-wrapper.wcas-layout-one-column form.checkout table.woocommerce-checkout-review-order-table,
+.wcas-checkout-wrapper .wcsc-layout-1-col form.checkout table.woocommerce-checkout-review-order-table,
+.wcas-checkout-wrapper .wcas-layout-one-column form.checkout table.woocommerce-checkout-review-order-table {
+	order: 1 !important;
+	width: 100% !important;
+}
+
+.wcas-checkout-wrapper.wcsc-layout-1-col form.checkout #payment,
+.wcas-checkout-wrapper.wcsc-layout-1-col form.checkout .woocommerce-checkout-payment,
+.wcas-checkout-wrapper.wcas-layout-one-column form.checkout #payment,
+.wcas-checkout-wrapper.wcas-layout-one-column form.checkout .woocommerce-checkout-payment,
+.wcas-checkout-wrapper .wcsc-layout-1-col form.checkout #payment,
+.wcas-checkout-wrapper .wcsc-layout-1-col form.checkout .woocommerce-checkout-payment,
+.wcas-checkout-wrapper .wcas-layout-one-column form.checkout #payment,
+.wcas-checkout-wrapper .wcas-layout-one-column form.checkout .woocommerce-checkout-payment {
+	order: 2 !important;
+	width: 100% !important;
+	margin: 16px 0 0 0 !important;
+}
+
+/* Place Order Button ALWAYS at the absolute bottom */
+.wcas-checkout-wrapper.wcsc-layout-1-col form.checkout #payment .place-order,
+.wcas-checkout-wrapper.wcsc-layout-1-col form.checkout .wcsc-custom-btn-container,
+.wcas-checkout-wrapper.wcas-layout-one-column form.checkout #payment .place-order,
+.wcas-checkout-wrapper.wcas-layout-one-column form.checkout .wcsc-custom-btn-container,
+.wcas-checkout-wrapper .wcsc-layout-1-col form.checkout #payment .place-order,
+.wcas-checkout-wrapper .wcsc-layout-1-col form.checkout .wcsc-custom-btn-container,
+.wcas-checkout-wrapper .wcas-layout-one-column form.checkout #payment .place-order,
+.wcas-checkout-wrapper .wcas-layout-one-column form.checkout .wcsc-custom-btn-container {
+	order: 999 !important;
+	width: 100% !important;
+	margin-top: 16px !important;
 }
 
 /* Hide Individual Checkout Sections */

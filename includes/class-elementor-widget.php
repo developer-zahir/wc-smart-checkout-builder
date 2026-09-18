@@ -1855,12 +1855,11 @@ class Elementor_Widget extends Widget_Base {
 
 		$this->end_controls_section();
 
-		// --- 8. Checkout Blocks Style ---
 		$blocks = array(
-			'billing'       => array( 'label' => esc_html__( 'Billing Block', 'wc-smart-checkout-builder' ), 'selector' => '{{WRAPPER}} .woocommerce-checkout #customer_details .col-1' ),
-			'shipping'      => array( 'label' => esc_html__( 'Shipping Block', 'wc-smart-checkout-builder' ), 'selector' => '{{WRAPPER}} .woocommerce-checkout #customer_details .col-2' ),
-			'order_summary' => array( 'label' => esc_html__( 'Order Summary Block', 'wc-smart-checkout-builder' ), 'selector' => '{{WRAPPER}} .woocommerce-checkout #order_review' ),
-			'payment'       => array( 'label' => esc_html__( 'Payment Block', 'wc-smart-checkout-builder' ), 'selector' => '{{WRAPPER}} .woocommerce-checkout #payment' ),
+			'billing'       => array( 'label' => esc_html__( 'Billing Block', 'wc-smart-checkout-builder' ), 'selector' => '{{WRAPPER}} .woocommerce-checkout #customer_details .col-1, {{WRAPPER}} #customer_details .col-1, {{WRAPPER}} .woocommerce-billing-fields' ),
+			'shipping'      => array( 'label' => esc_html__( 'Shipping Block', 'wc-smart-checkout-builder' ), 'selector' => '{{WRAPPER}} .woocommerce-checkout #customer_details .col-2, {{WRAPPER}} #customer_details .col-2, {{WRAPPER}} .woocommerce-shipping-fields' ),
+			'order_summary' => array( 'label' => esc_html__( 'Order Summary Block', 'wc-smart-checkout-builder' ), 'selector' => '{{WRAPPER}} .woocommerce-checkout #order_review, {{WRAPPER}} #order_review, {{WRAPPER}} .ct-order-review' ),
+			'payment'       => array( 'label' => esc_html__( 'Payment Block', 'wc-smart-checkout-builder' ), 'selector' => '{{WRAPPER}} .woocommerce-checkout #payment, {{WRAPPER}} #payment' ),
 		);
 
 		foreach ( $blocks as $key => $block ) {
@@ -2282,8 +2281,10 @@ class Elementor_Widget extends Widget_Base {
 				$data_string .= ' ' . esc_attr( $k ) . '="' . esc_attr( $v ) . '"';
 			}
 		}
+		$checkout_layout_val = ! empty( $settings['checkout_layout'] ) ? $settings['checkout_layout'] : '2_columns';
+		$layout_class_name   = ( '1_column' === $checkout_layout_val ) ? 'wcsc-layout-1-col wcas-layout-one-column' : 'wcsc-layout-2-col wcas-layout-two-column';
 		?>
-		<div class="wcsc-product-checkout-widget wcas-checkout-wrapper"<?php echo $data_string; // phpcs:ignore WordPress.Security.EscapeOutput.OutputNotEscaped ?>>
+		<div class="wcsc-product-checkout-widget wcas-checkout-wrapper <?php echo esc_attr( $layout_class_name ); ?>"<?php echo $data_string; // phpcs:ignore WordPress.Security.EscapeOutput.OutputNotEscaped ?>>
 
 			<?php if ( $show_image || $show_title || $show_price || $show_stock || $show_variations || $show_quantity ) : ?>
 			<div class="wcsc-product-summary-section">

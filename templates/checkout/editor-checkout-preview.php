@@ -56,11 +56,13 @@ $show_shipping     = ! isset( $settings['show_checkout_shipping'] ) || 'yes' ===
 $show_payment      = ! isset( $settings['show_checkout_payment'] ) || 'yes' === $settings['show_checkout_payment'];
 $checkout_layout   = ! empty( $settings['checkout_layout'] ) ? $settings['checkout_layout'] : '2_columns';
 
-$wrapper_classes = array( 'wcsc-editor-checkout-preview', 'woocommerce' );
+$wrapper_classes = array( 'wcsc-editor-checkout-preview', 'wcas-checkout-wrapper', 'woocommerce' );
 if ( '1_column' === $checkout_layout ) {
 	$wrapper_classes[] = 'wcsc-layout-1-col';
+	$wrapper_classes[] = 'wcas-layout-one-column';
 } else {
 	$wrapper_classes[] = 'wcsc-layout-2-col';
+	$wrapper_classes[] = 'wcas-layout-two-column';
 }
 ?>
 
