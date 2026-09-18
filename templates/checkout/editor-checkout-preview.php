@@ -28,9 +28,10 @@ $product_name      = $product ? $product->get_name() : esc_html__( 'Sample Produ
 $price_html        = $product ? $product->get_price_html() : wc_price( 50 );
 $raw_price_text    = $product ? wp_strip_all_tags( wc_price( $product->get_price() ) ) : '$50.00';
 
-// Custom Text Labels (trimmed to 6 keys — req 40)
+// Custom Text Labels (trimmed to 7 keys)
 $billing_heading_text      = ! empty( $settings['billing_heading_text'] ) ? esc_html( $settings['billing_heading_text'] ) : esc_html__( 'Billing & Shipping', 'wc-smart-checkout-builder' );
 $order_review_heading_text = ! empty( $settings['order_review_heading_text'] ) ? esc_html( $settings['order_review_heading_text'] ) : esc_html__( 'Your Order', 'wc-smart-checkout-builder' );
+$payment_heading_text      = ! empty( $settings['payment_heading_text'] ) ? esc_html( $settings['payment_heading_text'] ) : esc_html__( 'Payment', 'wc-smart-checkout-builder' );
 $product_label_text        = ! empty( $settings['product_label_text'] ) ? esc_html( $settings['product_label_text'] ) : esc_html__( 'Product', 'wc-smart-checkout-builder' );
 $subtotal_label_text       = ! empty( $settings['subtotal_label_text'] ) ? esc_html( $settings['subtotal_label_text'] ) : esc_html__( 'Subtotal', 'wc-smart-checkout-builder' );
 $shipping_label_text       = ! empty( $settings['shipping_label_text'] ) ? esc_html( $settings['shipping_label_text'] ) : esc_html__( 'Shipping', 'wc-smart-checkout-builder' );
@@ -42,7 +43,65 @@ $show_shipping     = ! isset( $settings['show_checkout_shipping'] ) || 'yes' ===
 $show_payment      = ! isset( $settings['show_checkout_payment'] ) || 'yes' === $settings['show_checkout_payment'];
 $show_order_button = ! isset( $settings['show_checkout_order_button'] ) || 'yes' === $settings['show_checkout_order_button'];
 $checkout_layout   = ! empty( $settings['checkout_layout'] ) ? $settings['checkout_layout'] : '2_columns';
-$order_button_pos  = ! empty( $settings['order_button_position'] ) ? $settings['order_button_position'] : 'under_order_review';
+$order_button_pos  = ! empty( $settings['order_button_position'] ) ? $settings['order_button_position'] : 'under_payment';
+
+// Dynamic WooCommerce shipping zones / methods for preview
+$preview_shipping_methods = array();
+if ( function_exists( 'WC' ) ) {
+	$packages = ( WC()->shipping() && method_exists( WC()->shipping(), 'get_packages' ) ) ? WC()->shipping()->get_packages() : array();
+	if ( ! empty( $packages ) ) {
+		foreach ( $packages as $pkg ) {
+			if ( ! empty( $pkg['rates'] ) ) {
+				foreach ( $pkg['rates'] as $rate ) {
+					$preview_shipping_methods[] = array(
+						'id'    => $rate->id,
+						'label' => $rate->label,
+						'cost'  => (float) $rate->cost + (float) $rate->get_shipping_tax(),
+					);
+				}
+			}
+		}
+	}
+
+	if ( empty( $preview_shipping_methods ) && class_exists( '\WC_Shipping_Zones' ) ) {
+		$zones   = \WC_Shipping_Zones::get_zones();
+		$default_zone = new \WC_Shipping_Zone( 0 );
+		$zones[] = array( 'shipping_methods' => $default_zone->get_shipping_methods( true ) );
+
+		foreach ( $zones as $zone ) {
+			$methods = isset( $zone['shipping_methods'] ) ? $zone['shipping_methods'] : array();
+			foreach ( $methods as $method ) {
+				if ( method_exists( $method, 'is_enabled' ) && $method->is_enabled() ) {
+					$cost = isset( $method->cost ) ? (float) $method->cost : ( isset( $method->settings['cost'] ) ? (float) $method->settings['cost'] : 0 );
+					$preview_shipping_methods[] = array(
+						'id'    => $method->id . '_' . $method->instance_id,
+						'label' => $method->get_title(),
+						'cost'  => $cost,
+					);
+				}
+			}
+		}
+	}
+}
+
+if ( empty( $preview_shipping_methods ) ) {
+	$preview_shipping_methods = array(
+		array(
+			'id'    => 'flat_rate_in',
+			'label' => __( 'Inside Dhaka', 'wc-smart-checkout-builder' ),
+			'cost'  => 60,
+		),
+		array(
+			'id'    => 'flat_rate_out',
+			'label' => __( 'Outside Dhaka', 'wc-smart-checkout-builder' ),
+			'cost'  => 120,
+		),
+	);
+}
+
+$default_shipping_cost = isset( $preview_shipping_methods[0]['cost'] ) ? (float) $preview_shipping_methods[0]['cost'] : 0;
+$product_price_num     = ( $product && is_numeric( $product->get_price() ) ) ? (float) $product->get_price() : 50;
+$preview_total         = $product_price_num + $default_shipping_cost;
 
 // Button Icon & Price
 $animation   = ! empty( $settings['order_button_animation'] ) ? sanitize_html_class( $settings['order_button_animation'] ) : 'border_run';
@@ -115,11 +174,10 @@ if ( '1_column' === $checkout_layout ) {
 			<div class="wcas-checkout-column wcas-checkout-column-left">
 				<?php /* --- Checkout Form Block (100% full width, 1 field per row) --- */ ?>
 				<div class="wcas-block wcas-block-checkout-form">
+					<h3 class="wcsc-section-title wcas-block-title"><?php echo esc_html( $billing_heading_text ); ?></h3>
 					<div class="col2-set" id="customer_details">
 						<div class="col-1">
 							<div class="woocommerce-billing-fields">
-								<h3 class="wcsc-section-title"><?php echo esc_html( $billing_heading_text ); ?></h3>
-
 								<div class="woocommerce-billing-fields__field-wrapper">
 									<p class="form-row form-row-wide validate-required" id="billing_first_name_field">
 										<label for="editor_billing_first_name"><?php esc_html_e( 'Full Name', 'wc-smart-checkout-builder' ); ?> <abbr class="required" title="required">*</abbr></label>
@@ -160,7 +218,6 @@ if ( '1_column' === $checkout_layout ) {
 						</div>
 						<div class="col-2" style="display:none;">
 							<div class="woocommerce-shipping-fields">
-								<h3 class="wcsc-section-title"><?php echo esc_html( $billing_heading_text ); ?></h3>
 								<div class="woocommerce-shipping-fields__field-wrapper">
 									<p class="form-row form-row-wide address-field validate-required" id="shipping_address_1_field">
 										<label for="editor_shipping_address_1"><?php esc_html_e( 'Street Address', 'wc-smart-checkout-builder' ); ?> <abbr class="required" title="required">*</abbr></label>
@@ -177,28 +234,26 @@ if ( '1_column' === $checkout_layout ) {
 				<?php if ( $show_shipping ) : ?>
 					<?php /* --- Dedicated Shipping Selection Block --- */ ?>
 					<div class="wcas-block wcas-block-shipping">
-						<h3 class="wcsc-section-title wcsc-shipping-heading"><?php echo esc_html( $shipping_label_text ); ?></h3>
+						<h3 class="wcsc-section-title wcas-block-title wcsc-shipping-heading"><?php echo esc_html( $shipping_label_text ); ?></h3>
 						<div class="wcas-shipping-methods-wrapper">
 							<ul id="shipping_method" class="woocommerce-shipping-methods">
-								<li class="wcsc-shipping-card is-active">
-									<input type="radio" name="shipping_method[0]" data-index="0" id="shipping_method_0_flat_rate" value="flat_rate" class="shipping_method" checked="checked" />
-									<label for="shipping_method_0_flat_rate">
-										<?php esc_html_e( 'Inside Dhaka: ', 'wc-smart-checkout-builder' ); ?><span class="woocommerce-Price-amount amount"><?php echo wc_price( 60 ); ?></span>
-									</label>
-								</li>
-								<li class="wcsc-shipping-card">
-									<input type="radio" name="shipping_method[0]" data-index="0" id="shipping_method_0_flat_rate_out" value="flat_rate_out" class="shipping_method" />
-									<label for="shipping_method_0_flat_rate_out">
-										<?php esc_html_e( 'Outside Dhaka: ', 'wc-smart-checkout-builder' ); ?><span class="woocommerce-Price-amount amount"><?php echo wc_price( 120 ); ?></span>
-									</label>
-								</li>
+								<?php foreach ( $preview_shipping_methods as $idx => $method ) : ?>
+									<li class="wcsc-shipping-card<?php echo 0 === $idx ? ' is-active' : ''; ?>">
+										<input type="radio" 
+											name="shipping_method[0]" 
+											data-index="0" 
+											id="shipping_method_0_<?php echo esc_attr( sanitize_title( $method['id'] ) ); ?>" 
+											value="<?php echo esc_attr( $method['id'] ); ?>" 
+											class="shipping_method" 
+											<?php checked( 0, $idx ); ?> />
+										<label for="shipping_method_0_<?php echo esc_attr( sanitize_title( $method['id'] ) ); ?>">
+											<?php echo esc_html( $method['label'] ); ?>: <span class="woocommerce-Price-amount amount"><?php echo wc_price( $method['cost'] ); ?></span>
+										</label>
+									</li>
+								<?php endforeach; ?>
 							</ul>
 						</div>
 					</div>
-				<?php endif; ?>
-
-				<?php if ( 'under_shipping' === $order_button_pos && $show_order_button ) : ?>
-					<?php $render_order_button_html(); ?>
 				<?php endif; ?>
 			</div>
 
@@ -206,7 +261,7 @@ if ( '1_column' === $checkout_layout ) {
 				<?php if ( $show_order_review ) : ?>
 					<?php /* --- Order Review Block --- */ ?>
 					<div class="wcas-block wcas-block-order-review">
-						<h3 id="order_review_heading" class="wcsc-section-title"><?php echo esc_html( $order_review_heading_text ); ?></h3>
+						<h3 id="order_review_heading" class="wcsc-section-title wcas-block-title"><?php echo esc_html( $order_review_heading_text ); ?></h3>
 						<div id="order_review" class="woocommerce-checkout-review-order">
 							<table class="shop_table woocommerce-checkout-review-order-table">
 								<thead>
@@ -234,12 +289,12 @@ if ( '1_column' === $checkout_layout ) {
 									<tr class="woocommerce-shipping-totals shipping wcas-order-review-shipping">
 										<th><?php echo esc_html( $shipping_label_text ); ?></th>
 										<td data-title="<?php echo esc_attr( $shipping_label_text ); ?>">
-											<span class="woocommerce-Price-amount amount wcsc-preview-shipping"><?php echo wp_kses_post( wc_price( 60 ) ); ?></span>
+											<span class="woocommerce-Price-amount amount wcsc-preview-shipping"><?php echo wp_kses_post( wc_price( $default_shipping_cost ) ); ?></span>
 										</td>
 									</tr>
 									<tr class="order-total wcas-order-review-total">
 										<th><?php echo esc_html( $total_label_text ); ?></th>
-										<td><strong><span class="woocommerce-Price-amount amount wcsc-preview-total"><?php echo wp_kses_post( $price_html ); ?></span></strong></td>
+										<td><strong><span class="woocommerce-Price-amount amount wcsc-preview-total"><?php echo wp_kses_post( wc_price( $preview_total ) ); ?></span></strong></td>
 									</tr>
 								</tfoot>
 							</table>
@@ -247,13 +302,10 @@ if ( '1_column' === $checkout_layout ) {
 					</div>
 				<?php endif; ?>
 
-				<?php if ( 'under_order_review' === $order_button_pos && $show_order_button ) : ?>
-					<?php $render_order_button_html(); ?>
-				<?php endif; ?>
-
 				<?php if ( $show_payment ) : ?>
 					<?php /* --- Payment Block --- */ ?>
 					<div class="wcas-block wcas-block-payment">
+						<h3 class="wcsc-section-title wcas-block-title wcsc-payment-heading"><?php echo esc_html( $payment_heading_text ); ?></h3>
 						<div id="payment" class="woocommerce-checkout-payment">
 							<ul class="wc_payment_methods payment_methods methods">
 								<li class="wc_payment_method payment_method_cod">
@@ -268,7 +320,7 @@ if ( '1_column' === $checkout_layout ) {
 					</div>
 				<?php endif; ?>
 
-				<?php if ( 'under_payment' === $order_button_pos && $show_order_button ) : ?>
+				<?php if ( $show_order_button ) : ?>
 					<?php $render_order_button_html(); ?>
 				<?php endif; ?>
 			</div>

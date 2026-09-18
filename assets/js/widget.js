@@ -160,13 +160,17 @@
 			var txtProduct = this.$container.data('txt-product');
 			var txtSubtotal = this.$container.data('txt-subtotal');
 			var txtShipping = this.$container.data('txt-shipping');
+			var txtPayment = this.$container.data('txt-payment');
 			var txtTotal = this.$container.data('txt-total');
 
 			if (txtOrder) {
 				this.$container.find('#order_review_heading').text(txtOrder);
 			}
 			if (txtBilling) {
-				this.$container.find('.woocommerce-billing-fields > h3, #customer_details .col-1 .wcsc-section-title').text(txtBilling);
+				this.$container.find('.wcas-block-checkout-form .wcsc-section-title, .woocommerce-billing-fields > h3, #customer_details .col-1 .wcsc-section-title').text(txtBilling);
+			}
+			if (txtPayment) {
+				this.$container.find('.wcas-block-payment .wcsc-section-title').text(txtPayment);
 			}
 			if (txtProduct) {
 				this.$container.find('table.shop_table th.product-name').text(txtProduct);

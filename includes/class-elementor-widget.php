@@ -476,6 +476,15 @@ class Elementor_Widget extends Widget_Base {
 		);
 
 		$this->add_control(
+			'payment_heading_text',
+			array(
+				'label'   => esc_html__( 'Payment Title', 'wc-smart-checkout-builder' ),
+				'type'    => Controls_Manager::TEXT,
+				'default' => esc_html__( 'Payment', 'wc-smart-checkout-builder' ),
+			)
+		);
+
+		$this->add_control(
 			'total_label_text',
 			array(
 				'label'   => esc_html__( 'Total Label', 'wc-smart-checkout-builder' ),
@@ -484,7 +493,7 @@ class Elementor_Widget extends Widget_Base {
 			)
 		);
 
-$this->end_controls_section();
+		$this->end_controls_section();
 
 	// --- Section: Order Button ---
 	$this->start_controls_section(
@@ -1359,6 +1368,200 @@ $this->end_controls_section();
 
 		$this->end_controls_section();
 
+		// --- Section: Global Card / Block Styling ---
+		$this->start_controls_section(
+			'section_style_global_blocks',
+			array(
+				'label'     => esc_html__( 'Global Card / Block Styling', 'wc-smart-checkout-builder' ),
+				'tab'       => Controls_Manager::TAB_STYLE,
+				'condition' => array(
+					'show_checkout' => 'yes',
+				),
+			)
+		);
+
+		$this->add_control(
+			'heading_global_card_container',
+			array(
+				'label' => esc_html__( 'Card / Block Container', 'wc-smart-checkout-builder' ),
+				'type'  => Controls_Manager::HEADING,
+			)
+		);
+
+		$this->add_control(
+			'global_card_bg_color',
+			array(
+				'label'     => esc_html__( 'Background Color', 'wc-smart-checkout-builder' ),
+				'type'      => Controls_Manager::COLOR,
+				'selectors' => array(
+					'{{WRAPPER}} .wcas-checkout-wrapper .wcas-block:not(.wcas-block-order-button)' => 'background-color: {{VALUE}};',
+				),
+			)
+		);
+
+		$this->add_responsive_control(
+			'global_card_padding',
+			array(
+				'label'      => esc_html__( 'Padding', 'wc-smart-checkout-builder' ),
+				'type'       => Controls_Manager::DIMENSIONS,
+				'size_units' => array( 'px', 'em', '%' ),
+				'selectors'  => array(
+					'{{WRAPPER}} .wcas-checkout-wrapper .wcas-block:not(.wcas-block-order-button)' => 'padding: {{TOP}}{{UNIT}} {{RIGHT}}{{UNIT}} {{BOTTOM}}{{UNIT}} {{LEFT}}{{UNIT}};',
+				),
+			)
+		);
+
+		$this->add_group_control(
+			Group_Control_Border::get_type(),
+			array(
+				'name'     => 'global_card_border',
+				'label'    => esc_html__( 'Border', 'wc-smart-checkout-builder' ),
+				'selector' => '{{WRAPPER}} .wcas-checkout-wrapper .wcas-block:not(.wcas-block-order-button)',
+			)
+		);
+
+		$this->add_responsive_control(
+			'global_card_border_radius',
+			array(
+				'label'      => esc_html__( 'Border Radius', 'wc-smart-checkout-builder' ),
+				'type'       => Controls_Manager::DIMENSIONS,
+				'size_units' => array( 'px', '%' ),
+				'selectors'  => array(
+					'{{WRAPPER}} .wcas-checkout-wrapper .wcas-block:not(.wcas-block-order-button)' => 'border-radius: {{TOP}}{{UNIT}} {{RIGHT}}{{UNIT}} {{BOTTOM}}{{UNIT}} {{LEFT}}{{UNIT}};',
+				),
+			)
+		);
+
+		$this->add_group_control(
+			Group_Control_Box_Shadow::get_type(),
+			array(
+				'name'     => 'global_card_box_shadow',
+				'label'    => esc_html__( 'Box Shadow', 'wc-smart-checkout-builder' ),
+				'selector' => '{{WRAPPER}} .wcas-checkout-wrapper .wcas-block:not(.wcas-block-order-button)',
+			)
+		);
+
+		$this->add_control(
+			'heading_global_card_title',
+			array(
+				'label'     => esc_html__( 'Block Title Styling', 'wc-smart-checkout-builder' ),
+				'type'      => Controls_Manager::HEADING,
+				'separator' => 'before',
+			)
+		);
+
+		$this->add_control(
+			'global_title_color',
+			array(
+				'label'     => esc_html__( 'Title Color', 'wc-smart-checkout-builder' ),
+				'type'      => Controls_Manager::COLOR,
+				'selectors' => array(
+					'{{WRAPPER}} .wcas-checkout-wrapper .wcas-block .wcas-block-title, {{WRAPPER}} .wcas-checkout-wrapper .wcas-block .wcsc-section-title' => 'color: {{VALUE}};',
+				),
+			)
+		);
+
+		$this->add_group_control(
+			Group_Control_Typography::get_type(),
+			array(
+				'name'     => 'global_title_typography',
+				'selector' => '{{WRAPPER}} .wcas-checkout-wrapper .wcas-block .wcas-block-title, {{WRAPPER}} .wcas-checkout-wrapper .wcas-block .wcsc-section-title',
+			)
+		);
+
+		$this->add_responsive_control(
+			'global_title_align',
+			array(
+				'label'     => esc_html__( 'Alignment', 'wc-smart-checkout-builder' ),
+				'type'      => Controls_Manager::CHOOSE,
+				'options'   => array(
+					'left'   => array( 'title' => esc_html__( 'Left', 'wc-smart-checkout-builder' ), 'icon' => 'eicon-text-align-left' ),
+					'center' => array( 'title' => esc_html__( 'Center', 'wc-smart-checkout-builder' ), 'icon' => 'eicon-text-align-center' ),
+					'right'  => array( 'title' => esc_html__( 'Right', 'wc-smart-checkout-builder' ), 'icon' => 'eicon-text-align-right' ),
+				),
+				'selectors' => array(
+					'{{WRAPPER}} .wcas-checkout-wrapper .wcas-block .wcas-block-title, {{WRAPPER}} .wcas-checkout-wrapper .wcas-block .wcsc-section-title' => 'text-align: {{VALUE}};',
+				),
+			)
+		);
+
+		$this->add_control(
+			'heading_global_title_border',
+			array(
+				'label'     => esc_html__( 'Title Bottom Border Controls', 'wc-smart-checkout-builder' ),
+				'type'      => Controls_Manager::HEADING,
+				'separator' => 'before',
+			)
+		);
+
+		$this->add_control(
+			'global_title_border_style',
+			array(
+				'label'     => esc_html__( 'Border Style', 'wc-smart-checkout-builder' ),
+				'type'      => Controls_Manager::SELECT,
+				'options'   => array(
+					'solid'  => esc_html__( 'Solid', 'wc-smart-checkout-builder' ),
+					'dashed' => esc_html__( 'Dashed', 'wc-smart-checkout-builder' ),
+					'dotted' => esc_html__( 'Dotted', 'wc-smart-checkout-builder' ),
+					'double' => esc_html__( 'Double', 'wc-smart-checkout-builder' ),
+					'none'   => esc_html__( 'None', 'wc-smart-checkout-builder' ),
+				),
+				'default'   => 'solid',
+				'selectors' => array(
+					'{{WRAPPER}} .wcas-checkout-wrapper .wcas-block .wcas-block-title, {{WRAPPER}} .wcas-checkout-wrapper .wcas-block .wcsc-section-title' => 'border-bottom-style: {{VALUE}};',
+				),
+			)
+		);
+
+		$this->add_control(
+			'global_title_border_color',
+			array(
+				'label'     => esc_html__( 'Border Color', 'wc-smart-checkout-builder' ),
+				'type'      => Controls_Manager::COLOR,
+				'selectors' => array(
+					'{{WRAPPER}} .wcas-checkout-wrapper .wcas-block .wcas-block-title, {{WRAPPER}} .wcas-checkout-wrapper .wcas-block .wcsc-section-title' => 'border-bottom-color: {{VALUE}};',
+				),
+				'condition' => array(
+					'global_title_border_style!' => 'none',
+				),
+			)
+		);
+
+		$this->add_responsive_control(
+			'global_title_border_width',
+			array(
+				'label'      => esc_html__( 'Border Width', 'wc-smart-checkout-builder' ),
+				'type'       => Controls_Manager::SLIDER,
+				'size_units' => array( 'px' ),
+				'range'      => array(
+					'px' => array( 'min' => 0, 'max' => 10 ),
+				),
+				'selectors'  => array(
+					'{{WRAPPER}} .wcas-checkout-wrapper .wcas-block .wcas-block-title, {{WRAPPER}} .wcas-checkout-wrapper .wcas-block .wcsc-section-title' => 'border-bottom-width: {{SIZE}}{{UNIT}};',
+				),
+				'condition'  => array(
+					'global_title_border_style!' => 'none',
+				),
+			)
+		);
+
+		$this->add_responsive_control(
+			'global_title_border_spacing',
+			array(
+				'label'      => esc_html__( 'Spacing Below Title', 'wc-smart-checkout-builder' ),
+				'type'       => Controls_Manager::SLIDER,
+				'size_units' => array( 'px', 'em' ),
+				'range'      => array(
+					'px' => array( 'min' => 0, 'max' => 60 ),
+				),
+				'selectors'  => array(
+					'{{WRAPPER}} .wcas-checkout-wrapper .wcas-block .wcas-block-title, {{WRAPPER}} .wcas-checkout-wrapper .wcas-block .wcsc-section-title' => 'margin-bottom: {{SIZE}}{{UNIT}}; padding-bottom: calc({{SIZE}}{{UNIT}} * 0.7);',
+				),
+			)
+		);
+
+		$this->end_controls_section();
+
 		// --- 6. Checkout Section Style ---
 		$this->start_controls_section(
 			'section_style_checkout',
@@ -1500,45 +1703,20 @@ $this->end_controls_section();
 			)
 		);
 
-		$this->add_control(
-			'shipping_card_bg',
-			array(
-				'label'     => esc_html__( 'Card Background', 'wc-smart-checkout-builder' ),
-				'type'      => Controls_Manager::COLOR,
-				'selectors' => array(
-					'{{WRAPPER}} .wcsc-shipping-card' => 'background-color: {{VALUE}};',
-				),
-			)
-		);
-
-		$this->add_control(
-			'shipping_card_border_color',
-			array(
-				'label'     => esc_html__( 'Card Border Color', 'wc-smart-checkout-builder' ),
-				'type'      => Controls_Manager::COLOR,
-				'selectors' => array(
-					'{{WRAPPER}} .wcsc-shipping-card' => 'border-color: {{VALUE}};',
-				),
-			)
-		);
-
-		$this->add_control(
-			'shipping_card_active_border',
-			array(
-				'label'     => esc_html__( 'Active Border Color', 'wc-smart-checkout-builder' ),
-				'type'      => Controls_Manager::COLOR,
-				'selectors' => array(
-					'{{WRAPPER}} .wcsc-shipping-card.is-active' => 'border-color: {{VALUE}};',
-				),
-			)
-		);
-
 		$this->add_responsive_control(
 			'shipping_card_padding',
 			array(
 				'label'      => esc_html__( 'Padding', 'wc-smart-checkout-builder' ),
 				'type'       => Controls_Manager::DIMENSIONS,
 				'size_units' => array( 'px', 'em', '%' ),
+				'default'    => array(
+					'top'      => '16',
+					'right'    => '20',
+					'bottom'   => '16',
+					'left'     => '20',
+					'unit'     => 'px',
+					'isLinked' => false,
+				),
 				'selectors'  => array(
 					'{{WRAPPER}} .wcsc-shipping-card' => 'padding: {{TOP}}{{UNIT}} {{RIGHT}}{{UNIT}} {{BOTTOM}}{{UNIT}} {{LEFT}}{{UNIT}};',
 				),
@@ -1563,6 +1741,14 @@ $this->end_controls_section();
 				'label'      => esc_html__( 'Border Radius', 'wc-smart-checkout-builder' ),
 				'type'       => Controls_Manager::DIMENSIONS,
 				'size_units' => array( 'px', 'em', '%' ),
+				'default'    => array(
+					'top'      => '8',
+					'right'    => '8',
+					'bottom'   => '8',
+					'left'     => '8',
+					'unit'     => 'px',
+					'isLinked' => true,
+				),
 				'selectors'  => array(
 					'{{WRAPPER}} .wcsc-shipping-card' => 'border-radius: {{TOP}}{{UNIT}} {{RIGHT}}{{UNIT}} {{BOTTOM}}{{UNIT}} {{LEFT}}{{UNIT}};',
 				),
@@ -1577,24 +1763,176 @@ $this->end_controls_section();
 				'size_units' => array( 'px' ),
 				'range'      => array(
 					'px' => array(
-						'min' => 0,
-						'max' => 50,
+						'min'  => 0,
+						'max'  => 50,
 						'step' => 1,
 					),
 				),
 				'selectors'  => array(
-					'{{WRAPPER}} .wcsc-shipping-methods-container' => 'gap: {{SIZE}}{{UNIT}};',
+					'{{WRAPPER}} .wcas-block-shipping ul#shipping_method' => 'gap: {{SIZE}}{{UNIT}};',
 				),
 			)
 		);
 
-		// Form Input Fields
+		$this->add_group_control(
+			Group_Control_Typography::get_type(),
+			array(
+				'name'     => 'shipping_card_title_typography',
+				'label'    => esc_html__( 'Title / Label Typography', 'wc-smart-checkout-builder' ),
+				'selector' => '{{WRAPPER}} .wcsc-shipping-card label',
+			)
+		);
+
+		$this->add_group_control(
+			Group_Control_Typography::get_type(),
+			array(
+				'name'     => 'shipping_card_price_typography',
+				'label'    => esc_html__( 'Price Typography', 'wc-smart-checkout-builder' ),
+				'selector' => '{{WRAPPER}} .wcsc-shipping-card label .amount',
+			)
+		);
+
+		$this->start_controls_tabs( 'tabs_shipping_card_states' );
+
+		// Normal State Tab
+		$this->start_controls_tab(
+			'tab_shipping_card_normal',
+			array( 'label' => esc_html__( 'Normal', 'wc-smart-checkout-builder' ) )
+		);
+
 		$this->add_control(
-			'heading_checkout_fields',
+			'shipping_card_bg',
+			array(
+				'label'     => esc_html__( 'Background Color', 'wc-smart-checkout-builder' ),
+				'type'      => Controls_Manager::COLOR,
+				'selectors' => array(
+					'{{WRAPPER}} .wcsc-shipping-card' => 'background-color: {{VALUE}};',
+				),
+			)
+		);
+
+		$this->add_control(
+			'shipping_card_border_color',
+			array(
+				'label'     => esc_html__( 'Border Color', 'wc-smart-checkout-builder' ),
+				'type'      => Controls_Manager::COLOR,
+				'selectors' => array(
+					'{{WRAPPER}} .wcsc-shipping-card' => 'border-color: {{VALUE}};',
+				),
+			)
+		);
+
+		$this->add_control(
+			'shipping_card_radio_accent',
+			array(
+				'label'     => esc_html__( 'Radio Accent Color', 'wc-smart-checkout-builder' ),
+				'type'      => Controls_Manager::COLOR,
+				'selectors' => array(
+					'{{WRAPPER}} .wcsc-shipping-card input[type="radio"]' => 'accent-color: {{VALUE}};',
+				),
+			)
+		);
+
+		$this->add_control(
+			'shipping_card_title_color',
+			array(
+				'label'     => esc_html__( 'Title Color', 'wc-smart-checkout-builder' ),
+				'type'      => Controls_Manager::COLOR,
+				'selectors' => array(
+					'{{WRAPPER}} .wcsc-shipping-card label' => 'color: {{VALUE}};',
+				),
+			)
+		);
+
+		$this->add_control(
+			'shipping_card_price_color',
+			array(
+				'label'     => esc_html__( 'Price Color', 'wc-smart-checkout-builder' ),
+				'type'      => Controls_Manager::COLOR,
+				'selectors' => array(
+					'{{WRAPPER}} .wcsc-shipping-card label .amount' => 'color: {{VALUE}};',
+				),
+			)
+		);
+
+		$this->end_controls_tab();
+
+		// Active State Tab
+		$this->start_controls_tab(
+			'tab_shipping_card_active',
+			array( 'label' => esc_html__( 'Active', 'wc-smart-checkout-builder' ) )
+		);
+
+		$this->add_control(
+			'shipping_card_active_bg',
+			array(
+				'label'     => esc_html__( 'Background Color', 'wc-smart-checkout-builder' ),
+				'type'      => Controls_Manager::COLOR,
+				'selectors' => array(
+					'{{WRAPPER}} .wcsc-shipping-card.is-active' => 'background-color: {{VALUE}};',
+				),
+			)
+		);
+
+		$this->add_control(
+			'shipping_card_active_border',
+			array(
+				'label'     => esc_html__( 'Border Color', 'wc-smart-checkout-builder' ),
+				'type'      => Controls_Manager::COLOR,
+				'selectors' => array(
+					'{{WRAPPER}} .wcsc-shipping-card.is-active' => 'border-color: {{VALUE}}; box-shadow: 0 0 0 1px {{VALUE}};',
+				),
+			)
+		);
+
+		$this->add_control(
+			'shipping_card_active_radio_accent',
+			array(
+				'label'     => esc_html__( 'Radio Accent Color', 'wc-smart-checkout-builder' ),
+				'type'      => Controls_Manager::COLOR,
+				'selectors' => array(
+					'{{WRAPPER}} .wcsc-shipping-card.is-active input[type="radio"]' => 'accent-color: {{VALUE}}; border-color: {{VALUE}} !important; background: {{VALUE}} !important;',
+				),
+			)
+		);
+
+		$this->add_control(
+			'shipping_card_active_title_color',
+			array(
+				'label'     => esc_html__( 'Title Color', 'wc-smart-checkout-builder' ),
+				'type'      => Controls_Manager::COLOR,
+				'selectors' => array(
+					'{{WRAPPER}} .wcsc-shipping-card.is-active label' => 'color: {{VALUE}};',
+				),
+			)
+		);
+
+		$this->add_control(
+			'shipping_card_active_price_color',
+			array(
+				'label'     => esc_html__( 'Price Color', 'wc-smart-checkout-builder' ),
+				'type'      => Controls_Manager::COLOR,
+				'selectors' => array(
+					'{{WRAPPER}} .wcsc-shipping-card.is-active label .amount' => 'color: {{VALUE}};',
+				),
+			)
+		);
+
+		$this->end_controls_tab();
+
+		$this->end_controls_tabs();
+
+		$this->end_controls_section();
+
+		// --- Section: Checkout Input Fields ---
+		$this->start_controls_section(
+			'section_style_checkout_form_inputs',
 			array(
 				'label'     => esc_html__( 'Form Input Fields', 'wc-smart-checkout-builder' ),
-				'type'      => Controls_Manager::HEADING,
-				'separator' => 'before',
+				'tab'       => Controls_Manager::TAB_STYLE,
+				'condition' => array(
+					'show_checkout' => 'yes',
+				),
 			)
 		);
 
@@ -1659,7 +1997,21 @@ $this->end_controls_section();
 			)
 		);
 
-		// Order Now Button Styling
+		$this->end_controls_section();
+
+		// --- Section: Order Now Button Styling ---
+		$this->start_controls_section(
+			'section_style_order_button',
+			array(
+				'label'     => esc_html__( 'Order Button', 'wc-smart-checkout-builder' ),
+				'tab'       => Controls_Manager::TAB_STYLE,
+				'condition' => array(
+					'show_checkout'              => 'yes',
+					'show_checkout_order_button' => 'yes',
+				),
+			)
+		);
+
 		$this->add_control(
 			'heading_order_button_style',
 			array(
@@ -2260,6 +2612,7 @@ $this->end_controls_section();
 			'data-txt-product'      => ! empty( $settings['product_label_text'] ) ? $settings['product_label_text'] : '',
 			'data-txt-subtotal'     => ! empty( $settings['subtotal_label_text'] ) ? $settings['subtotal_label_text'] : '',
 			'data-txt-shipping'     => ! empty( $settings['shipping_label_text'] ) ? $settings['shipping_label_text'] : '',
+			'data-txt-payment'      => ! empty( $settings['payment_heading_text'] ) ? $settings['payment_heading_text'] : '',
 			'data-txt-total'        => ! empty( $settings['total_label_text'] ) ? $settings['total_label_text'] : '',
 		);
 

@@ -211,6 +211,7 @@ class Checkout_Handler {
 			'product'            => 'product_label_text',
 			'subtotal'           => 'subtotal_label_text',
 			'shipping'           => 'shipping_label_text',
+			'payment'            => 'payment_heading_text',
 			'total'              => 'total_label_text',
 		);
 
@@ -290,14 +291,16 @@ class Checkout_Handler {
 			self::ensure_product_in_cart( $product );
 		}
 
+		// Ensure default shipping method is selected in session and totals are pre-calculated.
+		self::ensure_default_shipping_method();
+
 		$checkout = WC()->checkout();
 		if ( ! $checkout ) {
 			return;
 		}
 
 		// ----------------------------------------------------------------------
-		// Layout class — Elementor setting is the single source of truth (req 44).
-		// Only one layout class is ever emitted.
+		// Layout class — Elementor setting is the single source of truth.
 		// ----------------------------------------------------------------------
 		$layout = ! empty( $settings['checkout_layout'] ) ? $settings['checkout_layout'] : '2_columns';
 		if ( '1_column' === $layout ) {
@@ -306,15 +309,11 @@ class Checkout_Handler {
 			$layout_class = 'wcas-layout-two-column';
 		}
 
-		// Configurable Order Now button position (req 9 & 10)
-		$order_button_pos = ! empty( $settings['order_button_position'] ) ? $settings['order_button_position'] : 'under_order_review';
+		$order_button_pos = ! empty( $settings['order_button_position'] ) ? $settings['order_button_position'] : 'under_payment';
 		$pos_class        = 'wcas-order-btn-pos-' . sanitize_html_class( str_replace( '_', '-', $order_button_pos ) );
 
 		// ----------------------------------------------------------------------
-		// Per-block visibility (conditional rendering — req 35/36).
-		// A block is only rendered when enabled AND meaningful. When a block is
-		// disabled its wrapper is omitted entirely (no empty wrappers / gaps).
-		// The Checkout Form block is always rendered.
+		// Per-block visibility (conditional rendering).
 		// ----------------------------------------------------------------------
 		$blocks_enabled = array(
 			'checkout_form' => true,
@@ -346,9 +345,6 @@ class Checkout_Handler {
 					if ( ! empty( $blocks_enabled['shipping'] ) ) {
 						self::render_shipping_block();
 					}
-					if ( 'under_shipping' === $order_button_pos && ! empty( $blocks_enabled['order_button'] ) ) {
-						self::render_order_button_block();
-					}
 					?>
 				</div>
 
@@ -357,13 +353,10 @@ class Checkout_Handler {
 					if ( ! empty( $blocks_enabled['order_review'] ) ) {
 						self::render_order_review_block();
 					}
-					if ( 'under_order_review' === $order_button_pos && ! empty( $blocks_enabled['order_button'] ) ) {
-						self::render_order_button_block();
-					}
 					if ( ! empty( $blocks_enabled['payment'] ) ) {
 						self::render_payment_block();
 					}
-					if ( 'under_payment' === $order_button_pos && ! empty( $blocks_enabled['order_button'] ) ) {
+					if ( ! empty( $blocks_enabled['order_button'] ) ) {
 						self::render_order_button_block();
 					}
 					?>
@@ -397,6 +390,7 @@ class Checkout_Handler {
 			'data-txt-product'  => ! empty( $settings['product_label_text'] ) ? $settings['product_label_text'] : '',
 			'data-txt-subtotal' => ! empty( $settings['subtotal_label_text'] ) ? $settings['subtotal_label_text'] : '',
 			'data-txt-shipping' => ! empty( $settings['shipping_label_text'] ) ? $settings['shipping_label_text'] : '',
+			'data-txt-payment'  => ! empty( $settings['payment_heading_text'] ) ? $settings['payment_heading_text'] : '',
 			'data-txt-total'    => ! empty( $settings['total_label_text'] ) ? $settings['total_label_text'] : '',
 		);
 
@@ -415,6 +409,7 @@ class Checkout_Handler {
 	private static function render_checkout_form_block() {
 		?>
 		<div class="wcas-block wcas-block-checkout-form">
+			<h3 class="wcsc-section-title wcas-block-title"><?php echo esc_html( self::get_billing_label() ); ?></h3>
 			<?php
 			// Native WooCommerce customer details (billing + shipping fields).
 			// Rendered 1 field per row, 100% full-width across all layout modes.
@@ -429,6 +424,28 @@ class Checkout_Handler {
 			</div>
 		</div>
 		<?php
+	}
+
+	/**
+	 * Get the custom or translated label for Billing & Shipping.
+	 *
+	 * @return string
+	 */
+	public static function get_billing_label() {
+		return ! empty( self::$active_widget_settings['billing_heading_text'] )
+			? sanitize_text_field( self::$active_widget_settings['billing_heading_text'] )
+			: esc_html__( 'Billing & Shipping', 'wc-smart-checkout-builder' );
+	}
+
+	/**
+	 * Get the custom or translated label for Payment.
+	 *
+	 * @return string
+	 */
+	public static function get_payment_label() {
+		return ! empty( self::$active_widget_settings['payment_heading_text'] )
+			? sanitize_text_field( self::$active_widget_settings['payment_heading_text'] )
+			: esc_html__( 'Payment', 'wc-smart-checkout-builder' );
 	}
 
 	/**
@@ -476,6 +493,47 @@ class Checkout_Handler {
 	}
 
 	/**
+	 * Ensure the default shipping method is selected in WooCommerce session on page load
+	 * and cart totals are calculated so the Order Review shipping charge row and total
+	 * are immediately populated without requiring a manual click.
+	 */
+	public static function ensure_default_shipping_method() {
+		if ( ! function_exists( 'WC' ) || ! WC()->cart || ! WC()->cart->needs_shipping() ) {
+			return;
+		}
+
+		// Ensure customer shipping package calculation has run
+		$packages = WC()->shipping()->get_packages();
+		if ( empty( $packages ) && method_exists( WC()->cart, 'calculate_shipping' ) ) {
+			WC()->cart->calculate_shipping();
+			$packages = WC()->shipping()->get_packages();
+		}
+
+		$chosen_methods = WC()->session ? WC()->session->get( 'chosen_shipping_methods', array() ) : array();
+		$needs_recalc   = false;
+
+		if ( ! empty( $packages ) ) {
+			foreach ( $packages as $i => $package ) {
+				$available_rates = isset( $package['rates'] ) ? $package['rates'] : array();
+				if ( empty( $available_rates ) ) {
+					continue;
+				}
+
+				if ( empty( $chosen_methods[ $i ] ) || ! isset( $available_rates[ $chosen_methods[ $i ] ] ) ) {
+					$first_rate           = reset( $available_rates );
+					$chosen_methods[ $i ] = $first_rate->id;
+					$needs_recalc         = true;
+				}
+			}
+		}
+
+		if ( $needs_recalc && WC()->session ) {
+			WC()->session->set( 'chosen_shipping_methods', $chosen_methods );
+			WC()->cart->calculate_totals();
+		}
+	}
+
+	/**
 	 * Render WooCommerce shipping method options for the dedicated Shipping block.
 	 *
 	 * Outputs selectable shipping rates natively using WooCommerce session data.
@@ -488,6 +546,10 @@ class Checkout_Handler {
 		}
 
 		$packages = WC()->shipping()->get_packages();
+		if ( empty( $packages ) && method_exists( WC()->cart, 'calculate_shipping' ) ) {
+			WC()->cart->calculate_shipping();
+			$packages = WC()->shipping()->get_packages();
+		}
 		if ( empty( $packages ) ) {
 			return '<p class="woocommerce-shipping-no-methods">' . esc_html__( 'No shipping options available.', 'wc-smart-checkout-builder' ) . '</p>';
 		}
@@ -616,7 +678,7 @@ class Checkout_Handler {
 		}
 		?>
 		<div class="wcas-block wcas-block-shipping">
-			<h3 class="wcsc-section-title wcsc-shipping-heading"><?php echo esc_html( $heading ); ?></h3>
+			<h3 class="wcsc-section-title wcas-block-title wcsc-shipping-heading"><?php echo esc_html( $heading ); ?></h3>
 			<div class="wcas-shipping-methods-wrapper">
 				<?php echo $methods_html; // phpcs:ignore WordPress.Security.EscapeOutput.OutputNotEscaped ?>
 			</div>
@@ -756,7 +818,7 @@ class Checkout_Handler {
 			: esc_html__( 'Your order', 'wc-smart-checkout-builder' );
 		?>
 		<div class="wcas-block wcas-block-order-review">
-			<h3 id="order_review_heading" class="wcsc-section-title"><?php echo esc_html( $heading ); ?></h3>
+			<h3 id="order_review_heading" class="wcsc-section-title wcas-block-title"><?php echo esc_html( $heading ); ?></h3>
 			<div id="order_review" class="woocommerce-checkout-review-order">
 				<?php echo self::render_order_review_table_html(); // phpcs:ignore WordPress.Security.EscapeOutput.OutputNotEscaped ?>
 			</div>
@@ -776,6 +838,7 @@ class Checkout_Handler {
 		$checkout = WC()->checkout();
 		?>
 		<div class="wcas-block wcas-block-payment">
+			<h3 class="wcsc-section-title wcas-block-title wcsc-payment-heading"><?php echo esc_html( self::get_payment_label() ); ?></h3>
 			<?php
 			do_action( 'woocommerce_review_order_before_payment' );
 
