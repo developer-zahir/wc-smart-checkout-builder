@@ -461,14 +461,18 @@ class Checkout_Handler {
 			echo '<input type="hidden" name="wcsc_is_smart_checkout" value="yes" />';
 
 			$sticky_enabled = true;
-			if ( isset( $settings['style_enable_mobile_sticky_button'] ) ) {
-				$sticky_enabled = ( 'yes' === $settings['style_enable_mobile_sticky_button'] );
-			} elseif ( isset( $settings['enable_mobile_sticky_button'] ) ) {
-				$sticky_enabled = ( 'yes' === $settings['enable_mobile_sticky_button'] );
+			if ( ( isset( $settings['style_enable_mobile_sticky_button'] ) && 'no' === $settings['style_enable_mobile_sticky_button'] ) ||
+			     ( isset( $settings['enable_mobile_sticky_button'] ) && 'no' === $settings['enable_mobile_sticky_button'] ) ) {
+				$sticky_enabled = false;
 			}
 
 			if ( $sticky_enabled ) {
-				$sticky_text = ! empty( $settings['style_mobile_sticky_button_text'] ) ? $settings['style_mobile_sticky_button_text'] : ( ! empty( $settings['mobile_sticky_button_text'] ) ? $settings['mobile_sticky_button_text'] : __( 'অর্ডার করুন', 'wc-smart-checkout-builder' ) );
+				$sticky_text = __( 'অর্ডার করুন', 'wc-smart-checkout-builder' );
+				if ( ! empty( $settings['style_mobile_sticky_button_text'] ) && 'অর্ডার করুন' !== $settings['style_mobile_sticky_button_text'] ) {
+					$sticky_text = $settings['style_mobile_sticky_button_text'];
+				} elseif ( ! empty( $settings['mobile_sticky_button_text'] ) ) {
+					$sticky_text = $settings['mobile_sticky_button_text'];
+				}
 				self::render_mobile_sticky_button_html( $sticky_text );
 			}
 			?>

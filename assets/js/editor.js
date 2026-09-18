@@ -23,23 +23,33 @@
 
 		var hookWidget = function (widgetName) {
 			elementor.hooks.addAction('panel/open_editor/widget/' + widgetName, function (panel, model, view) {
+				var userInteracted = false;
 				if (view && typeof view.activateFirstSection === 'function') {
 					view.activateFirstSection = function () {};
 				}
 
-				// Staggered collapse executions to guarantee closed state upon rendering
-				collapseSections(panel);
-				setTimeout(function () { collapseSections(panel); }, 10);
-				setTimeout(function () { collapseSections(panel); }, 50);
-				setTimeout(function () { collapseSections(panel); }, 150);
-				setTimeout(function () { collapseSections(panel); }, 350);
+				var safeCollapse = function () {
+					if (!userInteracted) {
+						collapseSections(panel);
+					}
+				};
 
-				// Collapse upon tab navigation (Content, Style, Advanced)
+				// Initial collapses
+				safeCollapse();
+				setTimeout(safeCollapse, 20);
+				setTimeout(safeCollapse, 60);
+
+				// Prevent delayed collapse from closing section clicked by user
 				if (panel && panel.$el) {
+					panel.$el.off('click.wcscSectionClick').on('click.wcscSectionClick', '.elementor-section-title', function () {
+						userInteracted = true;
+					});
+
+					// Collapse upon tab navigation (Content, Style, Advanced)
 					panel.$el.off('click.wcscTabCollapse').on('click.wcscTabCollapse', '.elementor-panel-navigation-tab, .elementor-tab-control', function () {
-						setTimeout(function () { collapseSections(panel); }, 20);
-						setTimeout(function () { collapseSections(panel); }, 80);
-						setTimeout(function () { collapseSections(panel); }, 200);
+						userInteracted = false;
+						setTimeout(safeCollapse, 20);
+						setTimeout(safeCollapse, 60);
 					});
 				}
 			});

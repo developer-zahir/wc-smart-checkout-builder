@@ -584,11 +584,8 @@ class Elementor_Widget extends Widget_Base {
 		$this->start_controls_section(
 			'section_phone_validation',
 			array(
-				'label'     => esc_html__( 'Phone Number Validation', 'wc-smart-checkout-builder' ),
-				'tab'       => Controls_Manager::TAB_CONTENT,
-				'condition' => array(
-					'show_checkout' => 'yes',
-				),
+				'label' => esc_html__( 'Phone Number Validation', 'wc-smart-checkout-builder' ),
+				'tab'   => Controls_Manager::TAB_CONTENT,
 			)
 		);
 
@@ -647,11 +644,8 @@ class Elementor_Widget extends Widget_Base {
 		$this->start_controls_section(
 			'section_mobile_sticky_button',
 			array(
-				'label'     => esc_html__( 'Sticky Mobile & Tablet Order Button (< 1024px)', 'wc-smart-checkout-builder' ),
-				'tab'       => Controls_Manager::TAB_CONTENT,
-				'condition' => array(
-					'show_checkout' => 'yes',
-				),
+				'label' => esc_html__( 'Floating Mobile Button (< 1024px)', 'wc-smart-checkout-builder' ),
+				'tab'   => Controls_Manager::TAB_CONTENT,
 			)
 		);
 
@@ -1449,11 +1443,8 @@ class Elementor_Widget extends Widget_Base {
 		$this->start_controls_section(
 			'section_style_global_blocks',
 			array(
-				'label'     => esc_html__( 'Global Card / Block Styling', 'wc-smart-checkout-builder' ),
-				'tab'       => Controls_Manager::TAB_STYLE,
-				'condition' => array(
-					'show_checkout' => 'yes',
-				),
+				'label' => esc_html__( 'Global Card / Block Styling', 'wc-smart-checkout-builder' ),
+				'tab'   => Controls_Manager::TAB_STYLE,
 			)
 		);
 
@@ -1625,11 +1616,8 @@ class Elementor_Widget extends Widget_Base {
 		$this->start_controls_section(
 			'section_style_checkout',
 			array(
-				'label'     => esc_html__( 'Checkout Form & Table', 'wc-smart-checkout-builder' ),
-				'tab'       => Controls_Manager::TAB_STYLE,
-				'condition' => array(
-					'show_checkout' => 'yes',
-				),
+				'label' => esc_html__( 'Checkout Form & Table', 'wc-smart-checkout-builder' ),
+				'tab'   => Controls_Manager::TAB_STYLE,
 			)
 		);
 
@@ -1756,7 +1744,6 @@ class Elementor_Widget extends Widget_Base {
 				'label'     => esc_html__( 'Shipping Cards', 'wc-smart-checkout-builder' ),
 				'tab'       => Controls_Manager::TAB_STYLE,
 				'condition' => array(
-					'show_checkout'          => 'yes',
 					'show_checkout_shipping' => 'yes',
 				),
 			)
@@ -1987,11 +1974,8 @@ class Elementor_Widget extends Widget_Base {
 		$this->start_controls_section(
 			'section_style_checkout_form_inputs',
 			array(
-				'label'     => esc_html__( 'Form Input Fields', 'wc-smart-checkout-builder' ),
-				'tab'       => Controls_Manager::TAB_STYLE,
-				'condition' => array(
-					'show_checkout' => 'yes',
-				),
+				'label' => esc_html__( 'Form Input Fields', 'wc-smart-checkout-builder' ),
+				'tab'   => Controls_Manager::TAB_STYLE,
 			)
 		);
 
@@ -2075,11 +2059,8 @@ class Elementor_Widget extends Widget_Base {
 		$this->start_controls_section(
 			'section_style_order_button',
 			array(
-				'label'     => esc_html__( 'Order Now Button', 'wc-smart-checkout-builder' ),
-				'tab'       => Controls_Manager::TAB_STYLE,
-				'condition' => array(
-					'show_checkout' => 'yes',
-				),
+				'label' => esc_html__( 'Order Now Button', 'wc-smart-checkout-builder' ),
+				'tab'   => Controls_Manager::TAB_STYLE,
 			)
 		);
 
@@ -2467,11 +2448,8 @@ class Elementor_Widget extends Widget_Base {
 		$this->start_controls_section(
 			'section_style_mobile_sticky_button',
 			array(
-				'label'     => esc_html__( 'Floating "Order Now" Button (< 1024px)', 'wc-smart-checkout-builder' ),
-				'tab'       => Controls_Manager::TAB_STYLE,
-				'condition' => array(
-					'show_checkout' => 'yes',
-				),
+				'label' => esc_html__( 'Floating Mobile Button (< 1024px)', 'wc-smart-checkout-builder' ),
+				'tab'   => Controls_Manager::TAB_STYLE,
 			)
 		);
 
@@ -2682,11 +2660,8 @@ class Elementor_Widget extends Widget_Base {
 		$this->start_controls_section(
 			'section_style_phone_modal',
 			array(
-				'label'     => esc_html__( 'Validation Error Modal Style', 'wc-smart-checkout-builder' ),
-				'tab'       => Controls_Manager::TAB_STYLE,
-				'condition' => array(
-					'show_checkout' => 'yes',
-				),
+				'label' => esc_html__( 'Validation Error Modal Style', 'wc-smart-checkout-builder' ),
+				'tab'   => Controls_Manager::TAB_STYLE,
 			)
 		);
 
