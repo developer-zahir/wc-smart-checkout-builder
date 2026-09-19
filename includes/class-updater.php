@@ -59,6 +59,7 @@ class Updater {
 		$this->version         = $version;
 
 		add_filter( 'pre_set_site_transient_update_plugins', array( $this, 'check_for_plugin_update' ) );
+		add_filter( 'site_transient_update_plugins', array( $this, 'check_for_plugin_update' ) );
 		add_filter( 'plugins_api', array( $this, 'plugin_popup_information' ), 20, 3 );
 		add_filter( 'upgrader_post_install', array( $this, 'rename_github_folder_after_update' ), 10, 3 );
 		
@@ -99,7 +100,7 @@ class Updater {
 			$data = json_decode( $body );
 
 			if ( ! empty( $data ) && is_object( $data ) && ! empty( $data->tag_name ) ) {
-				set_site_transient( $this->cache_key, $data, 6 * HOUR_IN_SECONDS );
+				set_site_transient( $this->cache_key, $data, HOUR_IN_SECONDS );
 				return $data;
 			}
 		}
@@ -120,7 +121,7 @@ class Updater {
 					'assets'      => array(),
 					'body'        => sprintf( 'Update to version %s.', ltrim( $latest_tag->name, 'v' ) ),
 				);
-				set_site_transient( $this->cache_key, $data, 6 * HOUR_IN_SECONDS );
+				set_site_transient( $this->cache_key, $data, HOUR_IN_SECONDS );
 				return $data;
 			}
 		}
@@ -135,12 +136,13 @@ class Updater {
 	 * @return object
 	 */
 	public function check_for_plugin_update( $transient ) {
-		if ( empty( $transient->checked ) ) {
-			return $transient;
+		if ( ! is_object( $transient ) ) {
+			$transient = new \stdClass();
 		}
 
-		// Allow manual force checking
-		$force = isset( $_GET['force-check'] ) && '1' === $_GET['force-check'];
+		// Allow manual force checking or AJAX update action
+		$force = ( isset( $_GET['force-check'] ) && '1' === $_GET['force-check'] )
+			|| ( function_exists( 'wp_doing_ajax' ) && wp_doing_ajax() && isset( $_REQUEST['action'] ) && 'update-plugin' === $_REQUEST['action'] );
 		$release = $this->get_github_release( $force );
 
 		if ( ! $release ) {
@@ -150,7 +152,7 @@ class Updater {
 		$new_version = ltrim( $release->tag_name, 'v' );
 
 		// Determine zip download package
-		$download_package = $release->zipball_url;
+		$download_package = ! empty( $release->zipball_url ) ? $release->zipball_url : '';
 		if ( ! empty( $release->assets ) && is_array( $release->assets ) ) {
 			foreach ( $release->assets as $asset ) {
 				if ( ! empty( $asset->browser_download_url ) && substr( $asset->browser_download_url, -4 ) === '.zip' ) {
@@ -161,7 +163,7 @@ class Updater {
 		}
 
 		$update_data = (object) array(
-			'id'            => 'wc-smart-checkout-builder',
+			'id'            => $this->plugin_basename,
 			'slug'          => $this->plugin_slug,
 			'plugin'        => $this->plugin_basename,
 			'new_version'   => $new_version,
@@ -175,10 +177,19 @@ class Updater {
 			'compatibility' => new \stdClass(),
 		);
 
+		if ( ! isset( $transient->response ) || ! is_array( $transient->response ) ) {
+			$transient->response = array();
+		}
+		if ( ! isset( $transient->no_update ) || ! is_array( $transient->no_update ) ) {
+			$transient->no_update = array();
+		}
+
 		if ( version_compare( $new_version, $this->version, '>' ) ) {
 			$transient->response[ $this->plugin_basename ] = $update_data;
+			unset( $transient->no_update[ $this->plugin_basename ] );
 		} else {
 			$transient->no_update[ $this->plugin_basename ] = $update_data;
+			unset( $transient->response[ $this->plugin_basename ] );
 		}
 
 		return $transient;
@@ -281,8 +292,8 @@ class Updater {
 		if ( isset( $_GET['action'] ) && 'wcsc_check_update' === $_GET['action'] ) {
 			if ( isset( $_GET['_wpnonce'] ) && wp_verify_nonce( sanitize_key( $_GET['_wpnonce'] ), 'wcsc_check_update_nonce' ) ) {
 				// Clear update transients to force a fresh check
-				delete_site_transient( 'update_plugins' );
 				delete_site_transient( $this->cache_key );
+				delete_site_transient( 'update_plugins' );
 				
 				// Force a new fetch
 				$release = $this->get_github_release( true );
@@ -297,6 +308,11 @@ class Updater {
 					}
 				}
 				
+				// Re-prime WordPress core update transient
+				if ( function_exists( 'wp_update_plugins' ) ) {
+					wp_update_plugins();
+				}
+
 				// Redirect back to plugins page with message
 				wp_safe_redirect( admin_url( 'plugins.php?wcsc_update_status=' . $status ) );
 				exit;
