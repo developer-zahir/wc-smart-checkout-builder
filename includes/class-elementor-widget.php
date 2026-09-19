@@ -304,10 +304,32 @@ class Elementor_Widget extends Widget_Base {
 				'label'   => esc_html__( 'Checkout Layout', 'wc-smart-checkout-builder' ),
 				'type'    => Controls_Manager::SELECT,
 				'options' => array(
-					'2_columns' => esc_html__( '2 Columns', 'wc-smart-checkout-builder' ),
-					'1_column'  => esc_html__( '1 Column', 'wc-smart-checkout-builder' ),
+					'1_column'  => esc_html__( '1 Column (Stacked)', 'wc-smart-checkout-builder' ),
+					'2_columns' => esc_html__( '2 Columns (Side-by-Side Grid)', 'wc-smart-checkout-builder' ),
 				),
 				'default' => '2_columns',
+			)
+		);
+
+		$this->add_responsive_control(
+			'checkout_grid_columns',
+			array(
+				'label'     => esc_html__( 'Column Width Ratio', 'wc-smart-checkout-builder' ),
+				'type'      => Controls_Manager::SELECT,
+				'options'   => array(
+					'1fr 1fr'                                  => esc_html__( '50% / 50% (Equal Columns)', 'wc-smart-checkout-builder' ),
+					'60% calc(40% - var(--wcsc-col-gap, 30px))' => esc_html__( '60% / 40% (Column 1 Wider)', 'wc-smart-checkout-builder' ),
+					'65% calc(35% - var(--wcsc-col-gap, 30px))' => esc_html__( '65% / 35% (Column 1 Wider)', 'wc-smart-checkout-builder' ),
+					'70% calc(30% - var(--wcsc-col-gap, 30px))' => esc_html__( '70% / 30% (Column 1 Wider)', 'wc-smart-checkout-builder' ),
+					'calc(40% - var(--wcsc-col-gap, 30px)) 60%' => esc_html__( '40% / 60% (Column 2 Wider)', 'wc-smart-checkout-builder' ),
+				),
+				'default'   => '1fr 1fr',
+				'condition' => array(
+					'checkout_layout' => '2_columns',
+				),
+				'selectors' => array(
+					'{{WRAPPER}} .wcas-layout-two-column.wcas-checkout-wrapper, {{WRAPPER}} .wcas-layout-two-column .wcas-checkout-wrapper, {{WRAPPER}} .wcsc-layout-2-col.wcas-checkout-wrapper' => 'grid-template-columns: {{VALUE}} !important;',
+				),
 			)
 		);
 
@@ -325,6 +347,7 @@ class Elementor_Widget extends Widget_Base {
 				),
 				'selectors'  => array(
 					'{{WRAPPER}} .wcsc-product-checkout-widget' => '--wcsc-col-gap: {{SIZE}}{{UNIT}};',
+					'{{WRAPPER}} .wcas-checkout-wrapper'        => '--wcsc-col-gap: {{SIZE}}{{UNIT}};',
 				),
 			)
 		);
@@ -345,6 +368,85 @@ class Elementor_Widget extends Widget_Base {
 					'{{WRAPPER}} .wcsc-product-checkout-widget' => '--wcsc-row-gap: {{SIZE}}{{UNIT}};',
 					'{{WRAPPER}} .wcas-checkout-wrapper'        => '--wcsc-row-gap: {{SIZE}}{{UNIT}};',
 					'{{WRAPPER}} .wcas-checkout-column'         => 'gap: {{SIZE}}{{UNIT}};',
+				),
+			)
+		);
+
+		$this->add_control(
+			'heading_block_column_assignments',
+			array(
+				'label'     => esc_html__( 'Block Column Assignment (2-Column Mode)', 'wc-smart-checkout-builder' ),
+				'type'      => Controls_Manager::HEADING,
+				'separator' => 'before',
+				'condition' => array(
+					'checkout_layout' => '2_columns',
+				),
+			)
+		);
+
+		$this->add_control(
+			'customer_info_column',
+			array(
+				'label'     => esc_html__( 'Customer Info Block', 'wc-smart-checkout-builder' ),
+				'type'      => Controls_Manager::SELECT,
+				'options'   => array(
+					'col_1' => esc_html__( 'Column 1 (First Column)', 'wc-smart-checkout-builder' ),
+					'col_2' => esc_html__( 'Column 2 (Second Column)', 'wc-smart-checkout-builder' ),
+				),
+				'default'   => 'col_1',
+				'condition' => array(
+					'checkout_layout' => '2_columns',
+				),
+			)
+		);
+
+		$this->add_control(
+			'shipping_block_column',
+			array(
+				'label'     => esc_html__( 'Shipping Methods Block', 'wc-smart-checkout-builder' ),
+				'type'      => Controls_Manager::SELECT,
+				'options'   => array(
+					'col_1' => esc_html__( 'Column 1 (First Column)', 'wc-smart-checkout-builder' ),
+					'col_2' => esc_html__( 'Column 2 (Second Column)', 'wc-smart-checkout-builder' ),
+				),
+				'default'   => 'col_1',
+				'condition' => array(
+					'checkout_layout'        => '2_columns',
+					'show_checkout_shipping' => 'yes',
+				),
+			)
+		);
+
+		$this->add_control(
+			'order_review_column',
+			array(
+				'label'     => esc_html__( 'Order Review Block', 'wc-smart-checkout-builder' ),
+				'type'      => Controls_Manager::SELECT,
+				'options'   => array(
+					'col_1' => esc_html__( 'Column 1 (First Column)', 'wc-smart-checkout-builder' ),
+					'col_2' => esc_html__( 'Column 2 (Second Column)', 'wc-smart-checkout-builder' ),
+				),
+				'default'   => 'col_2',
+				'condition' => array(
+					'checkout_layout'            => '2_columns',
+					'show_checkout_order_review' => 'yes',
+				),
+			)
+		);
+
+		$this->add_control(
+			'payment_block_column',
+			array(
+				'label'     => esc_html__( 'Payment Block', 'wc-smart-checkout-builder' ),
+				'type'      => Controls_Manager::SELECT,
+				'options'   => array(
+					'col_1' => esc_html__( 'Column 1 (First Column)', 'wc-smart-checkout-builder' ),
+					'col_2' => esc_html__( 'Column 2 (Second Column)', 'wc-smart-checkout-builder' ),
+				),
+				'default'   => 'col_2',
+				'condition' => array(
+					'checkout_layout'       => '2_columns',
+					'show_checkout_payment' => 'yes',
 				),
 			)
 		);
@@ -501,9 +603,9 @@ class Elementor_Widget extends Widget_Base {
 				'label'   => esc_html__( 'Button Position', 'wc-smart-checkout-builder' ),
 				'type'    => Controls_Manager::SELECT,
 				'options' => array(
-					'left_column'  => esc_html__( 'Left Column', 'wc-smart-checkout-builder' ),
-					'right_column' => esc_html__( 'Right Column', 'wc-smart-checkout-builder' ),
-					'full_width'   => esc_html__( 'Full Width', 'wc-smart-checkout-builder' ),
+					'left_column'  => esc_html__( 'Column 1 (First Column)', 'wc-smart-checkout-builder' ),
+					'right_column' => esc_html__( 'Column 2 (Second Column)', 'wc-smart-checkout-builder' ),
+					'full_width'   => esc_html__( 'Full Width (Below Both Columns)', 'wc-smart-checkout-builder' ),
 				),
 				'default' => 'right_column',
 			)

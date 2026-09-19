@@ -430,13 +430,25 @@ class Checkout_Handler {
 						?>
 					</div>
 				<?php else : ?>
+					<?php
+					$customer_info_col  = ! empty( $settings['customer_info_column'] ) ? $settings['customer_info_column'] : 'col_1';
+					$shipping_block_col = ! empty( $settings['shipping_block_column'] ) ? $settings['shipping_block_column'] : 'col_1';
+					$order_review_col   = ! empty( $settings['order_review_column'] ) ? $settings['order_review_column'] : 'col_2';
+					$payment_block_col  = ! empty( $settings['payment_block_column'] ) ? $settings['payment_block_column'] : 'col_2';
+					?>
 					<div class="wcas-checkout-column wcas-checkout-column-left">
 						<?php
-						if ( ! empty( $blocks_enabled['checkout_form'] ) ) {
+						if ( 'col_1' === $customer_info_col && ! empty( $blocks_enabled['checkout_form'] ) ) {
 							self::render_checkout_form_block();
 						}
-						if ( ! empty( $blocks_enabled['shipping'] ) ) {
+						if ( 'col_1' === $shipping_block_col && ! empty( $blocks_enabled['shipping'] ) ) {
 							self::render_shipping_block();
+						}
+						if ( 'col_1' === $order_review_col && ! empty( $blocks_enabled['order_review'] ) ) {
+							self::render_order_review_block();
+						}
+						if ( 'col_1' === $payment_block_col && ! empty( $blocks_enabled['payment'] ) ) {
+							self::render_payment_block();
 						}
 						if ( 'left_column' === $order_button_pos ) {
 							self::render_order_button_block();
@@ -446,10 +458,16 @@ class Checkout_Handler {
 
 					<div class="wcas-checkout-column wcas-checkout-column-right">
 						<?php
-						if ( ! empty( $blocks_enabled['order_review'] ) ) {
+						if ( 'col_2' === $customer_info_col && ! empty( $blocks_enabled['checkout_form'] ) ) {
+							self::render_checkout_form_block();
+						}
+						if ( 'col_2' === $shipping_block_col && ! empty( $blocks_enabled['shipping'] ) ) {
+							self::render_shipping_block();
+						}
+						if ( 'col_2' === $order_review_col && ! empty( $blocks_enabled['order_review'] ) ) {
 							self::render_order_review_block();
 						}
-						if ( ! empty( $blocks_enabled['payment'] ) ) {
+						if ( 'col_2' === $payment_block_col && ! empty( $blocks_enabled['payment'] ) ) {
 							self::render_payment_block();
 						}
 						if ( 'right_column' === $order_button_pos ) {

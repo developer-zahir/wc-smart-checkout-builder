@@ -176,8 +176,32 @@ if ( '1_column' === $checkout_layout ) {
 			};
 			?>
 
-			<div class="wcas-checkout-column wcas-checkout-column-left">
-				<?php /* --- Checkout Form Block (100% full width, 1 field per row) --- */ ?>
+			<?php
+			// Render blocks helpers
+			$render_order_button_html = function () use ( $anim_class, $order_button_text, $icon_align, $icon_html ) {
+				?>
+				<div class="wcas-block wcas-block-order-button">
+					<div class="form-row place-order">
+						<button type="button" class="button alt wp-element-button wcsc-order-now-btn <?php echo esc_attr( $anim_class ); ?>" id="place_order" value="<?php echo esc_attr( wp_strip_all_tags( $order_button_text ) ); ?>" data-value="<?php echo esc_attr( wp_strip_all_tags( $order_button_text ) ); ?>">
+							<span class="wcsc-btn-beam wcsc-beam-top"></span>
+							<span class="wcsc-btn-beam wcsc-beam-bottom"></span>
+							<span class="wcsc-btn-content">
+								<?php if ( 'left' === $icon_align && $icon_html ) : ?>
+									<?php echo $icon_html; // phpcs:ignore WordPress.Security.EscapeOutput.OutputNotEscaped ?>
+								<?php endif; ?>
+								<span class="wcsc-btn-text"><?php echo wp_kses_post( $order_button_text ); ?></span>
+								<?php if ( 'right' === $icon_align && $icon_html ) : ?>
+									<?php echo $icon_html; // phpcs:ignore WordPress.Security.EscapeOutput.OutputNotEscaped ?>
+								<?php endif; ?>
+							</span>
+						</button>
+					</div>
+				</div>
+				<?php
+			};
+
+			$render_customer_info_html = function () use ( $billing_heading_text ) {
+				?>
 				<div class="wcas-block wcas-block-checkout-form">
 					<h3 class="wcsc-section-title wcas-block-title"><?php echo esc_html( $billing_heading_text ); ?></h3>
 					<div class="col2-set" id="customer_details">
@@ -302,161 +326,220 @@ if ( '1_column' === $checkout_layout ) {
 						</div>
 					</div>
 				</div>
+				<?php
+			};
 
-				<?php if ( $show_shipping ) : ?>
-					<?php /* --- Dedicated Shipping Selection Block --- */ ?>
-					<div class="wcas-block wcas-block-shipping">
-						<h3 class="wcsc-section-title wcas-block-title wcsc-shipping-heading"><?php echo esc_html( $shipping_label_text ); ?></h3>
-						<div class="wcas-shipping-methods-wrapper">
-							<ul id="shipping_method" class="woocommerce-shipping-methods">
-								<?php foreach ( $preview_shipping_methods as $idx => $method ) : ?>
-									<li class="wcsc-shipping-card<?php echo 0 === $idx ? ' is-active' : ''; ?>">
-										<input type="radio" 
-											name="shipping_method[0]" 
-											data-index="0" 
-											id="shipping_method_0_<?php echo esc_attr( sanitize_title( $method['id'] ) ); ?>" 
-											value="<?php echo esc_attr( $method['id'] ); ?>" 
-											class="shipping_method" 
-											<?php checked( 0, $idx ); ?> />
-										<label for="shipping_method_0_<?php echo esc_attr( sanitize_title( $method['id'] ) ); ?>">
-											<?php echo esc_html( $method['label'] ); ?>: <span class="woocommerce-Price-amount amount"><?php echo wc_price( $method['cost'] ); ?></span>
-										</label>
-									</li>
-								<?php endforeach; ?>
-							</ul>
-						</div>
+			$render_shipping_html = function () use ( $shipping_label_text, $preview_shipping_methods ) {
+				?>
+				<div class="wcas-block wcas-block-shipping">
+					<h3 class="wcsc-section-title wcas-block-title wcsc-shipping-heading"><?php echo esc_html( $shipping_label_text ); ?></h3>
+					<div class="wcas-shipping-methods-wrapper">
+						<ul id="shipping_method" class="woocommerce-shipping-methods">
+							<?php foreach ( $preview_shipping_methods as $idx => $method ) : ?>
+								<li class="wcsc-shipping-card<?php echo 0 === $idx ? ' is-active' : ''; ?>">
+									<input type="radio" 
+										name="shipping_method[0]" 
+										data-index="0" 
+										id="shipping_method_0_<?php echo esc_attr( sanitize_title( $method['id'] ) ); ?>" 
+										value="<?php echo esc_attr( $method['id'] ); ?>" 
+										class="shipping_method" 
+										<?php checked( 0, $idx ); ?> />
+									<label for="shipping_method_0_<?php echo esc_attr( sanitize_title( $method['id'] ) ); ?>">
+										<?php echo esc_html( $method['label'] ); ?>: <span class="woocommerce-Price-amount amount"><?php echo wc_price( $method['cost'] ); ?></span>
+									</label>
+								</li>
+							<?php endforeach; ?>
+						</ul>
 					</div>
-				<?php endif; ?>
+				</div>
+				<?php
+			};
 
-				<?php if ( 'left_column' === $order_button_pos ) : ?>
-					<?php $render_order_button_html(); ?>
-				<?php endif; ?>
-			</div>
-
-			<div class="wcas-checkout-column wcas-checkout-column-right">
-				<?php if ( $show_order_review ) : ?>
-					<?php /* --- Order Review Block --- */ ?>
-					<div class="wcas-block wcas-block-order-review">
-						<h3 id="order_review_heading" class="wcsc-section-title wcas-block-title"><?php echo esc_html( $order_review_heading_text ); ?></h3>
-						<div id="order_review" class="woocommerce-checkout-review-order">
-							<table class="shop_table woocommerce-checkout-review-order-table">
-								<thead>
-									<tr>
-										<th class="product-name"><?php echo esc_html( $product_label_text ); ?></th>
-										<th class="product-total"><?php echo esc_html( $subtotal_label_text ); ?></th>
-									</tr>
-								</thead>
-								<tbody>
-									<?php
-									$show_cart_item_image = ! isset( $settings['show_cart_item_image'] ) || 'yes' === $settings['show_cart_item_image'];
-									$preview_img_url      = '';
-									if ( $product ) {
-										$image_id = 0;
-										if ( $product->is_type( 'variable' ) ) {
-											$default_attributes   = method_exists( $product, 'get_default_attributes' ) ? $product->get_default_attributes() : array();
-											$available_variations = $product->get_available_variations();
-											$selected_var         = null;
-											if ( ! empty( $default_attributes ) && ! empty( $available_variations ) ) {
-												foreach ( $available_variations as $var_data ) {
-													$match = true;
-													foreach ( $default_attributes as $attr_k => $attr_v ) {
-														$vkey = 'attribute_' . $attr_k;
-														if ( isset( $var_data['attributes'][ $vkey ] ) && '' !== $var_data['attributes'][ $vkey ] && $var_data['attributes'][ $vkey ] !== $attr_v ) {
-															$match = false;
-															break;
-														}
-													}
-													if ( $match ) {
-														$selected_var = $var_data;
+			$render_order_review_html = function () use ( $order_review_heading_text, $product_label_text, $subtotal_label_text, $settings, $product, $product_name, $price_html, $default_shipping_cost, $preview_total, $total_label_text ) {
+				?>
+				<div class="wcas-block wcas-block-order-review">
+					<h3 id="order_review_heading" class="wcsc-section-title wcas-block-title"><?php echo esc_html( $order_review_heading_text ); ?></h3>
+					<div id="order_review" class="woocommerce-checkout-review-order">
+						<table class="shop_table woocommerce-checkout-review-order-table">
+							<thead>
+								<tr>
+									<th class="product-name"><?php echo esc_html( $product_label_text ); ?></th>
+									<th class="product-total"><?php echo esc_html( $subtotal_label_text ); ?></th>
+								</tr>
+							</thead>
+							<tbody>
+								<?php
+								$show_cart_item_image = ! isset( $settings['show_cart_item_image'] ) || 'yes' === $settings['show_cart_item_image'];
+								$preview_img_url      = '';
+								if ( $product ) {
+									$image_id = 0;
+									if ( $product->is_type( 'variable' ) ) {
+										$default_attributes   = method_exists( $product, 'get_default_attributes' ) ? $product->get_default_attributes() : array();
+										$available_variations = $product->get_available_variations();
+										$selected_var         = null;
+										if ( ! empty( $default_attributes ) && ! empty( $available_variations ) ) {
+											foreach ( $available_variations as $var_data ) {
+												$match = true;
+												foreach ( $default_attributes as $attr_k => $attr_v ) {
+													$vkey = 'attribute_' . $attr_k;
+													if ( isset( $var_data['attributes'][ $vkey ] ) && '' !== $var_data['attributes'][ $vkey ] && $var_data['attributes'][ $vkey ] !== $attr_v ) {
+														$match = false;
 														break;
 													}
 												}
-											}
-											if ( ! $selected_var && ! empty( $available_variations ) ) {
-												$selected_var = $available_variations[0];
-											}
-											if ( $selected_var && ! empty( $selected_var['image_id'] ) ) {
-												$image_id = $selected_var['image_id'];
+												if ( $match ) {
+													$selected_var = $var_data;
+													break;
+												}
 											}
 										}
-										if ( ! $image_id ) {
-											$image_id = $product->get_image_id();
+										if ( ! $selected_var && ! empty( $available_variations ) ) {
+											$selected_var = $available_variations[0];
 										}
-										if ( $image_id ) {
-											$preview_img_url = wp_get_attachment_image_url( $image_id, 'thumbnail' );
+										if ( $selected_var && ! empty( $selected_var['image_id'] ) ) {
+											$image_id = $selected_var['image_id'];
 										}
 									}
-									?>
-									<tr class="cart_item wcas-order-review-product">
-										<td class="product-name">
-											<?php if ( $show_cart_item_image && $preview_img_url ) : ?>
-												<div class="wcsc-cart-item-with-img">
-													<img src="<?php echo esc_url( $preview_img_url ); ?>" class="wcsc-cart-item-image" alt="<?php echo esc_attr( $product_name ); ?>" />
-													<span class="wcsc-cart-item-name-text">
-														<span class="wcsc-preview-item-title"><?php echo esc_html( $product_name ); ?></span>
-														<strong class="product-quantity">&times;&nbsp;1</strong>
-													</span>
-												</div>
-											<?php else : ?>
+									if ( ! $image_id ) {
+										$image_id = $product->get_image_id();
+									}
+									if ( $image_id ) {
+										$preview_img_url = wp_get_attachment_image_url( $image_id, 'thumbnail' );
+									}
+								}
+								?>
+								<tr class="cart_item wcas-order-review-product">
+									<td class="product-name">
+										<?php if ( $show_cart_item_image && $preview_img_url ) : ?>
+											<div class="wcsc-cart-item-with-img">
+												<img src="<?php echo esc_url( $preview_img_url ); ?>" class="wcsc-cart-item-image" alt="<?php echo esc_attr( $product_name ); ?>" />
 												<span class="wcsc-cart-item-name-text">
 													<span class="wcsc-preview-item-title"><?php echo esc_html( $product_name ); ?></span>
 													<strong class="product-quantity">&times;&nbsp;1</strong>
 												</span>
-											<?php endif; ?>
-										</td>
-										<td class="product-total">
-											<span class="wcsc-preview-item-price"><?php echo wp_kses_post( $price_html ); ?></span>
-										</td>
-									</tr>
-								</tbody>
-								<tfoot>
-									<tr class="cart-subtotal wcas-order-review-subtotal">
-										<th><?php echo esc_html( $subtotal_label_text ); ?></th>
-										<td><span class="woocommerce-Price-amount amount wcsc-preview-subtotal"><?php echo wp_kses_post( $price_html ); ?></span></td>
-									</tr>
-									<tr class="woocommerce-shipping-totals shipping wcas-order-review-shipping">
-										<th><?php echo esc_html( $shipping_label_text ); ?></th>
-										<td data-title="<?php echo esc_attr( $shipping_label_text ); ?>">
-											<span class="woocommerce-Price-amount amount wcsc-preview-shipping"><?php echo wp_kses_post( wc_price( $default_shipping_cost ) ); ?></span>
-										</td>
-									</tr>
-									<tr class="order-total wcas-order-review-total">
-										<th><?php echo esc_html( $total_label_text ); ?></th>
-										<td><strong><span class="woocommerce-Price-amount amount wcsc-preview-total"><?php echo wp_kses_post( wc_price( $preview_total ) ); ?></span></strong></td>
-									</tr>
-								</tfoot>
-							</table>
-						</div>
+											</div>
+										<?php else : ?>
+											<span class="wcsc-cart-item-name-text">
+												<span class="wcsc-preview-item-title"><?php echo esc_html( $product_name ); ?></span>
+												<strong class="product-quantity">&times;&nbsp;1</strong>
+											</span>
+										<?php endif; ?>
+									</td>
+									<td class="product-total">
+										<span class="wcsc-preview-item-price"><?php echo wp_kses_post( $price_html ); ?></span>
+									</td>
+								</tr>
+							</tbody>
+							<tfoot>
+								<tr class="cart-subtotal wcas-order-review-subtotal">
+									<th><?php echo esc_html( $subtotal_label_text ); ?></th>
+									<td><span class="woocommerce-Price-amount amount wcsc-preview-subtotal"><?php echo wp_kses_post( $price_html ); ?></span></td>
+								</tr>
+								<tr class="woocommerce-shipping-totals shipping wcas-order-review-shipping">
+									<th><?php echo esc_html( $shipping_label_text ); ?></th>
+									<td data-title="<?php echo esc_attr( $shipping_label_text ); ?>">
+										<span class="woocommerce-Price-amount amount wcsc-preview-shipping"><?php echo wp_kses_post( wc_price( $default_shipping_cost ) ); ?></span>
+									</td>
+								</tr>
+								<tr class="order-total wcas-order-review-total">
+									<th><?php echo esc_html( $total_label_text ); ?></th>
+									<td><strong><span class="woocommerce-Price-amount amount wcsc-preview-total"><?php echo wp_kses_post( wc_price( $preview_total ) ); ?></span></strong></td>
+								</tr>
+							</tfoot>
+						</table>
 					</div>
-				<?php endif; ?>
-
-				<?php if ( $show_payment ) : ?>
-					<?php /* --- Payment Block --- */ ?>
-					<div class="wcas-block wcas-block-payment">
-						<h3 class="wcsc-section-title wcas-block-title wcsc-payment-heading"><?php echo esc_html( $payment_heading_text ); ?></h3>
-						<div id="payment" class="woocommerce-checkout-payment">
-							<ul class="wc_payment_methods payment_methods methods">
-								<li class="wc_payment_method payment_method_cod">
-									<input id="payment_method_cod" type="radio" class="input-radio" name="payment_method" value="cod" checked="checked" />
-									<label for="payment_method_cod"><?php esc_html_e( 'Cash on Delivery', 'wc-smart-checkout-builder' ); ?></label>
-									<div class="payment_box payment_method_cod">
-										<p><?php esc_html_e( 'Pay with cash upon delivery.', 'wc-smart-checkout-builder' ); ?></p>
-									</div>
-								</li>
-							</ul>
-						</div>
-					</div>
-				<?php endif; ?>
-
-				<?php if ( 'right_column' === $order_button_pos ) : ?>
-					<?php $render_order_button_html(); ?>
-				<?php endif; ?>
-			</div>
-
-			<?php if ( 'full_width' === $order_button_pos ) : ?>
-				<div class="wcas-checkout-row-full">
-					<?php $render_order_button_html(); ?>
 				</div>
+				<?php
+			};
+
+			$render_payment_html = function () use ( $payment_heading_text ) {
+				?>
+				<div class="wcas-block wcas-block-payment">
+					<h3 class="wcsc-section-title wcas-block-title wcsc-payment-heading"><?php echo esc_html( $payment_heading_text ); ?></h3>
+					<div id="payment" class="woocommerce-checkout-payment">
+						<ul class="wc_payment_methods payment_methods methods">
+							<li class="wc_payment_method payment_method_cod">
+								<input id="payment_method_cod" type="radio" class="input-radio" name="payment_method" value="cod" checked="checked" />
+								<label for="payment_method_cod"><?php esc_html_e( 'Cash on Delivery', 'wc-smart-checkout-builder' ); ?></label>
+								<div class="payment_box payment_method_cod">
+									<p><?php esc_html_e( 'Pay with cash upon delivery.', 'wc-smart-checkout-builder' ); ?></p>
+								</div>
+							</li>
+						</ul>
+					</div>
+				</div>
+				<?php
+			};
+			?>
+
+			<?php if ( '1_column' === $checkout_layout ) : ?>
+				<div class="wcas-checkout-column wcas-checkout-column-single">
+					<?php
+					$render_customer_info_html();
+					if ( $show_shipping ) {
+						$render_shipping_html();
+					}
+					if ( $show_order_review ) {
+						$render_order_review_html();
+					}
+					if ( $show_payment ) {
+						$render_payment_html();
+					}
+					$render_order_button_html();
+					?>
+				</div>
+			<?php else : ?>
+				<?php
+				$customer_info_col  = ! empty( $settings['customer_info_column'] ) ? $settings['customer_info_column'] : 'col_1';
+				$shipping_block_col = ! empty( $settings['shipping_block_column'] ) ? $settings['shipping_block_column'] : 'col_1';
+				$order_review_col   = ! empty( $settings['order_review_column'] ) ? $settings['order_review_column'] : 'col_2';
+				$payment_block_col  = ! empty( $settings['payment_block_column'] ) ? $settings['payment_block_column'] : 'col_2';
+				?>
+				<div class="wcas-checkout-column wcas-checkout-column-left">
+					<?php
+					if ( 'col_1' === $customer_info_col ) {
+						$render_customer_info_html();
+					}
+					if ( 'col_1' === $shipping_block_col && $show_shipping ) {
+						$render_shipping_html();
+					}
+					if ( 'col_1' === $order_review_col && $show_order_review ) {
+						$render_order_review_html();
+					}
+					if ( 'col_1' === $payment_block_col && $show_payment ) {
+						$render_payment_html();
+					}
+					if ( 'left_column' === $order_button_pos ) {
+						$render_order_button_html();
+					}
+					?>
+				</div>
+
+				<div class="wcas-checkout-column wcas-checkout-column-right">
+					<?php
+					if ( 'col_2' === $customer_info_col ) {
+						$render_customer_info_html();
+					}
+					if ( 'col_2' === $shipping_block_col && $show_shipping ) {
+						$render_shipping_html();
+					}
+					if ( 'col_2' === $order_review_col && $show_order_review ) {
+						$render_order_review_html();
+					}
+					if ( 'col_2' === $payment_block_col && $show_payment ) {
+						$render_payment_html();
+					}
+					if ( 'right_column' === $order_button_pos ) {
+						$render_order_button_html();
+					}
+					?>
+				</div>
+
+				<?php if ( 'full_width' === $order_button_pos ) : ?>
+					<div class="wcas-checkout-row-full">
+						<?php $render_order_button_html(); ?>
+					</div>
+				<?php endif; ?>
 			<?php endif; ?>
 
 		<?php endif; ?>
