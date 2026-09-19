@@ -56,6 +56,7 @@
 				}
 			}
 
+			this.syncOrderButtonPrice();
 			this.initMobileStickyObserver();
 			this.syncOrderButtonAnimationColor();
 		},
@@ -131,6 +132,7 @@
 				self.applyCustomTexts();
 				self.styleShippingMethods();
 				self.stylePaymentMethods();
+				self.syncOrderButtonPrice();
 
 				// Suppress any WooCommerce error notices injected during AJAX
 				$('.woocommerce-NoticeGroup-checkout, .woocommerce-NoticeGroup, .woocommerce-error, .checkout-inline-error-message').hide().remove();
@@ -160,6 +162,24 @@
 				$('.woocommerce-NoticeGroup-checkout, .woocommerce-NoticeGroup, .woocommerce-error, .checkout-inline-error-message').hide().remove();
 			});
 
+			// Listen for WooCommerce variation events
+			$(document.body).on('found_variation', function (event, variation) {
+				if (variation) {
+					if (variation.display_price) {
+						var symbol = '';
+						var $symbolEl = self.$container.find('.woocommerce-Price-currencySymbol');
+						if ($symbolEl.length) {
+							symbol = self.decodeHtmlEntities($symbolEl.first().text() || $symbolEl.first().html());
+						}
+						self.syncOrderButtonPrice(symbol + ' ' + variation.display_price);
+					}
+				}
+			});
+
+			$(document.body).on('reset_data', function () {
+				self.syncOrderButtonPrice();
+			});
+
 			// Make shipping cards clickable
 			this.$container.on('click', '.wcsc-shipping-card', function (e) {
 				if (e.target.tagName !== 'INPUT' && e.target.tagName !== 'LABEL') {
@@ -169,8 +189,11 @@
 					}
 				}
 			});
-			this.$container.on('change', 'input.shipping_method', function () {
+			this.$container.on('change', 'input.shipping_method, #shipping_method input[type="radio"]', function () {
 				self.styleShippingMethods();
+				setTimeout(function () {
+					self.syncOrderButtonPrice();
+				}, 60);
 			});
 
 			this.$container.on('click', '.wcas-block-payment ul.payment_methods li.wc_payment_method', function (e) {
@@ -582,11 +605,43 @@
 			return null;
 		},
 
+		decodeHtmlEntities: function (text) {
+			if (!text) return '';
+			try {
+				var parser = new DOMParser();
+				var dom = parser.parseFromString('<!doctype html><body>' + text, 'text/html');
+				var decoded = dom.body.textContent || '';
+				return decoded.replace(/\u00a0/g, ' ').trim();
+			} catch (e) {
+				var txt = document.createElement('textarea');
+				txt.innerHTML = text;
+				return (txt.value || '').replace(/\u00a0/g, ' ').trim();
+			}
+		},
+
 		updateButtonPrice: function (priceText) {
 			if (!priceText) return;
-			var $btnPrice = this.$container.find('.wcsc-btn-price');
+			var cleanText = this.decodeHtmlEntities(priceText);
+			var $btnPrice = this.$container.find('.wcsc-btn-price, #wcsc-mobile-sticky-bar .wcsc-btn-price');
 			if ($btnPrice.length) {
-				$btnPrice.text(priceText);
+				$btnPrice.text(cleanText);
+			}
+		},
+
+		syncOrderButtonPrice: function (customPrice) {
+			var priceText = '';
+			if (customPrice) {
+				priceText = customPrice;
+			} else {
+				// Search for latest total in WooCommerce order review table
+				var $orderTotal = this.$container.find('tr.order-total .woocommerce-Price-amount, tr.order-total td strong, tr.order-total td, .woocommerce-checkout-review-order-table tr.order-total .amount');
+				if ($orderTotal.length) {
+					priceText = $orderTotal.first().text() || $orderTotal.first().html();
+				}
+			}
+
+			if (priceText) {
+				this.updateButtonPrice(priceText);
 			}
 		},
 

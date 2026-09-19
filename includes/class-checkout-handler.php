@@ -155,7 +155,9 @@ class Checkout_Handler {
 		if ( empty( $current_total ) && self::$active_product ) {
 			$current_total = wc_price( self::$active_product->get_price() );
 		}
-		$price_html = '<span class="wcsc-btn-price-wrap"><span class="wcsc-btn-price">' . wp_strip_all_tags( $current_total ) . '</span></span>';
+		$clean_total = html_entity_decode( wp_strip_all_tags( $current_total ), ENT_QUOTES, 'UTF-8' );
+		$clean_total = str_replace( "\xc2\xa0", ' ', $clean_total );
+		$price_html  = '<span class="wcsc-btn-price-wrap"><span class="wcsc-btn-price">' . esc_html( $clean_total ) . '</span></span>';
 
 		// Replace {total_price} in the button text
 		if ( strpos( $btn_text, '{total_price}' ) !== false ) {
@@ -1147,11 +1149,26 @@ class Checkout_Handler {
 	 * @param string $text
 	 */
 	public static function render_mobile_sticky_button_html( $text ) {
+		$current_total = '';
+		if ( function_exists( 'WC' ) && WC()->cart ) {
+			$current_total = WC()->cart->get_total();
+		}
+		if ( empty( $current_total ) && self::$active_product ) {
+			$current_total = wc_price( self::$active_product->get_price() );
+		}
+		if ( ! empty( $current_total ) ) {
+			$clean_total = html_entity_decode( wp_strip_all_tags( $current_total ), ENT_QUOTES, 'UTF-8' );
+			$clean_total = str_replace( "\xc2\xa0", ' ', $clean_total );
+			$price_html  = '<span class="wcsc-btn-price-wrap"><span class="wcsc-btn-price">' . esc_html( $clean_total ) . '</span></span>';
+			if ( strpos( $text, '{total_price}' ) !== false ) {
+				$text = str_replace( '{total_price}', $price_html, $text );
+			}
+		}
 		?>
 		<div class="wcsc-mobile-sticky-bar" id="wcsc-mobile-sticky-bar">
 			<button type="button" class="wcsc-mobile-sticky-btn">
 				<span class="wcsc-sticky-shine"></span>
-				<span class="wcsc-sticky-text"><?php echo esc_html( $text ); ?></span>
+				<span class="wcsc-sticky-text"><?php echo wp_kses_post( $text ); ?></span>
 			</button>
 		</div>
 		<?php
@@ -1249,7 +1266,7 @@ class Checkout_Handler {
 			'subtotal'      => $cart->get_cart_subtotal(),
 			'total'         => $cart->get_total(),
 			'raw_total'     => $cart->get_total( 'edit' ),
-			'currency_text' => wp_strip_all_tags( $cart->get_total() ),
+			'currency_text' => str_replace( "\xc2\xa0", ' ', html_entity_decode( wp_strip_all_tags( $cart->get_total() ), ENT_QUOTES, 'UTF-8' ) ),
 		) );
 	}
 

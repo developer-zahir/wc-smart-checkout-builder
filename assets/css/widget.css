@@ -803,8 +803,10 @@
 	box-sizing: border-box;
 }
 
-.wcas-checkout-wrapper .wcas-block-payment ul.payment_methods li.wc_payment_method:hover {
-	border-color: #cbd5e0;
+.wcas-checkout-wrapper .wcas-block-payment ul.payment_methods li.wc_payment_method:hover,
+.wcas-checkout-wrapper .wcas-block-payment ul.payment_methods li:hover {
+	border-color: var(--wcsc-payment-hover-border, #cbd5e0);
+	background-color: var(--wcsc-payment-hover-bg, #ffffff);
 }
 
 .wcas-checkout-wrapper .wcas-block-payment ul.payment_methods li.wc_payment_method > input[type="radio"] {
@@ -1069,9 +1071,10 @@
 	transition: all 0.2s ease;
 }
 
-.wcas-checkout-wrapper .wcas-block-shipping ul#shipping_method li.wcsc-shipping-card:hover {
-	border-color: #cbd5e0;
-	background-color: #fcfdfd;
+.wcas-checkout-wrapper .wcas-block-shipping ul#shipping_method li.wcsc-shipping-card:hover,
+.wcas-checkout-wrapper .wcas-block-shipping ul#shipping_method li:hover {
+	border-color: var(--wcsc-shipping-hover-border, #cbd5e0);
+	background-color: var(--wcsc-shipping-hover-bg, #fcfdfd);
 }
 
 .wcas-checkout-wrapper .wcas-block-shipping ul#shipping_method li.wcsc-shipping-card.is-active,

@@ -26,7 +26,8 @@ if ( ! defined( 'ABSPATH' ) ) {
 $order_button_text = ! empty( $settings['order_button_text'] ) ? esc_html( $settings['order_button_text'] ) : esc_html__( 'Order Now', 'wc-smart-checkout-builder' );
 $product_name      = $product ? $product->get_name() : esc_html__( 'Sample Product', 'wc-smart-checkout-builder' );
 $price_html        = $product ? $product->get_price_html() : wc_price( 50 );
-$raw_price_text    = $product ? wp_strip_all_tags( wc_price( $product->get_price() ) ) : '$50.00';
+$raw_price_text    = $product ? html_entity_decode( wp_strip_all_tags( wc_price( $product->get_price() ) ), ENT_QUOTES, 'UTF-8' ) : '$50.00';
+$raw_price_text    = str_replace( "\xc2\xa0", ' ', $raw_price_text );
 
 // Custom Text Labels (trimmed to 7 keys)
 $billing_heading_text      = ! empty( $settings['billing_heading_text'] ) ? esc_html( $settings['billing_heading_text'] ) : esc_html__( 'Customer information', 'wc-smart-checkout-builder' );
