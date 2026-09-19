@@ -789,6 +789,87 @@ class Elementor_Widget extends Widget_Base {
 		);
 
 		$this->end_controls_section();
+
+		// --- Section: Order Bump / Offer Products ---
+		$this->start_controls_section(
+			'section_order_bump',
+			array(
+				'label' => esc_html__( 'Order Bump (Offer Products)', 'wc-smart-checkout-builder' ),
+				'tab'   => Controls_Manager::TAB_CONTENT,
+			)
+		);
+
+		$this->add_control(
+			'enable_order_bump',
+			array(
+				'label'        => esc_html__( 'Enable Order Bump', 'wc-smart-checkout-builder' ),
+				'type'         => Controls_Manager::SWITCHER,
+				'label_on'     => esc_html__( 'Yes', 'wc-smart-checkout-builder' ),
+				'label_off'    => esc_html__( 'No', 'wc-smart-checkout-builder' ),
+				'return_value' => 'yes',
+				'default'      => 'no',
+				'description'  => esc_html__( 'Add special upsell / bump products directly inside the checkout page.', 'wc-smart-checkout-builder' ),
+			)
+		);
+
+		$this->add_control(
+			'order_bump_products',
+			array(
+				'label'       => esc_html__( 'Select Offer Products (Max 2)', 'wc-smart-checkout-builder' ),
+				'type'        => Controls_Manager::SELECT2,
+				'label_block' => true,
+				'multiple'    => true,
+				'options'     => Product_Handler::get_bump_product_options(),
+				'default'     => array(),
+				'condition'   => array(
+					'enable_order_bump' => 'yes',
+				),
+				'description' => esc_html__( 'Select up to 2 products to offer during checkout.', 'wc-smart-checkout-builder' ),
+			)
+		);
+
+		$this->add_control(
+			'order_bump_position',
+			array(
+				'label'     => esc_html__( 'Block Position', 'wc-smart-checkout-builder' ),
+				'type'      => Controls_Manager::SELECT,
+				'default'   => 'before_order_button',
+				'options'   => array(
+					'top_billing'         => esc_html__( 'Top of Customer Info / Billing Block', 'wc-smart-checkout-builder' ),
+					'inside_review'       => esc_html__( 'Inside Order Review Block', 'wc-smart-checkout-builder' ),
+					'before_order_button' => esc_html__( 'Immediately Above "Order Now" Button', 'wc-smart-checkout-builder' ),
+				),
+				'condition' => array(
+					'enable_order_bump' => 'yes',
+				),
+			)
+		);
+
+		$this->add_control(
+			'order_bump_section_title',
+			array(
+				'label'     => esc_html__( 'Section Title', 'wc-smart-checkout-builder' ),
+				'type'      => Controls_Manager::TEXT,
+				'default'   => esc_html__( 'ধামাকা অফার! সাথে এটাও যুক্ত করুন', 'wc-smart-checkout-builder' ),
+				'condition' => array(
+					'enable_order_bump' => 'yes',
+				),
+			)
+		);
+
+		$this->add_control(
+			'order_bump_action_text',
+			array(
+				'label'     => esc_html__( 'Action Button Text', 'wc-smart-checkout-builder' ),
+				'type'      => Controls_Manager::TEXT,
+				'default'   => esc_html__( 'অর্ডার যুক্ত করুন', 'wc-smart-checkout-builder' ),
+				'condition' => array(
+					'enable_order_bump' => 'yes',
+				),
+			)
+		);
+
+		$this->end_controls_section();
 	}
 
 	/**
@@ -2758,7 +2839,457 @@ class Elementor_Widget extends Widget_Base {
 		);		$this->end_controls_section();
 
 		// =========================================================================
-		// 7. Order Now Button
+		// 7. Order Bump Block
+		// =========================================================================
+		$this->start_controls_section(
+			'section_style_order_bump',
+			array(
+				'label'     => esc_html__( 'Order Bump Block', 'wc-smart-checkout-builder' ),
+				'tab'       => Controls_Manager::TAB_STYLE,
+				'condition' => array(
+					'enable_order_bump' => 'yes',
+				),
+			)
+		);
+
+		// Section Heading
+		$this->add_control(
+			'heading_order_bump_title_style',
+			array(
+				'label'     => esc_html__( 'Section Title', 'wc-smart-checkout-builder' ),
+				'type'      => Controls_Manager::HEADING,
+			)
+		);
+
+		$this->add_group_control(
+			Group_Control_Typography::get_type(),
+			array(
+				'name'     => 'order_bump_title_typography',
+				'selector' => '{{WRAPPER}} .wcsc-order-bump-heading',
+			)
+		);
+
+		$this->add_control(
+			'order_bump_title_color',
+			array(
+				'label'     => esc_html__( 'Title Color', 'wc-smart-checkout-builder' ),
+				'type'      => Controls_Manager::COLOR,
+				'selectors' => array(
+					'{{WRAPPER}} .wcsc-order-bump-heading' => 'color: {{VALUE}};',
+				),
+			)
+		);
+
+		$this->add_responsive_control(
+			'order_bump_title_spacing',
+			array(
+				'label'      => esc_html__( 'Title Spacing (Bottom)', 'wc-smart-checkout-builder' ),
+				'type'       => Controls_Manager::SLIDER,
+				'size_units' => array( 'px', 'em' ),
+				'range'      => array(
+					'px' => array(
+						'min' => 0,
+						'max' => 50,
+					),
+				),
+				'selectors'  => array(
+					'{{WRAPPER}} .wcsc-order-bump-heading' => 'margin-bottom: {{SIZE}}{{UNIT}};',
+				),
+			)
+		);
+
+		// Offer Card Container
+		$this->add_control(
+			'heading_order_bump_card_style',
+			array(
+				'label'     => esc_html__( 'Offer Card Container', 'wc-smart-checkout-builder' ),
+				'type'      => Controls_Manager::HEADING,
+				'separator' => 'before',
+			)
+		);
+
+		$this->add_responsive_control(
+			'order_bump_card_padding',
+			array(
+				'label'      => esc_html__( 'Padding', 'wc-smart-checkout-builder' ),
+				'type'       => Controls_Manager::DIMENSIONS,
+				'size_units' => array( 'px', 'em', '%' ),
+				'selectors'  => array(
+					'{{WRAPPER}} .wcsc-order-bump-card' => 'padding: {{TOP}}{{UNIT}} {{RIGHT}}{{UNIT}} {{BOTTOM}}{{UNIT}} {{LEFT}}{{UNIT}} !important;',
+				),
+			)
+		);
+
+		$this->add_responsive_control(
+			'order_bump_card_margin',
+			array(
+				'label'      => esc_html__( 'Spacing Between Cards', 'wc-smart-checkout-builder' ),
+				'type'       => Controls_Manager::SLIDER,
+				'size_units' => array( 'px' ),
+				'range'      => array(
+					'px' => array(
+						'min' => 0,
+						'max' => 40,
+					),
+				),
+				'selectors'  => array(
+					'{{WRAPPER}} .wcsc-order-bump-card' => 'margin-bottom: {{SIZE}}{{UNIT}};',
+				),
+			)
+		);
+
+		$this->add_group_control(
+			Group_Control_Border::get_type(),
+			array(
+				'name'     => 'order_bump_card_border',
+				'label'    => esc_html__( 'Card Border', 'wc-smart-checkout-builder' ),
+				'selector' => '{{WRAPPER}} .wcsc-order-bump-card',
+			)
+		);
+
+		$this->add_responsive_control(
+			'order_bump_card_border_radius',
+			array(
+				'label'      => esc_html__( 'Border Radius', 'wc-smart-checkout-builder' ),
+				'type'       => Controls_Manager::DIMENSIONS,
+				'size_units' => array( 'px', '%' ),
+				'selectors'  => array(
+					'{{WRAPPER}} .wcsc-order-bump-card' => 'border-radius: {{TOP}}{{UNIT}} {{RIGHT}}{{UNIT}} {{BOTTOM}}{{UNIT}} {{LEFT}}{{UNIT}} !important;',
+				),
+			)
+		);
+
+		$this->add_group_control(
+			Group_Control_Box_Shadow::get_type(),
+			array(
+				'name'     => 'order_bump_card_box_shadow',
+				'selector' => '{{WRAPPER}} .wcsc-order-bump-card',
+			)
+		);
+
+		// Card State Tabs (Normal & Selected)
+		$this->start_controls_tabs( 'tabs_order_bump_card' );
+
+		// Normal Tab
+		$this->start_controls_tab(
+			'tab_order_bump_card_normal',
+			array(
+				'label' => esc_html__( 'Normal', 'wc-smart-checkout-builder' ),
+			)
+		);
+
+		$this->add_control(
+			'order_bump_card_bg',
+			array(
+				'label'     => esc_html__( 'Background Color', 'wc-smart-checkout-builder' ),
+				'type'      => Controls_Manager::COLOR,
+				'selectors' => array(
+					'{{WRAPPER}} .wcsc-order-bump-card' => 'background-color: {{VALUE}};',
+				),
+			)
+		);
+
+		$this->add_control(
+			'order_bump_card_border_color_normal',
+			array(
+				'label'     => esc_html__( 'Border Color', 'wc-smart-checkout-builder' ),
+				'type'      => Controls_Manager::COLOR,
+				'selectors' => array(
+					'{{WRAPPER}} .wcsc-order-bump-card' => 'border-color: {{VALUE}};',
+				),
+			)
+		);
+
+		$this->end_controls_tab();
+
+		// Selected / Active Tab
+		$this->start_controls_tab(
+			'tab_order_bump_card_selected',
+			array(
+				'label' => esc_html__( 'Selected', 'wc-smart-checkout-builder' ),
+			)
+		);
+
+		$this->add_control(
+			'order_bump_card_selected_bg',
+			array(
+				'label'     => esc_html__( 'Background Color', 'wc-smart-checkout-builder' ),
+				'type'      => Controls_Manager::COLOR,
+				'selectors' => array(
+					'{{WRAPPER}} .wcsc-order-bump-card.is-selected' => 'background-color: {{VALUE}} !important;',
+				),
+			)
+		);
+
+		$this->add_control(
+			'order_bump_card_selected_border_color',
+			array(
+				'label'     => esc_html__( 'Border Color', 'wc-smart-checkout-builder' ),
+				'type'      => Controls_Manager::COLOR,
+				'selectors' => array(
+					'{{WRAPPER}} .wcsc-order-bump-card.is-selected' => 'border-color: {{VALUE}} !important;',
+				),
+			)
+		);
+
+		$this->add_group_control(
+			Group_Control_Box_Shadow::get_type(),
+			array(
+				'name'     => 'order_bump_card_selected_box_shadow',
+				'selector' => '{{WRAPPER}} .wcsc-order-bump-card.is-selected',
+			)
+		);
+
+		$this->end_controls_tab();
+		$this->end_controls_tabs();
+
+		// Product Typography & Colors
+		$this->add_control(
+			'heading_order_bump_product_style',
+			array(
+				'label'     => esc_html__( 'Product Title & Price', 'wc-smart-checkout-builder' ),
+				'type'      => Controls_Manager::HEADING,
+				'separator' => 'before',
+			)
+		);
+
+		$this->add_group_control(
+			Group_Control_Typography::get_type(),
+			array(
+				'name'     => 'order_bump_product_title_typography',
+				'selector' => '{{WRAPPER}} .wcsc-order-bump-title',
+			)
+		);
+
+		$this->add_control(
+			'order_bump_product_title_color',
+			array(
+				'label'     => esc_html__( 'Title Color', 'wc-smart-checkout-builder' ),
+				'type'      => Controls_Manager::COLOR,
+				'selectors' => array(
+					'{{WRAPPER}} .wcsc-order-bump-title' => 'color: {{VALUE}};',
+				),
+			)
+		);
+
+		$this->add_group_control(
+			Group_Control_Typography::get_type(),
+			array(
+				'name'     => 'order_bump_product_price_typography',
+				'selector' => '{{WRAPPER}} .wcsc-order-bump-price, {{WRAPPER}} .wcsc-order-bump-price .amount',
+			)
+		);
+
+		$this->add_control(
+			'order_bump_product_price_color',
+			array(
+				'label'     => esc_html__( 'Price Color', 'wc-smart-checkout-builder' ),
+				'type'      => Controls_Manager::COLOR,
+				'selectors' => array(
+					'{{WRAPPER}} .wcsc-order-bump-price, {{WRAPPER}} .wcsc-order-bump-price ins .amount' => 'color: {{VALUE}};',
+				),
+			)
+		);
+
+		$this->add_control(
+			'order_bump_product_del_price_color',
+			array(
+				'label'     => esc_html__( 'Original / Sale Strikethrough Color', 'wc-smart-checkout-builder' ),
+				'type'      => Controls_Manager::COLOR,
+				'selectors' => array(
+					'{{WRAPPER}} .wcsc-order-bump-price del, {{WRAPPER}} .wcsc-order-bump-price del .amount' => 'color: {{VALUE}};',
+				),
+			)
+		);
+
+		// Button Styling
+		$this->add_control(
+			'heading_order_bump_btn_style',
+			array(
+				'label'     => esc_html__( '"Add to Order" Button', 'wc-smart-checkout-builder' ),
+				'type'      => Controls_Manager::HEADING,
+				'separator' => 'before',
+			)
+		);
+
+		$this->add_group_control(
+			Group_Control_Typography::get_type(),
+			array(
+				'name'     => 'order_bump_btn_typography',
+				'selector' => '{{WRAPPER}} .wcsc-order-bump-btn',
+			)
+		);
+
+		$this->add_responsive_control(
+			'order_bump_btn_padding',
+			array(
+				'label'      => esc_html__( 'Button Padding', 'wc-smart-checkout-builder' ),
+				'type'       => Controls_Manager::DIMENSIONS,
+				'size_units' => array( 'px', 'em' ),
+				'selectors'  => array(
+					'{{WRAPPER}} .wcsc-order-bump-btn' => 'padding: {{TOP}}{{UNIT}} {{RIGHT}}{{UNIT}} {{BOTTOM}}{{UNIT}} {{LEFT}}{{UNIT}} !important;',
+				),
+			)
+		);
+
+		$this->add_responsive_control(
+			'order_bump_btn_border_radius',
+			array(
+				'label'      => esc_html__( 'Border Radius', 'wc-smart-checkout-builder' ),
+				'type'       => Controls_Manager::DIMENSIONS,
+				'size_units' => array( 'px', '%' ),
+				'selectors'  => array(
+					'{{WRAPPER}} .wcsc-order-bump-btn' => 'border-radius: {{TOP}}{{UNIT}} {{RIGHT}}{{UNIT}} {{BOTTOM}}{{UNIT}} {{LEFT}}{{UNIT}} !important;',
+				),
+			)
+		);
+
+		$this->add_group_control(
+			Group_Control_Border::get_type(),
+			array(
+				'name'     => 'order_bump_btn_border',
+				'label'    => esc_html__( 'Button Border', 'wc-smart-checkout-builder' ),
+				'selector' => '{{WRAPPER}} .wcsc-order-bump-btn',
+			)
+		);
+
+		// Button State Tabs (Normal / Hover / Active)
+		$this->start_controls_tabs( 'tabs_order_bump_btn' );
+
+		// Normal Tab
+		$this->start_controls_tab(
+			'tab_order_bump_btn_normal',
+			array(
+				'label' => esc_html__( 'Normal', 'wc-smart-checkout-builder' ),
+			)
+		);
+
+		$this->add_control(
+			'order_bump_btn_color',
+			array(
+				'label'     => esc_html__( 'Text Color', 'wc-smart-checkout-builder' ),
+				'type'      => Controls_Manager::COLOR,
+				'selectors' => array(
+					'{{WRAPPER}} .wcsc-order-bump-btn' => 'color: {{VALUE}};',
+				),
+			)
+		);
+
+		$this->add_control(
+			'order_bump_btn_bg',
+			array(
+				'label'     => esc_html__( 'Background Color', 'wc-smart-checkout-builder' ),
+				'type'      => Controls_Manager::COLOR,
+				'selectors' => array(
+					'{{WRAPPER}} .wcsc-order-bump-btn' => 'background-color: {{VALUE}};',
+				),
+			)
+		);
+
+		$this->add_control(
+			'order_bump_btn_border_color',
+			array(
+				'label'     => esc_html__( 'Border Color', 'wc-smart-checkout-builder' ),
+				'type'      => Controls_Manager::COLOR,
+				'selectors' => array(
+					'{{WRAPPER}} .wcsc-order-bump-btn' => 'border-color: {{VALUE}};',
+				),
+			)
+		);
+
+		$this->end_controls_tab();
+
+		// Hover Tab
+		$this->start_controls_tab(
+			'tab_order_bump_btn_hover',
+			array(
+				'label' => esc_html__( 'Hover', 'wc-smart-checkout-builder' ),
+			)
+		);
+
+		$this->add_control(
+			'order_bump_btn_hover_color',
+			array(
+				'label'     => esc_html__( 'Text Color', 'wc-smart-checkout-builder' ),
+				'type'      => Controls_Manager::COLOR,
+				'selectors' => array(
+					'{{WRAPPER}} .wcsc-order-bump-btn:hover' => 'color: {{VALUE}} !important;',
+				),
+			)
+		);
+
+		$this->add_control(
+			'order_bump_btn_hover_bg',
+			array(
+				'label'     => esc_html__( 'Background Color', 'wc-smart-checkout-builder' ),
+				'type'      => Controls_Manager::COLOR,
+				'selectors' => array(
+					'{{WRAPPER}} .wcsc-order-bump-btn:hover' => 'background-color: {{VALUE}} !important;',
+				),
+			)
+		);
+
+		$this->add_control(
+			'order_bump_btn_hover_border_color',
+			array(
+				'label'     => esc_html__( 'Border Color', 'wc-smart-checkout-builder' ),
+				'type'      => Controls_Manager::COLOR,
+				'selectors' => array(
+					'{{WRAPPER}} .wcsc-order-bump-btn:hover' => 'border-color: {{VALUE}} !important;',
+				),
+			)
+		);
+
+		$this->end_controls_tab();
+
+		// Active / Added Tab
+		$this->start_controls_tab(
+			'tab_order_bump_btn_active',
+			array(
+				'label' => esc_html__( 'Active / Added', 'wc-smart-checkout-builder' ),
+			)
+		);
+
+		$this->add_control(
+			'order_bump_btn_active_color',
+			array(
+				'label'     => esc_html__( 'Text Color', 'wc-smart-checkout-builder' ),
+				'type'      => Controls_Manager::COLOR,
+				'selectors' => array(
+					'{{WRAPPER}} .wcsc-order-bump-btn.is-active' => 'color: {{VALUE}} !important;',
+				),
+			)
+		);
+
+		$this->add_control(
+			'order_bump_btn_active_bg',
+			array(
+				'label'     => esc_html__( 'Background Color', 'wc-smart-checkout-builder' ),
+				'type'      => Controls_Manager::COLOR,
+				'selectors' => array(
+					'{{WRAPPER}} .wcsc-order-bump-btn.is-active' => 'background-color: {{VALUE}} !important;',
+				),
+			)
+		);
+
+		$this->add_control(
+			'order_bump_btn_active_border_color',
+			array(
+				'label'     => esc_html__( 'Border Color', 'wc-smart-checkout-builder' ),
+				'type'      => Controls_Manager::COLOR,
+				'selectors' => array(
+					'{{WRAPPER}} .wcsc-order-bump-btn.is-active' => 'border-color: {{VALUE}} !important;',
+				),
+			)
+		);
+
+		$this->end_controls_tab();
+		$this->end_controls_tabs();
+
+		$this->end_controls_section();
+
+		// =========================================================================
+		// 8. Order Now Button
 		// =========================================================================
 		$this->start_controls_section(
 			'section_style_order_button',
@@ -3045,7 +3576,7 @@ class Elementor_Widget extends Widget_Base {
 		$this->end_controls_section();
 
 		// =========================================================================
-		// 8. Floating Button
+		// 9. Floating Button
 		// =========================================================================
 		$this->start_controls_section(
 			'section_style_mobile_sticky_button',

@@ -127,12 +127,25 @@
 			});
 
 			// Listen to WooCommerce checkout updates
-			$(document.body).on('updated_checkout', function () {
+			$(document.body).on('updated_checkout', function (event, data) {
 				self.hideLoading();
 				self.applyCustomTexts();
 				self.styleShippingMethods();
 				self.stylePaymentMethods();
-				self.syncOrderButtonPrice();
+
+				// Extract updated total from response fragments if available
+				var priceText = '';
+				if (data && data.fragments) {
+					var reviewHtml = data.fragments['.woocommerce-checkout-review-order-table'] || data.fragments['div.woocommerce-checkout-review-order-table'];
+					if (reviewHtml) {
+						var $frag = $('<div>').html(reviewHtml);
+						var $fragTotal = $frag.find('tr.order-total .woocommerce-Price-amount, tr.order-total td strong, tr.order-total td, .amount');
+						if ($fragTotal.length) {
+							priceText = $fragTotal.first().text() || $fragTotal.first().html();
+						}
+					}
+				}
+				self.syncOrderButtonPrice(priceText);
 
 				// Suppress any WooCommerce error notices injected during AJAX
 				$('.woocommerce-NoticeGroup-checkout, .woocommerce-NoticeGroup, .woocommerce-error, .checkout-inline-error-message').hide().remove();
@@ -165,19 +178,50 @@
 			// Listen for WooCommerce variation events
 			$(document.body).on('found_variation', function (event, variation) {
 				if (variation) {
-					if (variation.display_price) {
-						var symbol = '';
-						var $symbolEl = self.$container.find('.woocommerce-Price-currencySymbol');
-						if ($symbolEl.length) {
-							symbol = self.decodeHtmlEntities($symbolEl.first().text() || $symbolEl.first().html());
-						}
-						self.syncOrderButtonPrice(symbol + ' ' + variation.display_price);
-					}
+					self.debouncedSync();
 				}
 			});
 
 			$(document.body).on('reset_data', function () {
-				self.syncOrderButtonPrice();
+				self.debouncedSync();
+			});
+
+			// Order Bump Card & Button Click / Toggle
+			this.$container.on('click', '.wcsc-order-bump-card', function (e) {
+				if ($(e.target).is('input[type="checkbox"]') || $(e.target).is('label') || $(e.target).closest('.wcsc-order-bump-btn').length) {
+					return;
+				}
+				e.preventDefault();
+				var $card = $(this);
+				var $chk = $card.find('.wcsc-order-bump-checkbox');
+				var nextState = !$chk.prop('checked');
+				$chk.prop('checked', nextState).trigger('change');
+			});
+
+			this.$container.on('change', '.wcsc-order-bump-checkbox', function (e) {
+				e.stopPropagation();
+				var $chk = $(this);
+				var productId = $chk.data('product-id');
+				var isAdding = $chk.is(':checked');
+				var $card = $chk.closest('.wcsc-order-bump-card');
+				var $btn = $card.find('.wcsc-order-bump-btn');
+				var actionText = $card.data('action-text') || 'অর্ডার যুক্ত করুন';
+
+				$card.toggleClass('is-selected', isAdding);
+				$btn.toggleClass('is-active', isAdding);
+				$btn.find('.wcsc-order-bump-btn-icon').text(isAdding ? '✓' : '+');
+				$btn.find('.wcsc-order-bump-btn-text').text(isAdding ? 'যুক্ত হয়েছে' : actionText);
+
+				self.toggleOrderBump(productId, isAdding ? 'add' : 'remove');
+			});
+
+			this.$container.on('click', '.wcsc-order-bump-btn', function (e) {
+				e.preventDefault();
+				e.stopPropagation();
+				var $card = $(this).closest('.wcsc-order-bump-card');
+				var $chk = $card.find('.wcsc-order-bump-checkbox');
+				var nextState = !$chk.prop('checked');
+				$chk.prop('checked', nextState).trigger('change');
 			});
 
 			// Make shipping cards clickable
@@ -622,9 +666,24 @@
 		updateButtonPrice: function (priceText) {
 			if (!priceText) return;
 			var cleanText = this.decodeHtmlEntities(priceText);
-			var $btnPrice = this.$container.find('.wcsc-btn-price, #wcsc-mobile-sticky-bar .wcsc-btn-price');
+			cleanText = this.decodeHtmlEntities(cleanText);
+
+			var $btnPrice = $(document).find('.wcsc-btn-price, .wcas-block-order-button .wcsc-btn-price, #wcsc-mobile-sticky-bar .wcsc-btn-price');
 			if ($btnPrice.length) {
 				$btnPrice.text(cleanText);
+			} else {
+				// Fallback: search for {total_price} in button text
+				var $buttons = $(document).find('.wcas-block-order-button button, .wcsc-order-now-btn, #place_order, .wcsc-mobile-sticky-btn');
+				$buttons.each(function () {
+					var $btn = $(this);
+					var $btnText = $btn.find('.wcsc-btn-text, .wcsc-sticky-text');
+					if ($btnText.length) {
+						var html = $btnText.html() || '';
+						if (html.indexOf('{total_price}') !== -1) {
+							$btnText.html(html.replace('{total_price}', '<span class="wcsc-btn-price-wrap"><span class="wcsc-btn-price">' + cleanText + '</span></span>'));
+						}
+					}
+				});
 			}
 		},
 
@@ -634,7 +693,7 @@
 				priceText = customPrice;
 			} else {
 				// Search for latest total in WooCommerce order review table
-				var $orderTotal = this.$container.find('tr.order-total .woocommerce-Price-amount, tr.order-total td strong, tr.order-total td, .woocommerce-checkout-review-order-table tr.order-total .amount');
+				var $orderTotal = $('.wcas-checkout-wrapper tr.order-total .woocommerce-Price-amount, .woocommerce-checkout-review-order-table tr.order-total .woocommerce-Price-amount, tr.order-total .woocommerce-Price-amount, tr.order-total td strong, tr.order-total td');
 				if ($orderTotal.length) {
 					priceText = $orderTotal.first().text() || $orderTotal.first().html();
 				}
@@ -643,6 +702,52 @@
 			if (priceText) {
 				this.updateButtonPrice(priceText);
 			}
+		},
+
+		getSelectedBumpProductIds: function () {
+			var ids = [];
+			this.$container.find('.wcsc-order-bump-checkbox:checked').each(function () {
+				var pid = parseInt($(this).data('product-id'), 10);
+				if (pid > 0 && ids.indexOf(pid) === -1) {
+					ids.push(pid);
+				}
+			});
+			return ids;
+		},
+
+		toggleOrderBump: function (productId, actionType) {
+			if (!window.wcsc_params || !window.wcsc_params.ajax_url) {
+				return;
+			}
+			var self = this;
+			self.showLoading();
+
+			$.ajax({
+				url: window.wcsc_params.ajax_url,
+				type: 'POST',
+				data: {
+					action: 'wcsc_toggle_order_bump',
+					nonce: window.wcsc_params.nonce,
+					product_id: productId,
+					action_type: actionType
+				},
+				dataType: 'json',
+				success: function (res) {
+					if (res && res.success) {
+						if (res.data && res.data.currency_text) {
+							self.updateButtonPrice(res.data.currency_text);
+						}
+						// Refresh native WooCommerce checkout fragments
+						$(document.body).trigger('update_checkout');
+					} else {
+						self.hideLoading();
+					}
+				},
+				error: function (xhr, status, error) {
+					console.warn('WCSC Order Bump Error:', error);
+					self.hideLoading();
+				}
+			});
 		},
 
 		debouncedSync: function () {
@@ -672,7 +777,8 @@
 				product_id: this.productId,
 				variation_id: this.currentVariationId,
 				quantity: qty,
-				attributes: selectedAttrs
+				attributes: selectedAttrs,
+				bump_product_ids: this.getSelectedBumpProductIds()
 			};
 
 			$.ajax({

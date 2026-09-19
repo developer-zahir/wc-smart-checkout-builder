@@ -175,11 +175,97 @@ if ( '1_column' === $checkout_layout ) {
 				</div>
 				<?php
 			};
-			?>
 
-			<?php
-			// Render blocks helpers
-			$render_order_button_html = function () use ( $anim_class, $order_button_text, $icon_align, $icon_html ) {
+			// Render Order Bump block helper for editor preview
+			$render_order_bump_html = function ( $target_pos ) use ( $settings ) {
+				$enabled = ! empty( $settings['enable_order_bump'] ) && 'yes' === $settings['enable_order_bump'];
+				if ( ! $enabled ) {
+					return;
+				}
+				$pos = ! empty( $settings['order_bump_position'] ) ? $settings['order_bump_position'] : 'before_order_button';
+				if ( $pos !== $target_pos ) {
+					return;
+				}
+
+				$section_title = ! empty( $settings['order_bump_section_title'] ) ? $settings['order_bump_section_title'] : __( 'ধামাকা অফার! সাথে এটাও যুক্ত করুন', 'wc-smart-checkout-builder' );
+				$action_text   = ! empty( $settings['order_bump_action_text'] ) ? $settings['order_bump_action_text'] : __( 'অর্ডার যুক্ত করুন', 'wc-smart-checkout-builder' );
+
+				$product_ids = ! empty( $settings['order_bump_products'] ) ? (array) $settings['order_bump_products'] : array();
+				$product_ids = array_slice( array_filter( array_map( 'absint', $product_ids ) ), 0, 2 );
+
+				$bump_items = array();
+				if ( ! empty( $product_ids ) ) {
+					foreach ( $product_ids as $pid ) {
+						$bp = wc_get_product( $pid );
+						if ( $bp ) {
+							$img_url = wp_get_attachment_image_url( $bp->get_image_id(), 'thumbnail' );
+							if ( ! $img_url && function_exists( 'wc_placeholder_img_src' ) ) {
+								$img_url = wc_placeholder_img_src( 'thumbnail' );
+							}
+							$bump_items[] = array(
+								'id'         => $pid,
+								'name'       => $bp->get_name(),
+								'price_html' => $bp->get_price_html(),
+								'image'      => $img_url,
+							);
+						}
+					}
+				}
+
+				// Fallback sample items in editor preview if no products selected yet
+				if ( empty( $bump_items ) ) {
+					$bump_items = array(
+						array(
+							'id'         => 9991,
+							'name'       => esc_html__( 'স্পেশাল কম্বো অফার প্রোডাক্ট ১', 'wc-smart-checkout-builder' ),
+							'price_html' => '<del>' . wc_price( 150 ) . '</del> <ins>' . wc_price( 99 ) . '</ins>',
+							'image'      => function_exists( 'wc_placeholder_img_src' ) ? wc_placeholder_img_src( 'thumbnail' ) : '',
+						),
+						array(
+							'id'         => 9992,
+							'name'       => esc_html__( 'স্পেশাল প্রিমিয়াম অফার প্রোডাক্ট ২', 'wc-smart-checkout-builder' ),
+							'price_html' => '<del>' . wc_price( 250 ) . '</del> <ins>' . wc_price( 199 ) . '</ins>',
+							'image'      => function_exists( 'wc_placeholder_img_src' ) ? wc_placeholder_img_src( 'thumbnail' ) : '',
+						),
+					);
+				}
+				?>
+				<div class="wcas-block wcsc-order-bump-block" data-position="<?php echo esc_attr( $pos ); ?>">
+					<?php if ( ! empty( $section_title ) ) : ?>
+						<h4 class="wcsc-order-bump-heading"><?php echo esc_html( $section_title ); ?></h4>
+					<?php endif; ?>
+					<div class="wcsc-order-bump-list">
+						<?php foreach ( $bump_items as $index => $item ) : ?>
+							<div class="wcsc-order-bump-card<?php echo 0 === $index ? ' is-selected' : ''; ?>" data-product-id="<?php echo esc_attr( $item['id'] ); ?>">
+								<div class="wcsc-order-bump-check-wrap">
+									<input type="checkbox" class="wcsc-order-bump-checkbox" id="wcsc-bump-preview-<?php echo esc_attr( $item['id'] ); ?>" <?php checked( 0 === $index, true ); ?> />
+									<label for="wcsc-bump-preview-<?php echo esc_attr( $item['id'] ); ?>" class="wcsc-order-bump-checkbox-label"></label>
+								</div>
+								<?php if ( ! empty( $item['image'] ) ) : ?>
+									<div class="wcsc-order-bump-thumb-wrap">
+										<img src="<?php echo esc_url( $item['image'] ); ?>" alt="<?php echo esc_attr( $item['name'] ); ?>" class="wcsc-order-bump-thumb" />
+									</div>
+								<?php endif; ?>
+								<div class="wcsc-order-bump-details">
+									<div class="wcsc-order-bump-title"><?php echo esc_html( $item['name'] ); ?></div>
+									<div class="wcsc-order-bump-price"><?php echo wp_kses_post( $item['price_html'] ); ?></div>
+								</div>
+								<div class="wcsc-order-bump-action">
+									<button type="button" class="wcsc-order-bump-btn<?php echo 0 === $index ? ' is-active' : ''; ?>">
+										<span class="wcsc-order-bump-btn-icon"><?php echo 0 === $index ? '✓' : '+'; ?></span>
+										<span class="wcsc-order-bump-btn-text"><?php echo 0 === $index ? esc_html__( 'যুক্ত হয়েছে', 'wc-smart-checkout-builder' ) : esc_html( $action_text ); ?></span>
+									</button>
+								</div>
+							</div>
+						<?php endforeach; ?>
+					</div>
+				</div>
+				<?php
+			};
+
+			// Render Order Button markup helper
+			$render_order_button_html = function () use ( $render_order_bump_html, $anim_class, $order_button_text, $icon_align, $icon_html ) {
+				$render_order_bump_html( 'before_order_button' );
 				?>
 				<div class="wcas-block wcas-block-order-button">
 					<div class="form-row place-order">
@@ -201,7 +287,8 @@ if ( '1_column' === $checkout_layout ) {
 				<?php
 			};
 
-			$render_customer_info_html = function () use ( $billing_heading_text ) {
+			$render_customer_info_html = function () use ( $render_order_bump_html, $billing_heading_text ) {
+				$render_order_bump_html( 'top_billing' );
 				?>
 				<div class="wcas-block wcas-block-checkout-form">
 					<h3 class="wcsc-section-title wcas-block-title"><?php echo esc_html( $billing_heading_text ); ?></h3>
@@ -356,7 +443,7 @@ if ( '1_column' === $checkout_layout ) {
 				<?php
 			};
 
-			$render_order_review_html = function () use ( $order_review_heading_text, $product_label_text, $subtotal_label_text, $settings, $product, $product_name, $price_html, $default_shipping_cost, $preview_total, $total_label_text ) {
+			$render_order_review_html = function () use ( $render_order_bump_html, $order_review_heading_text, $product_label_text, $subtotal_label_text, $settings, $product, $product_name, $price_html, $default_shipping_cost, $preview_total, $total_label_text ) {
 				?>
 				<div class="wcas-block wcas-block-order-review">
 					<h3 id="order_review_heading" class="wcsc-section-title wcas-block-title"><?php echo esc_html( $order_review_heading_text ); ?></h3>
@@ -449,6 +536,7 @@ if ( '1_column' === $checkout_layout ) {
 							</tfoot>
 						</table>
 					</div>
+					<?php $render_order_bump_html( 'inside_review' ); ?>
 				</div>
 				<?php
 			};

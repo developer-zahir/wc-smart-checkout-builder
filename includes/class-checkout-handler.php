@@ -84,6 +84,10 @@ class Checkout_Handler {
 		add_action( 'wp_ajax_wcsc_sync_cart', array( __CLASS__, 'ajax_sync_cart' ) );
 		add_action( 'wp_ajax_nopriv_wcsc_sync_cart', array( __CLASS__, 'ajax_sync_cart' ) );
 
+		// AJAX endpoints for Order Bump toggle.
+		add_action( 'wp_ajax_wcsc_toggle_order_bump', array( __CLASS__, 'ajax_toggle_order_bump' ) );
+		add_action( 'wp_ajax_nopriv_wcsc_toggle_order_bump', array( __CLASS__, 'ajax_toggle_order_bump' ) );
+
 		add_action( 'woocommerce_after_checkout_validation', array( __CLASS__, 'validate_bd_phone_number' ), 10, 2 );
 	}
 
@@ -560,6 +564,7 @@ class Checkout_Handler {
 	 * Block 1 — Checkout Form (native billing + shipping fields).
 	 */
 	private static function render_checkout_form_block() {
+		self::render_order_bump_block( 'top_billing' );
 		?>
 		<div class="wcas-block wcas-block-checkout-form">
 			<h3 class="wcsc-section-title wcas-block-title"><?php echo esc_html( self::get_billing_label() ); ?></h3>
@@ -975,6 +980,7 @@ class Checkout_Handler {
 			<div id="order_review" class="woocommerce-checkout-review-order">
 				<?php echo self::render_order_review_table_html(); // phpcs:ignore WordPress.Security.EscapeOutput.OutputNotEscaped ?>
 			</div>
+			<?php self::render_order_bump_block( 'inside_review' ); ?>
 		</div>
 		<?php
 	}
@@ -1038,6 +1044,7 @@ class Checkout_Handler {
 	 * here so submission keeps working exactly as WooCommerce expects.
 	 */
 	private static function render_order_button_block() {
+		self::render_order_bump_block( 'before_order_button' );
 		$settings  = self::$active_widget_settings;
 		$btn_text  = ! empty( $settings['order_button_text'] ) ? sanitize_text_field( $settings['order_button_text'] ) : __( 'Order Now', 'wc-smart-checkout-builder' );
 		$btn_value = wp_strip_all_tags( $btn_text );
@@ -1231,6 +1238,86 @@ class Checkout_Handler {
 	}
 
 	/**
+	 * Render the Order Bump / Offer Products block if enabled for the specified position.
+	 *
+	 * @param string $target_position 'top_billing', 'inside_review', or 'before_order_button'
+	 */
+	public static function render_order_bump_block( $target_position = '' ) {
+		$settings = self::$active_widget_settings;
+		if ( empty( $settings ) || empty( $settings['enable_order_bump'] ) || 'yes' !== $settings['enable_order_bump'] ) {
+			return;
+		}
+
+		$configured_pos = ! empty( $settings['order_bump_position'] ) ? $settings['order_bump_position'] : 'before_order_button';
+		if ( $configured_pos !== $target_position ) {
+			return;
+		}
+
+		$product_ids = ! empty( $settings['order_bump_products'] ) ? (array) $settings['order_bump_products'] : array();
+		$product_ids = array_slice( array_filter( array_map( 'absint', $product_ids ) ), 0, 2 );
+
+		if ( empty( $product_ids ) ) {
+			return;
+		}
+
+		$section_title = ! empty( $settings['order_bump_section_title'] ) ? $settings['order_bump_section_title'] : __( 'ধামাকা অফার! সাথে এটাও যুক্ত করুন', 'wc-smart-checkout-builder' );
+		$action_text   = ! empty( $settings['order_bump_action_text'] ) ? $settings['order_bump_action_text'] : __( 'অর্ডার যুক্ত করুন', 'wc-smart-checkout-builder' );
+
+		// Get cart product IDs
+		$cart_product_ids = array();
+		if ( function_exists( 'WC' ) && WC()->cart ) {
+			foreach ( WC()->cart->get_cart() as $cart_item ) {
+				$cart_product_ids[] = absint( $cart_item['product_id'] );
+			}
+		}
+
+		?>
+		<div class="wcas-block wcsc-order-bump-block" data-position="<?php echo esc_attr( $configured_pos ); ?>">
+			<?php if ( ! empty( $section_title ) ) : ?>
+				<h4 class="wcsc-order-bump-heading"><?php echo esc_html( $section_title ); ?></h4>
+			<?php endif; ?>
+			<div class="wcsc-order-bump-list">
+				<?php
+				foreach ( $product_ids as $pid ) :
+					$bump_product = wc_get_product( $pid );
+					if ( ! $bump_product || ! $bump_product->is_purchasable() ) {
+						continue;
+					}
+					$is_in_cart = in_array( $pid, $cart_product_ids, true );
+					$img_url    = wp_get_attachment_image_url( $bump_product->get_image_id(), 'thumbnail' );
+					if ( ! $img_url && function_exists( 'wc_placeholder_img_src' ) ) {
+						$img_url = wc_placeholder_img_src( 'thumbnail' );
+					}
+					$price_html = $bump_product->get_price_html();
+					?>
+					<div class="wcsc-order-bump-card<?php echo $is_in_cart ? ' is-selected' : ''; ?>" data-product-id="<?php echo esc_attr( $pid ); ?>" data-action-text="<?php echo esc_attr( $action_text ); ?>">
+						<div class="wcsc-order-bump-check-wrap">
+							<input type="checkbox" class="wcsc-order-bump-checkbox" id="wcsc-bump-<?php echo esc_attr( $pid ); ?>" data-product-id="<?php echo esc_attr( $pid ); ?>" <?php checked( $is_in_cart, true ); ?> />
+							<label for="wcsc-bump-<?php echo esc_attr( $pid ); ?>" class="wcsc-order-bump-checkbox-label"></label>
+						</div>
+						<?php if ( $img_url ) : ?>
+							<div class="wcsc-order-bump-thumb-wrap">
+								<img src="<?php echo esc_url( $img_url ); ?>" alt="<?php echo esc_attr( $bump_product->get_name() ); ?>" class="wcsc-order-bump-thumb" />
+							</div>
+						<?php endif; ?>
+						<div class="wcsc-order-bump-details">
+							<div class="wcsc-order-bump-title"><?php echo esc_html( $bump_product->get_name() ); ?></div>
+							<div class="wcsc-order-bump-price"><?php echo wp_kses_post( $price_html ); ?></div>
+						</div>
+						<div class="wcsc-order-bump-action">
+							<button type="button" class="wcsc-order-bump-btn<?php echo $is_in_cart ? ' is-active' : ''; ?>" data-product-id="<?php echo esc_attr( $pid ); ?>">
+								<span class="wcsc-order-bump-btn-icon"><?php echo $is_in_cart ? '✓' : '+'; ?></span>
+								<span class="wcsc-order-bump-btn-text"><?php echo $is_in_cart ? esc_html__( 'যুক্ত হয়েছে', 'wc-smart-checkout-builder' ) : esc_html( $action_text ); ?></span>
+							</button>
+						</div>
+					</div>
+				<?php endforeach; ?>
+			</div>
+		</div>
+		<?php
+	}
+
+	/**
 	 * AJAX handler to synchronize cart when customer selects a variation or quantity.
 	 */
 	public static function ajax_sync_cart() {
@@ -1258,7 +1345,20 @@ class Checkout_Handler {
 		// Add item to cart.
 		$cart->add_to_cart( $product_id, $quantity, $variation_id, $attributes );
 
+		// Preserve selected order bump products if provided
+		if ( ! empty( $_POST['bump_product_ids'] ) && is_array( $_POST['bump_product_ids'] ) ) {
+			foreach ( $_POST['bump_product_ids'] as $bump_id ) {
+				$bump_id = absint( $bump_id );
+				if ( $bump_id > 0 && $bump_id !== $product_id ) {
+					$cart->add_to_cart( $bump_id, 1 );
+				}
+			}
+		}
+
 		$cart->calculate_totals();
+
+		$clean_total = html_entity_decode( wp_strip_all_tags( $cart->get_total() ), ENT_QUOTES, 'UTF-8' );
+		$clean_total = str_replace( "\xc2\xa0", ' ', $clean_total );
 
 		wp_send_json_success( array(
 			'cart_hash'     => $cart->get_cart_hash(),
@@ -1266,7 +1366,62 @@ class Checkout_Handler {
 			'subtotal'      => $cart->get_cart_subtotal(),
 			'total'         => $cart->get_total(),
 			'raw_total'     => $cart->get_total( 'edit' ),
-			'currency_text' => str_replace( "\xc2\xa0", ' ', html_entity_decode( wp_strip_all_tags( $cart->get_total() ), ENT_QUOTES, 'UTF-8' ) ),
+			'currency_text' => $clean_total,
+		) );
+	}
+
+	/**
+	 * AJAX handler to toggle adding/removing an Order Bump product.
+	 */
+	public static function ajax_toggle_order_bump() {
+		check_ajax_referer( 'wcsc_checkout_nonce', 'nonce' );
+
+		if ( ! function_exists( 'WC' ) || ! WC()->cart ) {
+			wp_send_json_error( array( 'message' => __( 'WooCommerce cart unavailable.', 'wc-smart-checkout-builder' ) ) );
+		}
+
+		$product_id  = isset( $_POST['product_id'] ) ? absint( $_POST['product_id'] ) : 0;
+		$action_type = isset( $_POST['action_type'] ) ? sanitize_text_field( $_POST['action_type'] ) : 'add';
+
+		$product = wc_get_product( $product_id );
+		if ( ! $product || ! $product->is_purchasable() ) {
+			wp_send_json_error( array( 'message' => __( 'Selected offer product is not purchasable.', 'wc-smart-checkout-builder' ) ) );
+		}
+
+		$cart = WC()->cart;
+		$found_cart_item_key = '';
+
+		foreach ( $cart->get_cart() as $key => $item ) {
+			if ( absint( $item['product_id'] ) === $product_id ) {
+				$found_cart_item_key = $key;
+				break;
+			}
+		}
+
+		if ( 'add' === $action_type ) {
+			if ( ! $found_cart_item_key ) {
+				$cart->add_to_cart( $product_id, 1 );
+			}
+		} else {
+			if ( $found_cart_item_key ) {
+				$cart->remove_cart_item( $found_cart_item_key );
+			}
+		}
+
+		$cart->calculate_totals();
+
+		$clean_total = html_entity_decode( wp_strip_all_tags( $cart->get_total() ), ENT_QUOTES, 'UTF-8' );
+		$clean_total = str_replace( "\xc2\xa0", ' ', $clean_total );
+
+		wp_send_json_success( array(
+			'action_type'   => $action_type,
+			'product_id'    => $product_id,
+			'cart_hash'     => $cart->get_cart_hash(),
+			'item_count'    => $cart->get_cart_contents_count(),
+			'subtotal'      => $cart->get_cart_subtotal(),
+			'total'         => $cart->get_total(),
+			'raw_total'     => $cart->get_total( 'edit' ),
+			'currency_text' => $clean_total,
 		) );
 	}
 

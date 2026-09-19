@@ -170,4 +170,34 @@ class Product_Handler {
 
 		return $options;
 	}
+
+	/**
+	 * Get WooCommerce products list formatted for multi-select Order Bump controls.
+	 *
+	 * @return array
+	 */
+	public static function get_bump_product_options() {
+		$options  = array();
+		$products = wc_get_products( array(
+			'limit'   => 100,
+			'status'  => 'publish',
+			'orderby' => 'date',
+			'order'   => 'DESC',
+		) );
+
+		foreach ( $products as $product ) {
+			if ( ! $product || ! is_a( $product, 'WC_Product' ) ) {
+				continue;
+			}
+			$price_str = $product->get_price() ? ' — ' . wp_strip_all_tags( wc_price( $product->get_price() ) ) : '';
+			$options[ (string) $product->get_id() ] = sprintf(
+				'#%1$d - %2$s%3$s',
+				$product->get_id(),
+				$product->get_name(),
+				$price_str
+			);
+		}
+
+		return $options;
+	}
 }
