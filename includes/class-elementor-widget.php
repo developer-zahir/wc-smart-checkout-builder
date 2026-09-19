@@ -3252,7 +3252,7 @@ class Elementor_Widget extends Widget_Base {
 				'range'      => array(
 					'px' => array(
 						'min' => 20,
-						'max' => 300,
+						'max' => 500,
 					),
 					'%'  => array(
 						'min' => 10,
@@ -3260,8 +3260,8 @@ class Elementor_Widget extends Widget_Base {
 					),
 				),
 				'selectors'  => array(
-					'{{WRAPPER}} .wcsc-order-bump-thumb-wrap' => 'width: {{SIZE}}{{UNIT}} !important; min-width: {{SIZE}}{{UNIT}} !important;',
-					'{{WRAPPER}} .wcsc-order-bump-thumb'      => 'width: 100%;',
+					'{{WRAPPER}} .wcsc-order-bump-thumb-wrap' => 'width: {{SIZE}}{{UNIT}} !important; min-width: 0 !important; max-width: none !important;',
+					'{{WRAPPER}} .wcsc-order-bump-thumb'      => 'width: 100% !important;',
 				),
 			)
 		);
@@ -3275,12 +3275,12 @@ class Elementor_Widget extends Widget_Base {
 				'range'      => array(
 					'px' => array(
 						'min' => 20,
-						'max' => 300,
+						'max' => 500,
 					),
 				),
 				'selectors'  => array(
-					'{{WRAPPER}} .wcsc-order-bump-thumb-wrap' => 'height: {{SIZE}}{{UNIT}} !important;',
-					'{{WRAPPER}} .wcsc-order-bump-thumb'      => 'height: 100%;',
+					'{{WRAPPER}} .wcsc-order-bump-thumb-wrap' => 'height: {{SIZE}}{{UNIT}} !important; min-height: 0 !important; max-height: none !important;',
+					'{{WRAPPER}} .wcsc-order-bump-thumb'      => 'height: 100% !important;',
 				),
 			)
 		);

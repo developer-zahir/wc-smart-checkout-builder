@@ -1313,14 +1313,13 @@ class Checkout_Handler {
 						$price_html = $bump_product->get_price_html();
 						?>
 						<div class="wcsc-order-bump-card<?php echo $is_in_cart ? ' is-selected' : ''; ?>" data-product-id="<?php echo esc_attr( $pid ); ?>" data-action-text="<?php echo esc_attr( $action_text ); ?>">
-							<div class="wcsc-order-bump-check-wrap">
-								<input type="checkbox" class="wcsc-order-bump-checkbox" id="wcsc-bump-<?php echo esc_attr( $pid ); ?>" data-product-id="<?php echo esc_attr( $pid ); ?>" <?php checked( $is_in_cart, true ); ?> />
-								<label for="wcsc-bump-<?php echo esc_attr( $pid ); ?>" class="wcsc-order-bump-checkbox-label"></label>
-							</div>
 							<?php if ( $img_url ) : ?>
 								<div class="wcsc-order-bump-thumb-wrap">
+									<input type="checkbox" class="wcsc-order-bump-checkbox" id="wcsc-bump-<?php echo esc_attr( $pid ); ?>" data-product-id="<?php echo esc_attr( $pid ); ?>" <?php checked( $is_in_cart, true ); ?> />
 									<img src="<?php echo esc_url( $img_url ); ?>" alt="<?php echo esc_attr( $bump_product->get_name() ); ?>" class="wcsc-order-bump-thumb" />
 								</div>
+							<?php else : ?>
+								<input type="checkbox" class="wcsc-order-bump-checkbox" id="wcsc-bump-<?php echo esc_attr( $pid ); ?>" data-product-id="<?php echo esc_attr( $pid ); ?>" <?php checked( $is_in_cart, true ); ?> />
 							<?php endif; ?>
 							<div class="wcsc-order-bump-details">
 								<div class="wcsc-order-bump-title"><?php echo esc_html( $bump_product->get_name() ); ?></div>

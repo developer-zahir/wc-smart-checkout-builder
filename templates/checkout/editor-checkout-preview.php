@@ -262,14 +262,13 @@ if ( '1_column' === $checkout_layout ) {
 						<div class="wcsc-order-bump-list">
 							<?php foreach ( $bump_items as $index => $item ) : ?>
 								<div class="wcsc-order-bump-card<?php echo 0 === $index ? ' is-selected' : ''; ?>" data-product-id="<?php echo esc_attr( $item['id'] ); ?>">
-									<div class="wcsc-order-bump-check-wrap">
-										<input type="checkbox" class="wcsc-order-bump-checkbox" id="wcsc-bump-preview-<?php echo esc_attr( $item['id'] ); ?>" <?php checked( 0 === $index, true ); ?> />
-										<label for="wcsc-bump-preview-<?php echo esc_attr( $item['id'] ); ?>" class="wcsc-order-bump-checkbox-label"></label>
-									</div>
 									<?php if ( ! empty( $item['image'] ) ) : ?>
 										<div class="wcsc-order-bump-thumb-wrap">
+											<input type="checkbox" class="wcsc-order-bump-checkbox" id="wcsc-bump-preview-<?php echo esc_attr( $item['id'] ); ?>" <?php checked( 0 === $index, true ); ?> />
 											<img src="<?php echo esc_url( $item['image'] ); ?>" alt="<?php echo esc_attr( $item['name'] ); ?>" class="wcsc-order-bump-thumb" />
 										</div>
+									<?php else : ?>
+										<input type="checkbox" class="wcsc-order-bump-checkbox" id="wcsc-bump-preview-<?php echo esc_attr( $item['id'] ); ?>" <?php checked( 0 === $index, true ); ?> />
 									<?php endif; ?>
 									<div class="wcsc-order-bump-details">
 										<div class="wcsc-order-bump-title"><?php echo esc_html( $item['name'] ); ?></div>
