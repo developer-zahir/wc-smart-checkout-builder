@@ -519,6 +519,7 @@ if ( '1_column' === $checkout_layout ) {
 									<td class="product-name">
 										<?php if ( $show_cart_item_image && $preview_img_url ) : ?>
 											<div class="wcsc-cart-item-with-img">
+												<a href="#" class="wcsc-remove-cart-item" data-cart_item_key="preview_key" title="<?php esc_attr_e( 'Remove this item', 'wc-smart-checkout-builder' ); ?>">&times;</a>
 												<img src="<?php echo esc_url( $preview_img_url ); ?>" class="wcsc-cart-item-image" alt="<?php echo esc_attr( $product_name ); ?>" />
 												<span class="wcsc-cart-item-name-text">
 													<span class="wcsc-preview-item-title"><?php echo esc_html( $product_name ); ?></span>
@@ -526,10 +527,13 @@ if ( '1_column' === $checkout_layout ) {
 												</span>
 											</div>
 										<?php else : ?>
-											<span class="wcsc-cart-item-name-text">
-												<span class="wcsc-preview-item-title"><?php echo esc_html( $product_name ); ?></span>
-												<strong class="product-quantity">&times;&nbsp;1</strong>
-											</span>
+											<div class="wcsc-cart-item-without-img">
+												<a href="#" class="wcsc-remove-cart-item" data-cart_item_key="preview_key" title="<?php esc_attr_e( 'Remove this item', 'wc-smart-checkout-builder' ); ?>">&times;</a>
+												<span class="wcsc-cart-item-name-text">
+													<span class="wcsc-preview-item-title"><?php echo esc_html( $product_name ); ?></span>
+													<strong class="product-quantity">&times;&nbsp;1</strong>
+												</span>
+											</div>
 										<?php endif; ?>
 									</td>
 									<td class="product-total">

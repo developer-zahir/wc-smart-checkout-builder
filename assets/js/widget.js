@@ -133,23 +133,8 @@
 				self.styleShippingMethods();
 				self.stylePaymentMethods();
 
-				// Extract updated total from response fragments if available
-				var priceText = '';
-				if (data && data.fragments) {
-					var reviewHtml = data.fragments['.woocommerce-checkout-review-order-table'] || data.fragments['div.woocommerce-checkout-review-order-table'];
-					if (reviewHtml) {
-						var $frag = $('<div>').html(reviewHtml);
-						var $fragTotal = $frag.find('tr.order-total .woocommerce-Price-amount, tr.order-total td strong, tr.order-total td, .amount');
-						if ($fragTotal.length) {
-							priceText = $fragTotal.first().text() || $fragTotal.first().html();
-						}
-					}
-				}
-				self.syncOrderButtonPrice(priceText);
-				// Additional delayed sync to ensure price syncs when DOM updates complete
-				setTimeout(function () {
-					self.syncOrderButtonPrice();
-				}, 60);
+				// Synchronously sync Order Now button price
+				self.syncOrderButtonPrice();
 
 				// Suppress any WooCommerce error notices injected during AJAX
 				$('.woocommerce-NoticeGroup-checkout, .woocommerce-NoticeGroup, .woocommerce-error, .checkout-inline-error-message').hide().remove();
@@ -235,6 +220,67 @@
 				var $chk = $card.find('.wcsc-order-bump-checkbox');
 				var nextState = !$chk.prop('checked');
 				$chk.prop('checked', nextState).trigger('change');
+			});
+
+			// Cart Item Removal in Order Review Table
+			this.$container.on('click', '.wcsc-remove-cart-item', function (e) {
+				e.preventDefault();
+				e.stopPropagation();
+
+				var $btn = $(this);
+				var itemKey = $btn.data('cart_item_key');
+				if (!itemKey || itemKey === 'preview_key') {
+					return;
+				}
+
+				if (!window.wcsc_params || !window.wcsc_params.ajax_url) {
+					return;
+				}
+
+				self.showLoading();
+				$btn.css('opacity', '0.4');
+
+				$.ajax({
+					url: window.wcsc_params.ajax_url,
+					type: 'POST',
+					data: {
+						action: 'wcsc_remove_cart_item',
+						nonce: window.wcsc_params.nonce,
+						cart_item_key: itemKey
+					},
+					dataType: 'json',
+					success: function (res) {
+						if (res && res.success) {
+							if (res.data && res.data.currency_text) {
+								self.syncOrderButtonPrice(res.data.currency_text);
+							}
+							if (res.data && res.data.cart_product_ids) {
+								// Sync Order Bump checkboxes/cards if an offer item was removed
+								self.$container.find('.wcsc-order-bump-card').each(function () {
+									var $card = $(this);
+									var pid = parseInt($card.data('product-id'), 10);
+									var inCart = res.data.cart_product_ids.indexOf(pid) !== -1;
+									var $chk = $card.find('.wcsc-order-bump-checkbox');
+									var $bBtn = $card.find('.wcsc-order-bump-btn');
+									var actionText = $card.data('action-text') || 'অর্ডার যুক্ত করুন';
+
+									$chk.prop('checked', inCart);
+									$card.toggleClass('is-selected', inCart);
+									$bBtn.toggleClass('is-active', inCart);
+									$bBtn.find('.wcsc-order-bump-btn-icon').text(inCart ? '✓' : '+');
+									$bBtn.find('.wcsc-order-bump-btn-text').text(inCart ? 'যুক্ত হয়েছে' : actionText);
+								});
+							}
+							// Recalculate and update the entire review table and totals via WooCommerce
+							$(document.body).trigger('update_checkout');
+						} else {
+							self.hideLoading();
+						}
+					},
+					error: function () {
+						self.hideLoading();
+					}
+				});
 			});
 
 			// Make shipping cards clickable
@@ -665,63 +711,82 @@
 		decodeHtmlEntities: function (text) {
 			if (!text) return '';
 			try {
-				var parser = new DOMParser();
-				var dom = parser.parseFromString('<!doctype html><body>' + text, 'text/html');
-				var decoded = dom.body.textContent || '';
+				var tempElem = document.createElement('textarea');
+				tempElem.innerHTML = text;
+				var decoded = tempElem.value || '';
+				if (decoded.indexOf('&') !== -1 && decoded.indexOf(';') !== -1) {
+					tempElem.innerHTML = decoded;
+					decoded = tempElem.value || decoded;
+				}
 				return decoded.replace(/\u00a0/g, ' ').trim();
 			} catch (e) {
-				var txt = document.createElement('textarea');
-				txt.innerHTML = text;
-				return (txt.value || '').replace(/\u00a0/g, ' ').trim();
+				return String(text).replace(/&amp;/g, '&').replace(/\u00a0/g, ' ').trim();
 			}
-		},
-
-		updateButtonPrice: function (priceText) {
-			if (!priceText) return;
-			var cleanText = this.decodeHtmlEntities(priceText);
-			cleanText = this.decodeHtmlEntities(cleanText);
-
-			var $btnPrice = $(document).find('.wcsc-btn-price, .wcas-block-order-button .wcsc-btn-price, #wcsc-mobile-sticky-bar .wcsc-btn-price');
-			if ($btnPrice.length) {
-				$btnPrice.text(cleanText);
-			}
-
-			// Also update buttons with data-template-text or containing {total_price}
-			var $buttons = $(document).find('.wcas-block-order-button button, .wcsc-order-now-btn, #place_order, .wcsc-mobile-sticky-btn');
-			$buttons.each(function () {
-				var $btn = $(this);
-				var template = $btn.attr('data-template-text');
-				var $btnText = $btn.find('.wcsc-btn-text, .wcsc-sticky-text');
-
-				if (template && template.indexOf('{total_price}') !== -1) {
-					var replaced = template.replace('{total_price}', '<span class="wcsc-btn-price-wrap"><span class="wcsc-btn-price">' + cleanText + '</span></span>');
-					if ($btnText.length) {
-						$btnText.html(replaced);
-					}
-				} else if ($btnText.length) {
-					var html = $btnText.html() || '';
-					if (html.indexOf('{total_price}') !== -1) {
-						$btnText.html(html.replace('{total_price}', '<span class="wcsc-btn-price-wrap"><span class="wcsc-btn-price">' + cleanText + '</span></span>'));
-					}
-				}
-			});
 		},
 
 		syncOrderButtonPrice: function (customPrice) {
-			var priceText = '';
+			var decodedTotal = '';
+
 			if (customPrice) {
-				priceText = customPrice;
+				decodedTotal = this.decodeHtmlEntities(customPrice);
 			} else {
-				// Search for latest total in WooCommerce order review table
-				var $orderTotal = $('.wcas-checkout-wrapper tr.order-total .woocommerce-Price-amount, .woocommerce-checkout-review-order-table tr.order-total .woocommerce-Price-amount, tr.order-total .woocommerce-Price-amount, tr.order-total td strong, tr.order-total td');
-				if ($orderTotal.length) {
-					priceText = $orderTotal.first().text() || $orderTotal.first().html();
+				// Extract the updated grand total from WooCommerce order review table
+				var $totalElement = $('.order-total .amount, tr.order-total .woocommerce-Price-amount, .woocommerce-checkout-review-order-table tr.order-total .woocommerce-Price-amount').last();
+				if ($totalElement.length) {
+					var rawHtml = $totalElement.html();
+					decodedTotal = this.decodeHtmlEntities(rawHtml);
 				}
 			}
 
-			if (priceText) {
-				this.updateButtonPrice(priceText);
+			if (!decodedTotal) {
+				return;
 			}
+
+			// Clean non-breaking spaces and tags
+			decodedTotal = decodedTotal.replace(/\u00a0/g, ' ').replace(/<[^>]*>/g, '').trim();
+
+			// Update all order buttons synchronously
+			var $buttons = $(document).find('#place_order, .wcsc-order-now-btn, .wcas-block-order-button button, .wcsc-mobile-sticky-btn');
+			$buttons.each(function () {
+				var $button = $(this);
+				var templateText = $button.attr('data-template-text') || $button.data('template-text');
+				if (!templateText) {
+					var currentVal = $button.attr('value') || $button.text();
+					if (currentVal && currentVal.indexOf('{total_price}') !== -1) {
+						templateText = currentVal;
+					} else {
+						templateText = 'Order Now - {total_price}';
+					}
+				}
+
+				// Inject decoded price into button template
+				var newButtonText = templateText.replace('{total_price}', decodedTotal).trim();
+
+				// If button has separate inner text wrapper (e.g. beam/icon buttons), update inner text
+				var $innerBtnText = $button.find('.wcsc-btn-text');
+				var $innerStickyText = $button.find('.wcsc-sticky-text');
+
+				if ($innerBtnText.length) {
+					$innerBtnText.html(newButtonText);
+				} else if ($innerStickyText.length) {
+					$innerStickyText.html(newButtonText);
+				} else {
+					$button.html(newButtonText);
+				}
+
+				// Update DOM text and attributes synchronously
+				$button.attr('value', newButtonText);
+				$button.attr('data-value', newButtonText);
+
+				// Also update any standalone .wcsc-btn-price
+				$button.find('.wcsc-btn-price').text(decodedTotal);
+			});
+
+			$(document).find('.wcsc-btn-price').text(decodedTotal);
+		},
+
+		updateButtonPrice: function (priceText) {
+			this.syncOrderButtonPrice(priceText);
 		},
 
 		getSelectedBumpProductIds: function () {

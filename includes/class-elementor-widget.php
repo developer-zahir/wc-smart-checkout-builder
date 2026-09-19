@@ -3083,6 +3083,88 @@ class Elementor_Widget extends Widget_Base {
 		$this->end_controls_tab();
 		$this->end_controls_tabs();
 
+		// Product Image / Thumbnail
+		$this->add_control(
+			'heading_order_bump_image_style',
+			array(
+				'label'     => esc_html__( 'Product Image', 'wc-smart-checkout-builder' ),
+				'type'      => Controls_Manager::HEADING,
+				'separator' => 'before',
+			)
+		);
+
+		$this->add_responsive_control(
+			'order_bump_image_width',
+			array(
+				'label'      => esc_html__( 'Image Width', 'wc-smart-checkout-builder' ),
+				'type'       => Controls_Manager::SLIDER,
+				'size_units' => array( 'px', '%' ),
+				'range'      => array(
+					'px' => array(
+						'min' => 20,
+						'max' => 300,
+					),
+					'%'  => array(
+						'min' => 10,
+						'max' => 100,
+					),
+				),
+				'selectors'  => array(
+					'{{WRAPPER}} .wcsc-order-bump-thumb-wrap' => 'width: {{SIZE}}{{UNIT}} !important; min-width: {{SIZE}}{{UNIT}} !important;',
+					'{{WRAPPER}} .wcsc-order-bump-thumb'      => 'width: 100%;',
+				),
+			)
+		);
+
+		$this->add_responsive_control(
+			'order_bump_image_height',
+			array(
+				'label'      => esc_html__( 'Image Height', 'wc-smart-checkout-builder' ),
+				'type'       => Controls_Manager::SLIDER,
+				'size_units' => array( 'px', 'vh' ),
+				'range'      => array(
+					'px' => array(
+						'min' => 20,
+						'max' => 300,
+					),
+				),
+				'selectors'  => array(
+					'{{WRAPPER}} .wcsc-order-bump-thumb-wrap' => 'height: {{SIZE}}{{UNIT}} !important;',
+					'{{WRAPPER}} .wcsc-order-bump-thumb'      => 'height: 100%;',
+				),
+			)
+		);
+
+		$this->add_control(
+			'order_bump_image_object_fit',
+			array(
+				'label'     => esc_html__( 'Object Fit', 'wc-smart-checkout-builder' ),
+				'type'      => Controls_Manager::SELECT,
+				'default'   => 'cover',
+				'options'   => array(
+					'cover'   => esc_html__( 'Cover', 'wc-smart-checkout-builder' ),
+					'contain' => esc_html__( 'Contain', 'wc-smart-checkout-builder' ),
+					'fill'    => esc_html__( 'Fill', 'wc-smart-checkout-builder' ),
+				),
+				'selectors' => array(
+					'{{WRAPPER}} .wcsc-order-bump-thumb' => 'object-fit: {{VALUE}};',
+				),
+			)
+		);
+
+		$this->add_responsive_control(
+			'order_bump_image_border_radius',
+			array(
+				'label'      => esc_html__( 'Border Radius', 'wc-smart-checkout-builder' ),
+				'type'       => Controls_Manager::DIMENSIONS,
+				'size_units' => array( 'px', '%' ),
+				'selectors'  => array(
+					'{{WRAPPER}} .wcsc-order-bump-thumb-wrap' => 'border-radius: {{TOP}}{{UNIT}} {{RIGHT}}{{UNIT}} {{BOTTOM}}{{UNIT}} {{LEFT}}{{UNIT}} !important;',
+					'{{WRAPPER}} .wcsc-order-bump-thumb'      => 'border-radius: {{TOP}}{{UNIT}} {{RIGHT}}{{UNIT}} {{BOTTOM}}{{UNIT}} {{LEFT}}{{UNIT}} !important;',
+				),
+			)
+		);
+
 		// Product Typography & Colors
 		$this->add_control(
 			'heading_order_bump_product_style',

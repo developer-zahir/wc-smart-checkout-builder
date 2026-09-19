@@ -88,6 +88,10 @@ class Checkout_Handler {
 		add_action( 'wp_ajax_wcsc_toggle_order_bump', array( __CLASS__, 'ajax_toggle_order_bump' ) );
 		add_action( 'wp_ajax_nopriv_wcsc_toggle_order_bump', array( __CLASS__, 'ajax_toggle_order_bump' ) );
 
+		// AJAX endpoints for removing a cart item from checkout review table.
+		add_action( 'wp_ajax_wcsc_remove_cart_item', array( __CLASS__, 'ajax_remove_cart_item' ) );
+		add_action( 'wp_ajax_nopriv_wcsc_remove_cart_item', array( __CLASS__, 'ajax_remove_cart_item' ) );
+
 		add_action( 'woocommerce_after_checkout_validation', array( __CLASS__, 'validate_bd_phone_number' ), 10, 2 );
 	}
 
@@ -261,7 +265,7 @@ class Checkout_Handler {
 	 */
 	public static function filter_cart_item_name( $item_name, $cart_item, $cart_item_key ) {
 		// Prevent double-wrapping
-		if ( strpos( $item_name, 'wcsc-cart-item-with-img' ) !== false || strpos( $item_name, 'wcsc-cart-item-name-text' ) !== false ) {
+		if ( strpos( $item_name, 'wcsc-cart-item-with-img' ) !== false || strpos( $item_name, 'wcsc-cart-item-name-text' ) !== false || strpos( $item_name, 'wcsc-remove-cart-item' ) !== false ) {
 			return $item_name;
 		}
 
@@ -286,20 +290,21 @@ class Checkout_Handler {
 			return $item_name;
 		}
 
-		$qty      = isset( $cart_item['quantity'] ) ? absint( $cart_item['quantity'] ) : 1;
-		$qty_html = ' <strong class="product-quantity">&times;&nbsp;' . $qty . '</strong>';
+		$qty        = isset( $cart_item['quantity'] ) ? absint( $cart_item['quantity'] ) : 1;
+		$qty_html   = ' <strong class="product-quantity">&times;&nbsp;' . $qty . '</strong>';
+		$remove_btn = '<a href="#" class="wcsc-remove-cart-item" data-cart_item_key="' . esc_attr( $cart_item_key ) . '" title="' . esc_attr__( 'Remove this item', 'wc-smart-checkout-builder' ) . '">&times;</a>';
 
 		if ( $show_image ) {
 			$product = isset( $cart_item['data'] ) ? $cart_item['data'] : null;
 			if ( $product ) {
 				$thumbnail = $product->get_image( array( 48, 48 ), array( 'class' => 'wcsc-cart-item-image' ) );
 				if ( $thumbnail ) {
-					return '<div class="wcsc-cart-item-with-img">' . $thumbnail . '<span class="wcsc-cart-item-name-text">' . $item_name . $qty_html . '</span></div>';
+					return '<div class="wcsc-cart-item-with-img">' . $remove_btn . $thumbnail . '<span class="wcsc-cart-item-name-text">' . $item_name . $qty_html . '</span></div>';
 				}
 			}
 		}
 
-		return '<span class="wcsc-cart-item-name-text">' . $item_name . $qty_html . '</span>';
+		return '<div class="wcsc-cart-item-without-img">' . $remove_btn . '<span class="wcsc-cart-item-name-text">' . $item_name . $qty_html . '</span></div>';
 	}
 
 	/**
@@ -1444,6 +1449,50 @@ class Checkout_Handler {
 			'raw_total'     => $cart->get_total( 'edit' ),
 			'currency_text' => $clean_total,
 		) );
+	}
+
+	/**
+	 * AJAX handler to remove an individual cart item from the checkout review table.
+	 */
+	public static function ajax_remove_cart_item() {
+		check_ajax_referer( 'wcsc_checkout_nonce', 'nonce' );
+
+		if ( ! function_exists( 'WC' ) || ! WC()->cart ) {
+			wp_send_json_error( array( 'message' => __( 'WooCommerce cart unavailable.', 'wc-smart-checkout-builder' ) ) );
+		}
+
+		$cart_item_key = isset( $_POST['cart_item_key'] ) ? sanitize_text_field( wp_unslash( $_POST['cart_item_key'] ) ) : '';
+
+		if ( empty( $cart_item_key ) ) {
+			wp_send_json_error( array( 'message' => __( 'Invalid cart item key.', 'wc-smart-checkout-builder' ) ) );
+		}
+
+		$cart    = WC()->cart;
+		$removed = $cart->remove_cart_item( $cart_item_key );
+
+		if ( $removed ) {
+			$cart->calculate_totals();
+
+			$clean_total = html_entity_decode( wp_strip_all_tags( $cart->get_total() ), ENT_QUOTES, 'UTF-8' );
+			$clean_total = str_replace( "\xc2\xa0", ' ', $clean_total );
+
+			$cart_product_ids = array();
+			foreach ( $cart->get_cart() as $item ) {
+				$cart_product_ids[] = absint( $item['product_id'] );
+			}
+
+			wp_send_json_success( array(
+				'cart_item_key'    => $cart_item_key,
+				'item_count'       => $cart->get_cart_contents_count(),
+				'subtotal'         => $cart->get_cart_subtotal(),
+				'total'            => $cart->get_total(),
+				'raw_total'        => $cart->get_total( 'edit' ),
+				'currency_text'    => $clean_total,
+				'cart_product_ids' => $cart_product_ids,
+			) );
+		} else {
+			wp_send_json_error( array( 'message' => __( 'Could not remove cart item.', 'wc-smart-checkout-builder' ) ) );
+		}
 	}
 
 	public static function add_bd_phone_validation_flag() {
