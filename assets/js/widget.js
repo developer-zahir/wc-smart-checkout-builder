@@ -44,6 +44,7 @@
 			this.bindEvents();
 			this.applyCustomTexts();
 			this.styleShippingMethods();
+			this.stylePaymentMethods();
 
 			// Match default or initial variation on load
 			if (this.productType === 'variable') {
@@ -129,6 +130,7 @@
 				self.hideLoading();
 				self.applyCustomTexts();
 				self.styleShippingMethods();
+				self.stylePaymentMethods();
 
 				// Suppress any WooCommerce error notices injected during AJAX
 				$('.woocommerce-NoticeGroup-checkout, .woocommerce-NoticeGroup, .woocommerce-error, .checkout-inline-error-message').hide().remove();
@@ -169,6 +171,20 @@
 			});
 			this.$container.on('change', 'input.shipping_method', function () {
 				self.styleShippingMethods();
+			});
+
+			this.$container.on('click', '.wcas-block-payment ul.payment_methods li.wc_payment_method', function (e) {
+				if ($(e.target).is('input[type="radio"]') || $(e.target).is('a') || $(e.target).closest('.payment_box').length) {
+					return;
+				}
+				var $radio = $(this).find('input[type="radio"]');
+				if ($radio.length && !$radio.is(':checked')) {
+					$radio.prop('checked', true).trigger('change');
+				}
+			});
+
+			this.$container.on('change', 'input[name="payment_method"]', function () {
+				self.stylePaymentMethods();
 			});
 
 			// Mobile sticky order button click -> scroll smoothly to checkout and immediately hide
@@ -393,6 +409,23 @@
 				$methods.each(function () {
 					var $li = $(this);
 					$li.addClass('wcsc-shipping-card');
+					if ($li.find('input[type="radio"]').is(':checked')) {
+						$li.addClass('is-active');
+					} else {
+						$li.removeClass('is-active');
+					}
+				});
+			}
+		},
+
+		stylePaymentMethods: function () {
+			var $wrapper = this.$container.find('.wcas-checkout-wrapper');
+			if (!$wrapper.length) return;
+
+			var $methods = $wrapper.find('.wcas-block-payment ul.payment_methods li.wc_payment_method');
+			if ($methods.length) {
+				$methods.each(function () {
+					var $li = $(this);
 					if ($li.find('input[type="radio"]').is(':checked')) {
 						$li.addClass('is-active');
 					} else {
