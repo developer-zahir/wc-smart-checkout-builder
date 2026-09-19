@@ -846,20 +846,22 @@
 }
 
 .wcas-checkout-wrapper .wcas-block-payment ul.payment_methods li.wc_payment_method > input[type="radio"]:checked ~ label,
-.wcas-checkout-wrapper .wcas-block-payment ul.payment_methods li.wc_payment_method.is-active label {
-	color: #1a202c;
+.wcas-checkout-wrapper .wcas-block-payment ul.payment_methods li.wc_payment_method.is-active label,
+.wcas-checkout-wrapper .wcas-block-payment ul.payment_methods li.is-active label {
+	color: var(--wcsc-payment-active-label-color, #1a202c);
 	font-weight: 700;
 }
 
 .wcas-checkout-wrapper .wcas-block-payment ul.payment_methods li.wc_payment_method:has(> input[type="radio"]:checked),
-.wcas-checkout-wrapper .wcas-block-payment ul.payment_methods li.wc_payment_method.is-active {
-	border-color: #3182ce;
-	background-color: #f7fafc;
+.wcas-checkout-wrapper .wcas-block-payment ul.payment_methods li.wc_payment_method.is-active,
+.wcas-checkout-wrapper .wcas-block-payment ul.payment_methods li.is-active {
+	border-color: var(--wcsc-payment-active-border, #3182ce);
+	background-color: var(--wcsc-payment-active-bg, #f7fafc);
 }
 
 .wcas-checkout-wrapper .wcas-block-payment ul.payment_methods li label {
 	font-weight: 600;
-	color: #2d3748;
+	color: var(--wcsc-payment-label-color, #2d3748);
 	cursor: pointer;
 	margin-left: 0;
 	margin-bottom: 0;
@@ -1072,10 +1074,11 @@
 	background-color: #fcfdfd;
 }
 
-.wcas-checkout-wrapper .wcas-block-shipping ul#shipping_method li.wcsc-shipping-card.is-active {
-	border-color: #2b6cb0;
-	background-color: #f7fafc;
-	box-shadow: 0 0 0 1px #2b6cb0;
+.wcas-checkout-wrapper .wcas-block-shipping ul#shipping_method li.wcsc-shipping-card.is-active,
+.wcas-checkout-wrapper .wcas-block-shipping ul#shipping_method li.is-active {
+	border-color: var(--wcsc-shipping-active-border, #2b6cb0) !important;
+	background-color: var(--wcsc-shipping-active-bg, #f7fafc);
+	box-shadow: 0 0 0 1px var(--wcsc-shipping-active-border, #2b6cb0);
 }
 
 .wcas-checkout-wrapper .wcas-block-shipping ul#shipping_method li.wcsc-shipping-card > label {
@@ -1089,14 +1092,16 @@
 	color: #2d3748;
 }
 
-.wcas-checkout-wrapper .wcas-block-shipping ul#shipping_method li.wcsc-shipping-card > input[type="radio"] {
+.wcas-checkout-wrapper .wcas-block-shipping ul#shipping_method li.wcsc-shipping-card > input[type="radio"],
+.wcas-checkout-wrapper .wcas-block-shipping ul#shipping_method li input[type="radio"] {
 	margin-right: 12px;
 	margin-top: 0;
 	margin-bottom: 0;
 	appearance: none;
 	-webkit-appearance: none;
-	width: 18px;
-	height: 18px;
+	width: var(--wcsc-shipping-radio-size, 18px);
+	height: var(--wcsc-shipping-radio-size, 18px);
+	min-width: var(--wcsc-shipping-radio-size, 18px);
 	border: 2px solid var(--wcsc-radio-border, #cbd5e0);
 	border-radius: 50%;
 	outline: none;
@@ -1104,22 +1109,28 @@
 	position: relative;
 	cursor: pointer;
 	flex-shrink: 0;
+	box-sizing: border-box;
 }
 
 .wcas-checkout-wrapper .wcas-block-shipping ul#shipping_method li.wcsc-shipping-card > input[type="radio"]:checked,
-.wcas-checkout-wrapper .wcas-block-shipping ul#shipping_method li.wcsc-shipping-card.is-active > input[type="radio"] {
+.wcas-checkout-wrapper .wcas-block-shipping ul#shipping_method li.wcsc-shipping-card.is-active > input[type="radio"],
+.wcas-checkout-wrapper .wcas-block-shipping ul#shipping_method li.is-active input[type="radio"],
+.wcas-checkout-wrapper .wcas-block-shipping ul#shipping_method li input[type="radio"]:checked {
 	border-color: var(--wcsc-radio-checked-border, #2b6cb0) !important;
 	background: var(--wcsc-radio-checked-bg, #2b6cb0) !important;
 }
 
 .wcas-checkout-wrapper .wcas-block-shipping ul#shipping_method li.wcsc-shipping-card > input[type="radio"]:checked::after,
-.wcas-checkout-wrapper .wcas-block-shipping ul#shipping_method li.wcsc-shipping-card.is-active > input[type="radio"]::after {
+.wcas-checkout-wrapper .wcas-block-shipping ul#shipping_method li.wcsc-shipping-card.is-active > input[type="radio"]::after,
+.wcas-checkout-wrapper .wcas-block-shipping ul#shipping_method li.is-active input[type="radio"]::after,
+.wcas-checkout-wrapper .wcas-block-shipping ul#shipping_method li input[type="radio"]:checked::after {
 	content: "" !important;
 	position: absolute !important;
-	top: 4px !important;
-	left: 4px !important;
-	width: 6px !important;
-	height: 6px !important;
+	top: 50% !important;
+	left: 50% !important;
+	transform: translate(-50%, -50%) !important;
+	width: var(--wcsc-shipping-radio-dot, 6px) !important;
+	height: var(--wcsc-shipping-radio-dot, 6px) !important;
 	border-radius: 50% !important;
 	background: var(--wcsc-radio-dot, #ffffff) !important;
 }
