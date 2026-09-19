@@ -194,15 +194,17 @@ class Checkout_Handler {
 		}
 
 		// Build button. Kept inside our plugin-owned Order Button block (not in #payment).
+		$raw_btn_template = ! empty( $settings['order_button_text'] ) ? $settings['order_button_text'] : __( 'Order Now', 'wc-smart-checkout-builder' );
 		$custom_button = sprintf(
-			'<button type="submit" class="button alt wp-element-button wcsc-order-now-btn %1$s" name="woocommerce_checkout_place_order" id="place_order" value="%2$s" data-value="%2$s">' .
+			'<button type="submit" class="button alt wp-element-button wcsc-order-now-btn %1$s" name="woocommerce_checkout_place_order" id="place_order" value="%2$s" data-value="%2$s" data-template-text="%4$s">' .
 			'<span class="wcsc-btn-beam wcsc-beam-top"></span>' .
 			'<span class="wcsc-btn-beam wcsc-beam-bottom"></span>' .
 			'<span class="wcsc-btn-content">%3$s</span>' .
 			'</button>',
 			esc_attr( $anim_class ),
 			esc_attr( wp_strip_all_tags( $btn_text ) ), // keep value clean
-			$content_inner
+			$content_inner,
+			esc_attr( $raw_btn_template )
 		);
 
 		return $custom_button;
@@ -564,7 +566,7 @@ class Checkout_Handler {
 	 * Block 1 — Checkout Form (native billing + shipping fields).
 	 */
 	private static function render_checkout_form_block() {
-		self::render_order_bump_block( 'top_billing' );
+		self::render_order_bump_block( 'above_billing' );
 		?>
 		<div class="wcas-block wcas-block-checkout-form">
 			<h3 class="wcsc-section-title wcas-block-title"><?php echo esc_html( self::get_billing_label() ); ?></h3>
@@ -971,6 +973,7 @@ class Checkout_Handler {
 	 * The shipping method selection interface NEVER appears here.
 	 */
 	private static function render_order_review_block() {
+		self::render_order_bump_block( 'before_review' );
 		$heading = ! empty( self::$active_widget_settings['order_review_heading_text'] )
 			? sanitize_text_field( self::$active_widget_settings['order_review_heading_text'] )
 			: esc_html__( 'Your order', 'wc-smart-checkout-builder' );
@@ -980,7 +983,6 @@ class Checkout_Handler {
 			<div id="order_review" class="woocommerce-checkout-review-order">
 				<?php echo self::render_order_review_table_html(); // phpcs:ignore WordPress.Security.EscapeOutput.OutputNotEscaped ?>
 			</div>
-			<?php self::render_order_bump_block( 'inside_review' ); ?>
 		</div>
 		<?php
 	}
@@ -1044,7 +1046,6 @@ class Checkout_Handler {
 	 * here so submission keeps working exactly as WooCommerce expects.
 	 */
 	private static function render_order_button_block() {
-		self::render_order_bump_block( 'before_order_button' );
 		$settings  = self::$active_widget_settings;
 		$btn_text  = ! empty( $settings['order_button_text'] ) ? sanitize_text_field( $settings['order_button_text'] ) : __( 'Order Now', 'wc-smart-checkout-builder' );
 		$btn_value = wp_strip_all_tags( $btn_text );
@@ -1240,7 +1241,7 @@ class Checkout_Handler {
 	/**
 	 * Render the Order Bump / Offer Products block if enabled for the specified position.
 	 *
-	 * @param string $target_position 'top_billing', 'inside_review', or 'before_order_button'
+	 * @param string $target_position 'above_billing' or 'before_review'
 	 */
 	public static function render_order_bump_block( $target_position = '' ) {
 		$settings = self::$active_widget_settings;
@@ -1248,18 +1249,19 @@ class Checkout_Handler {
 			return;
 		}
 
-		$configured_pos = ! empty( $settings['order_bump_position'] ) ? $settings['order_bump_position'] : 'before_order_button';
+		$configured_pos = ! empty( $settings['order_bump_position'] ) ? $settings['order_bump_position'] : 'above_billing';
 		if ( $configured_pos !== $target_position ) {
 			return;
 		}
 
 		$product_ids = ! empty( $settings['order_bump_products'] ) ? (array) $settings['order_bump_products'] : array();
-		$product_ids = array_slice( array_filter( array_map( 'absint', $product_ids ) ), 0, 2 );
+		$product_ids = array_slice( array_filter( array_map( 'absint', $product_ids ) ), 0, 4 );
 
 		if ( empty( $product_ids ) ) {
 			return;
 		}
 
+		$layout        = ! empty( $settings['order_bump_layout'] ) && 'grid' === $settings['order_bump_layout'] ? 'grid' : 'list';
 		$section_title = ! empty( $settings['order_bump_section_title'] ) ? $settings['order_bump_section_title'] : __( 'ধামাকা অফার! সাথে এটাও যুক্ত করুন', 'wc-smart-checkout-builder' );
 		$action_text   = ! empty( $settings['order_bump_action_text'] ) ? $settings['order_bump_action_text'] : __( 'অর্ডার যুক্ত করুন', 'wc-smart-checkout-builder' );
 
@@ -1272,7 +1274,7 @@ class Checkout_Handler {
 		}
 
 		?>
-		<div class="wcas-block wcsc-order-bump-block" data-position="<?php echo esc_attr( $configured_pos ); ?>">
+		<div class="wcas-block wcsc-order-bump-block wcsc-order-bump-layout-<?php echo esc_attr( $layout ); ?>" data-position="<?php echo esc_attr( $configured_pos ); ?>">
 			<?php if ( ! empty( $section_title ) ) : ?>
 				<h4 class="wcsc-order-bump-heading"><?php echo esc_html( $section_title ); ?></h4>
 			<?php endif; ?>
@@ -1284,7 +1286,26 @@ class Checkout_Handler {
 						continue;
 					}
 					$is_in_cart = in_array( $pid, $cart_product_ids, true );
-					$img_url    = wp_get_attachment_image_url( $bump_product->get_image_id(), 'thumbnail' );
+
+					// Strict image resolution to prevent wrong or mismatched images
+					$image_id = $bump_product->get_image_id();
+					if ( ! $image_id && $bump_product->is_type( 'variation' ) ) {
+						$image_id = get_post_thumbnail_id( $bump_product->get_parent_id() );
+					}
+					if ( ! $image_id ) {
+						$image_id = get_post_thumbnail_id( $pid );
+					}
+
+					$img_url = '';
+					if ( $image_id ) {
+						$img_src = wp_get_attachment_image_src( $image_id, 'thumbnail' );
+						if ( ! empty( $img_src[0] ) ) {
+							$img_url = $img_src[0];
+						}
+					}
+					if ( ! $img_url && function_exists( 'get_the_post_thumbnail_url' ) ) {
+						$img_url = get_the_post_thumbnail_url( $pid, 'thumbnail' );
+					}
 					if ( ! $img_url && function_exists( 'wc_placeholder_img_src' ) ) {
 						$img_url = wc_placeholder_img_src( 'thumbnail' );
 					}

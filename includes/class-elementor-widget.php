@@ -815,7 +815,7 @@ class Elementor_Widget extends Widget_Base {
 		$this->add_control(
 			'order_bump_products',
 			array(
-				'label'       => esc_html__( 'Select Offer Products (Max 2)', 'wc-smart-checkout-builder' ),
+				'label'       => esc_html__( 'Select Offer Products (Max 4)', 'wc-smart-checkout-builder' ),
 				'type'        => Controls_Manager::SELECT2,
 				'label_block' => true,
 				'multiple'    => true,
@@ -824,7 +824,23 @@ class Elementor_Widget extends Widget_Base {
 				'condition'   => array(
 					'enable_order_bump' => 'yes',
 				),
-				'description' => esc_html__( 'Select up to 2 products to offer during checkout.', 'wc-smart-checkout-builder' ),
+				'description' => esc_html__( 'Select up to 4 products to offer during checkout.', 'wc-smart-checkout-builder' ),
+			)
+		);
+
+		$this->add_control(
+			'order_bump_layout',
+			array(
+				'label'     => esc_html__( 'Layout', 'wc-smart-checkout-builder' ),
+				'type'      => Controls_Manager::SELECT,
+				'default'   => 'list',
+				'options'   => array(
+					'list' => esc_html__( 'Standard List (Stacked)', 'wc-smart-checkout-builder' ),
+					'grid' => esc_html__( 'Grid / Cards (Side by Side)', 'wc-smart-checkout-builder' ),
+				),
+				'condition' => array(
+					'enable_order_bump' => 'yes',
+				),
 			)
 		);
 
@@ -833,11 +849,10 @@ class Elementor_Widget extends Widget_Base {
 			array(
 				'label'     => esc_html__( 'Block Position', 'wc-smart-checkout-builder' ),
 				'type'      => Controls_Manager::SELECT,
-				'default'   => 'before_order_button',
+				'default'   => 'above_billing',
 				'options'   => array(
-					'top_billing'         => esc_html__( 'Top of Customer Info / Billing Block', 'wc-smart-checkout-builder' ),
-					'inside_review'       => esc_html__( 'Inside Order Review Block', 'wc-smart-checkout-builder' ),
-					'before_order_button' => esc_html__( 'Immediately Above "Order Now" Button', 'wc-smart-checkout-builder' ),
+					'above_billing' => esc_html__( 'Above Customer / Billing & Shipping Info Block', 'wc-smart-checkout-builder' ),
+					'before_review' => esc_html__( 'Before Order Review Block', 'wc-smart-checkout-builder' ),
 				),
 				'condition' => array(
 					'enable_order_bump' => 'yes',
@@ -2866,6 +2881,31 @@ class Elementor_Widget extends Widget_Base {
 			array(
 				'name'     => 'order_bump_title_typography',
 				'selector' => '{{WRAPPER}} .wcsc-order-bump-heading',
+			)
+		);
+
+		$this->add_responsive_control(
+			'order_bump_title_align',
+			array(
+				'label'     => esc_html__( 'Alignment', 'wc-smart-checkout-builder' ),
+				'type'      => Controls_Manager::CHOOSE,
+				'options'   => array(
+					'left'   => array(
+						'title' => esc_html__( 'Left', 'wc-smart-checkout-builder' ),
+						'icon'  => 'eicon-text-align-left',
+					),
+					'center' => array(
+						'title' => esc_html__( 'Center', 'wc-smart-checkout-builder' ),
+						'icon'  => 'eicon-text-align-center',
+					),
+					'right'  => array(
+						'title' => esc_html__( 'Right', 'wc-smart-checkout-builder' ),
+						'icon'  => 'eicon-text-align-right',
+					),
+				),
+				'selectors' => array(
+					'{{WRAPPER}} .wcsc-order-bump-heading' => 'text-align: {{VALUE}}; justify-content: {{VALUE}};',
+				),
 			)
 		);
 

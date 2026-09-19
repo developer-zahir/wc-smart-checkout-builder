@@ -146,16 +146,20 @@
 					}
 				}
 				self.syncOrderButtonPrice(priceText);
+				// Additional delayed sync to ensure price syncs when DOM updates complete
+				setTimeout(function () {
+					self.syncOrderButtonPrice();
+				}, 60);
 
 				// Suppress any WooCommerce error notices injected during AJAX
 				$('.woocommerce-NoticeGroup-checkout, .woocommerce-NoticeGroup, .woocommerce-error, .checkout-inline-error-message').hide().remove();
 
-				// Ensure Order Review item thumbnail matches current selected variation
+				// Ensure Order Review item thumbnail matches current selected variation ONLY for main product (first item)
 				if (self.currentVariationId && self.variations.length) {
 					for (var i = 0; i < self.variations.length; i++) {
 						if (self.variations[i].variation_id === self.currentVariationId) {
 							if (self.variations[i].image && self.variations[i].image.src) {
-								var $cartImg = self.$container.find('.wcsc-cart-item-image');
+								var $cartImg = self.$container.find('.woocommerce-checkout-review-order-table tbody tr.wcas-order-review-product:first .wcsc-cart-item-image, .woocommerce-checkout-review-order-table tbody tr.cart_item:first .wcsc-cart-item-image');
 								if ($cartImg.length) {
 									$cartImg.attr('src', self.variations[i].image.src).removeAttr('srcset');
 								}
@@ -167,6 +171,15 @@
 
 				// CRITICAL BUG FIX: Ensure secondary duplicate order buttons injected into #payment by native WC AJAX are removed
 				self.$container.find('.wcas-block-payment #place_order, .wcas-block-payment .place-order').remove();
+			});
+
+			// Catch WooCommerce AJAX updates for shipping/totals recalculation
+			$(document).ajaxComplete(function (event, xhr, settings) {
+				if (settings && ((settings.data && typeof settings.data === 'string' && settings.data.indexOf('update_order_review') !== -1) || (settings.url && settings.url.indexOf('update_order_review') !== -1))) {
+					setTimeout(function () {
+						self.syncOrderButtonPrice();
+					}, 50);
+				}
 			});
 
 			$(document.body).on('checkout_error', function () {
@@ -569,8 +582,8 @@
 					this.$mainImg.attr('src', this.originImgSrc);
 				}
 
-				// Update Order Review item thumbnail
-				var $cartItemImg = this.$container.find('.wcsc-cart-item-image');
+				// Update Order Review item thumbnail (first/main product only)
+				var $cartItemImg = this.$container.find('.woocommerce-checkout-review-order-table tbody tr.wcas-order-review-product:first .wcsc-cart-item-image, .woocommerce-checkout-review-order-table tbody tr.cart_item:first .wcsc-cart-item-image');
 				if ($cartItemImg.length) {
 					if (matchedVariation.image && matchedVariation.image.src) {
 						$cartItemImg.attr('src', matchedVariation.image.src).removeAttr('srcset');
@@ -671,20 +684,27 @@
 			var $btnPrice = $(document).find('.wcsc-btn-price, .wcas-block-order-button .wcsc-btn-price, #wcsc-mobile-sticky-bar .wcsc-btn-price');
 			if ($btnPrice.length) {
 				$btnPrice.text(cleanText);
-			} else {
-				// Fallback: search for {total_price} in button text
-				var $buttons = $(document).find('.wcas-block-order-button button, .wcsc-order-now-btn, #place_order, .wcsc-mobile-sticky-btn');
-				$buttons.each(function () {
-					var $btn = $(this);
-					var $btnText = $btn.find('.wcsc-btn-text, .wcsc-sticky-text');
-					if ($btnText.length) {
-						var html = $btnText.html() || '';
-						if (html.indexOf('{total_price}') !== -1) {
-							$btnText.html(html.replace('{total_price}', '<span class="wcsc-btn-price-wrap"><span class="wcsc-btn-price">' + cleanText + '</span></span>'));
-						}
-					}
-				});
 			}
+
+			// Also update buttons with data-template-text or containing {total_price}
+			var $buttons = $(document).find('.wcas-block-order-button button, .wcsc-order-now-btn, #place_order, .wcsc-mobile-sticky-btn');
+			$buttons.each(function () {
+				var $btn = $(this);
+				var template = $btn.attr('data-template-text');
+				var $btnText = $btn.find('.wcsc-btn-text, .wcsc-sticky-text');
+
+				if (template && template.indexOf('{total_price}') !== -1) {
+					var replaced = template.replace('{total_price}', '<span class="wcsc-btn-price-wrap"><span class="wcsc-btn-price">' + cleanText + '</span></span>');
+					if ($btnText.length) {
+						$btnText.html(replaced);
+					}
+				} else if ($btnText.length) {
+					var html = $btnText.html() || '';
+					if (html.indexOf('{total_price}') !== -1) {
+						$btnText.html(html.replace('{total_price}', '<span class="wcsc-btn-price-wrap"><span class="wcsc-btn-price">' + cleanText + '</span></span>'));
+					}
+				}
+			});
 		},
 
 		syncOrderButtonPrice: function (customPrice) {
@@ -875,8 +895,8 @@
 				this.updateButtonPrice(currencySymbol + variation.display_price);
 			}
 
-			// Update preview item thumbnail
-			var $cartItemImg = this.$container.find('.wcsc-cart-item-image');
+			// Update preview item thumbnail (first/main product only)
+			var $cartItemImg = this.$container.find('.woocommerce-checkout-review-order-table tbody tr.wcas-order-review-product:first .wcsc-cart-item-image, .woocommerce-checkout-review-order-table tbody tr.cart_item:first .wcsc-cart-item-image');
 			if ($cartItemImg.length && variation.image && variation.image.src) {
 				$cartItemImg.attr('src', variation.image.src).removeAttr('srcset');
 			}

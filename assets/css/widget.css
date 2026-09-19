@@ -1494,9 +1494,8 @@ body.elementor-editor-active .wcsc-mobile-sticky-bar,
 	font-weight: 700;
 	color: #1e293b;
 	margin: 0 0 10px 0;
-	display: flex;
-	align-items: center;
-	gap: 6px;
+	display: block;
+	width: 100%;
 	line-height: 1.4;
 }
 
@@ -1504,6 +1503,53 @@ body.elementor-editor-active .wcsc-mobile-sticky-bar,
 	display: flex;
 	flex-direction: column;
 	gap: 10px;
+}
+
+/* Order Bump: Grid / Card Layout */
+.wcas-checkout-wrapper .wcsc-order-bump-layout-grid .wcsc-order-bump-list {
+	display: grid;
+	grid-template-columns: repeat(2, 1fr);
+	gap: 12px;
+}
+
+.wcas-checkout-wrapper .wcsc-order-bump-layout-grid .wcsc-order-bump-card {
+	flex-direction: column;
+	align-items: flex-start;
+	padding: 14px;
+	gap: 10px;
+}
+
+.wcas-checkout-wrapper .wcsc-order-bump-layout-grid .wcsc-order-bump-card .wcsc-order-bump-check-wrap {
+	position: absolute;
+	top: 10px;
+	right: 10px;
+	z-index: 2;
+}
+
+.wcas-checkout-wrapper .wcsc-order-bump-layout-grid .wcsc-order-bump-thumb-wrap {
+	width: 100%;
+	height: 120px;
+	border-radius: 6px;
+}
+
+.wcas-checkout-wrapper .wcsc-order-bump-layout-grid .wcsc-order-bump-details {
+	width: 100%;
+}
+
+.wcas-checkout-wrapper .wcsc-order-bump-layout-grid .wcsc-order-bump-action {
+	width: 100%;
+}
+
+.wcas-checkout-wrapper .wcsc-order-bump-layout-grid .wcsc-order-bump-btn {
+	width: 100%;
+	justify-content: center;
+	padding: 8px 12px;
+}
+
+@media (max-width: 600px) {
+	.wcas-checkout-wrapper .wcsc-order-bump-layout-grid .wcsc-order-bump-list {
+		grid-template-columns: 1fr;
+	}
 }
 
 .wcas-checkout-wrapper .wcsc-order-bump-card {
