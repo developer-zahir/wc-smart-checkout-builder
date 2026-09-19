@@ -828,17 +828,21 @@ class Elementor_Widget extends Widget_Base {
 			)
 		);
 
-		$this->add_control(
+		$this->add_responsive_control(
 			'order_bump_layout',
 			array(
-				'label'     => esc_html__( 'Layout', 'wc-smart-checkout-builder' ),
-				'type'      => Controls_Manager::SELECT,
-				'default'   => 'list',
-				'options'   => array(
+				'label'           => esc_html__( 'Layout', 'wc-smart-checkout-builder' ),
+				'type'            => Controls_Manager::SELECT,
+				'desktop_default' => 'list',
+				'tablet_default'  => 'list',
+				'mobile_default'  => 'list',
+				'default'         => 'list',
+				'options'         => array(
 					'list' => esc_html__( 'Standard List (Stacked)', 'wc-smart-checkout-builder' ),
 					'grid' => esc_html__( 'Grid / Cards (Side by Side)', 'wc-smart-checkout-builder' ),
 				),
-				'condition' => array(
+				'prefix_class'    => 'wcsc-order-bump%s-',
+				'condition'       => array(
 					'enable_order_bump' => 'yes',
 				),
 			)
@@ -2867,12 +2871,75 @@ class Elementor_Widget extends Widget_Base {
 			)
 		);
 
+		// Container Sizing & Alignment
+		$this->add_control(
+			'heading_order_bump_container_style',
+			array(
+				'label' => esc_html__( 'Container', 'wc-smart-checkout-builder' ),
+				'type'  => Controls_Manager::HEADING,
+			)
+		);
+
+		$this->add_responsive_control(
+			'order_bump_container_width',
+			array(
+				'label'      => esc_html__( 'Container Width / Max-Width', 'wc-smart-checkout-builder' ),
+				'type'       => Controls_Manager::SLIDER,
+				'size_units' => array( 'px', '%', 'vw' ),
+				'range'      => array(
+					'px' => array(
+						'min' => 150,
+						'max' => 1200,
+					),
+					'%'  => array(
+						'min' => 20,
+						'max' => 100,
+					),
+				),
+				'selectors'  => array(
+					'{{WRAPPER}} .wcas-order-bump-container' => 'max-width: {{SIZE}}{{UNIT}} !important; width: 100%;',
+				),
+			)
+		);
+
+		$this->add_responsive_control(
+			'order_bump_container_alignment',
+			array(
+				'label'                => esc_html__( 'Container Alignment', 'wc-smart-checkout-builder' ),
+				'type'                 => Controls_Manager::CHOOSE,
+				'options'              => array(
+					'left'   => array(
+						'title' => esc_html__( 'Left', 'wc-smart-checkout-builder' ),
+						'icon'  => 'eicon-text-align-left',
+					),
+					'center' => array(
+						'title' => esc_html__( 'Center', 'wc-smart-checkout-builder' ),
+						'icon'  => 'eicon-text-align-center',
+					),
+					'right'  => array(
+						'title' => esc_html__( 'Right', 'wc-smart-checkout-builder' ),
+						'icon'  => 'eicon-text-align-right',
+					),
+				),
+				'default'              => 'left',
+				'selectors'            => array(
+					'{{WRAPPER}} .wcas-order-bump-container' => '{{VALUE}}',
+				),
+				'selectors_dictionary' => array(
+					'left'   => 'margin-left: 0 !important; margin-right: auto !important;',
+					'center' => 'margin-left: auto !important; margin-right: auto !important;',
+					'right'  => 'margin-left: auto !important; margin-right: 0 !important;',
+				),
+			)
+		);
+
 		// Section Heading
 		$this->add_control(
 			'heading_order_bump_title_style',
 			array(
 				'label'     => esc_html__( 'Section Title', 'wc-smart-checkout-builder' ),
 				'type'      => Controls_Manager::HEADING,
+				'separator' => 'before',
 			)
 		);
 

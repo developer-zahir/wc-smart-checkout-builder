@@ -189,7 +189,9 @@ if ( '1_column' === $checkout_layout ) {
 
 				$section_title = ! empty( $settings['order_bump_section_title'] ) ? $settings['order_bump_section_title'] : __( 'ধামাকা অফার! সাথে এটাও যুক্ত করুন', 'wc-smart-checkout-builder' );
 				$action_text   = ! empty( $settings['order_bump_action_text'] ) ? $settings['order_bump_action_text'] : __( 'অর্ডার যুক্ত করুন', 'wc-smart-checkout-builder' );
-				$layout        = ! empty( $settings['order_bump_layout'] ) && 'grid' === $settings['order_bump_layout'] ? 'grid' : 'list';
+				$layout_desktop = ! empty( $settings['order_bump_layout'] ) ? $settings['order_bump_layout'] : 'list';
+				$layout_tablet  = ! empty( $settings['order_bump_layout_tablet'] ) ? $settings['order_bump_layout_tablet'] : $layout_desktop;
+				$layout_mobile  = ! empty( $settings['order_bump_layout_mobile'] ) ? $settings['order_bump_layout_mobile'] : ( 'grid' === $layout_desktop ? 'list' : $layout_desktop );
 
 				$product_ids = ! empty( $settings['order_bump_products'] ) ? (array) $settings['order_bump_products'] : array();
 				$product_ids = array_slice( array_filter( array_map( 'absint', $product_ids ) ), 0, 4 );
@@ -249,34 +251,36 @@ if ( '1_column' === $checkout_layout ) {
 					);
 				}
 				?>
-				<div class="wcas-block wcsc-order-bump-block wcsc-order-bump-layout-<?php echo esc_attr( $layout ); ?>" data-position="<?php echo esc_attr( $pos ); ?>">
-					<?php if ( ! empty( $section_title ) ) : ?>
-						<h4 class="wcsc-order-bump-heading"><?php echo esc_html( $section_title ); ?></h4>
-					<?php endif; ?>
-					<div class="wcsc-order-bump-list">
-						<?php foreach ( $bump_items as $index => $item ) : ?>
-							<div class="wcsc-order-bump-card<?php echo 0 === $index ? ' is-selected' : ''; ?>" data-product-id="<?php echo esc_attr( $item['id'] ); ?>">
-								<div class="wcsc-order-bump-check-wrap">
-									<input type="checkbox" class="wcsc-order-bump-checkbox" id="wcsc-bump-preview-<?php echo esc_attr( $item['id'] ); ?>" <?php checked( 0 === $index, true ); ?> />
-									<label for="wcsc-bump-preview-<?php echo esc_attr( $item['id'] ); ?>" class="wcsc-order-bump-checkbox-label"></label>
-								</div>
-								<?php if ( ! empty( $item['image'] ) ) : ?>
-									<div class="wcsc-order-bump-thumb-wrap">
-										<img src="<?php echo esc_url( $item['image'] ); ?>" alt="<?php echo esc_attr( $item['name'] ); ?>" class="wcsc-order-bump-thumb" />
+				<div class="wcas-block wcsc-order-bump-block wcsc-bump-d-<?php echo esc_attr( $layout_desktop ); ?> wcsc-bump-t-<?php echo esc_attr( $layout_tablet ); ?> wcsc-bump-m-<?php echo esc_attr( $layout_mobile ); ?> wcsc-order-bump-layout-<?php echo esc_attr( $layout_desktop ); ?>" data-position="<?php echo esc_attr( $pos ); ?>">
+					<div class="wcas-order-bump-container">
+						<?php if ( ! empty( $section_title ) ) : ?>
+							<h4 class="wcsc-order-bump-heading"><?php echo esc_html( $section_title ); ?></h4>
+						<?php endif; ?>
+						<div class="wcsc-order-bump-list">
+							<?php foreach ( $bump_items as $index => $item ) : ?>
+								<div class="wcsc-order-bump-card<?php echo 0 === $index ? ' is-selected' : ''; ?>" data-product-id="<?php echo esc_attr( $item['id'] ); ?>">
+									<div class="wcsc-order-bump-check-wrap">
+										<input type="checkbox" class="wcsc-order-bump-checkbox" id="wcsc-bump-preview-<?php echo esc_attr( $item['id'] ); ?>" <?php checked( 0 === $index, true ); ?> />
+										<label for="wcsc-bump-preview-<?php echo esc_attr( $item['id'] ); ?>" class="wcsc-order-bump-checkbox-label"></label>
 									</div>
-								<?php endif; ?>
-								<div class="wcsc-order-bump-details">
-									<div class="wcsc-order-bump-title"><?php echo esc_html( $item['name'] ); ?></div>
-									<div class="wcsc-order-bump-price"><?php echo wp_kses_post( $item['price_html'] ); ?></div>
+									<?php if ( ! empty( $item['image'] ) ) : ?>
+										<div class="wcsc-order-bump-thumb-wrap">
+											<img src="<?php echo esc_url( $item['image'] ); ?>" alt="<?php echo esc_attr( $item['name'] ); ?>" class="wcsc-order-bump-thumb" />
+										</div>
+									<?php endif; ?>
+									<div class="wcsc-order-bump-details">
+										<div class="wcsc-order-bump-title"><?php echo esc_html( $item['name'] ); ?></div>
+										<div class="wcsc-order-bump-price"><?php echo wp_kses_post( $item['price_html'] ); ?></div>
+									</div>
+									<div class="wcsc-order-bump-action">
+										<button type="button" class="wcsc-order-bump-btn<?php echo 0 === $index ? ' is-active' : ''; ?>">
+											<span class="wcsc-order-bump-btn-icon"><?php echo 0 === $index ? '✓' : '+'; ?></span>
+											<span class="wcsc-order-bump-btn-text"><?php echo 0 === $index ? esc_html__( 'যুক্ত হয়েছে', 'wc-smart-checkout-builder' ) : esc_html( $action_text ); ?></span>
+										</button>
+									</div>
 								</div>
-								<div class="wcsc-order-bump-action">
-									<button type="button" class="wcsc-order-bump-btn<?php echo 0 === $index ? ' is-active' : ''; ?>">
-										<span class="wcsc-order-bump-btn-icon"><?php echo 0 === $index ? '✓' : '+'; ?></span>
-										<span class="wcsc-order-bump-btn-text"><?php echo 0 === $index ? esc_html__( 'যুক্ত হয়েছে', 'wc-smart-checkout-builder' ) : esc_html( $action_text ); ?></span>
-									</button>
-								</div>
-							</div>
-						<?php endforeach; ?>
+							<?php endforeach; ?>
+						</div>
 					</div>
 				</div>
 				<?php
@@ -519,7 +523,6 @@ if ( '1_column' === $checkout_layout ) {
 									<td class="product-name">
 										<?php if ( $show_cart_item_image && $preview_img_url ) : ?>
 											<div class="wcsc-cart-item-with-img">
-												<a href="#" class="wcsc-remove-cart-item" data-cart_item_key="preview_key" title="<?php esc_attr_e( 'Remove this item', 'wc-smart-checkout-builder' ); ?>">&times;</a>
 												<img src="<?php echo esc_url( $preview_img_url ); ?>" class="wcsc-cart-item-image" alt="<?php echo esc_attr( $product_name ); ?>" />
 												<span class="wcsc-cart-item-name-text">
 													<span class="wcsc-preview-item-title"><?php echo esc_html( $product_name ); ?></span>
@@ -527,13 +530,10 @@ if ( '1_column' === $checkout_layout ) {
 												</span>
 											</div>
 										<?php else : ?>
-											<div class="wcsc-cart-item-without-img">
-												<a href="#" class="wcsc-remove-cart-item" data-cart_item_key="preview_key" title="<?php esc_attr_e( 'Remove this item', 'wc-smart-checkout-builder' ); ?>">&times;</a>
-												<span class="wcsc-cart-item-name-text">
-													<span class="wcsc-preview-item-title"><?php echo esc_html( $product_name ); ?></span>
-													<strong class="product-quantity">&times;&nbsp;1</strong>
-												</span>
-											</div>
+											<span class="wcsc-cart-item-name-text">
+												<span class="wcsc-preview-item-title"><?php echo esc_html( $product_name ); ?></span>
+												<strong class="product-quantity">&times;&nbsp;1</strong>
+											</span>
 										<?php endif; ?>
 									</td>
 									<td class="product-total">

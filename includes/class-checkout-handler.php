@@ -88,10 +88,6 @@ class Checkout_Handler {
 		add_action( 'wp_ajax_wcsc_toggle_order_bump', array( __CLASS__, 'ajax_toggle_order_bump' ) );
 		add_action( 'wp_ajax_nopriv_wcsc_toggle_order_bump', array( __CLASS__, 'ajax_toggle_order_bump' ) );
 
-		// AJAX endpoints for removing a cart item from checkout review table.
-		add_action( 'wp_ajax_wcsc_remove_cart_item', array( __CLASS__, 'ajax_remove_cart_item' ) );
-		add_action( 'wp_ajax_nopriv_wcsc_remove_cart_item', array( __CLASS__, 'ajax_remove_cart_item' ) );
-
 		add_action( 'woocommerce_after_checkout_validation', array( __CLASS__, 'validate_bd_phone_number' ), 10, 2 );
 	}
 
@@ -265,7 +261,7 @@ class Checkout_Handler {
 	 */
 	public static function filter_cart_item_name( $item_name, $cart_item, $cart_item_key ) {
 		// Prevent double-wrapping
-		if ( strpos( $item_name, 'wcsc-cart-item-with-img' ) !== false || strpos( $item_name, 'wcsc-cart-item-name-text' ) !== false || strpos( $item_name, 'wcsc-remove-cart-item' ) !== false ) {
+		if ( strpos( $item_name, 'wcsc-cart-item-with-img' ) !== false || strpos( $item_name, 'wcsc-cart-item-name-text' ) !== false ) {
 			return $item_name;
 		}
 
@@ -290,21 +286,20 @@ class Checkout_Handler {
 			return $item_name;
 		}
 
-		$qty        = isset( $cart_item['quantity'] ) ? absint( $cart_item['quantity'] ) : 1;
-		$qty_html   = ' <strong class="product-quantity">&times;&nbsp;' . $qty . '</strong>';
-		$remove_btn = '<a href="#" class="wcsc-remove-cart-item" data-cart_item_key="' . esc_attr( $cart_item_key ) . '" title="' . esc_attr__( 'Remove this item', 'wc-smart-checkout-builder' ) . '">&times;</a>';
+		$qty      = isset( $cart_item['quantity'] ) ? absint( $cart_item['quantity'] ) : 1;
+		$qty_html = ' <strong class="product-quantity">&times;&nbsp;' . $qty . '</strong>';
 
 		if ( $show_image ) {
 			$product = isset( $cart_item['data'] ) ? $cart_item['data'] : null;
 			if ( $product ) {
 				$thumbnail = $product->get_image( array( 48, 48 ), array( 'class' => 'wcsc-cart-item-image' ) );
 				if ( $thumbnail ) {
-					return '<div class="wcsc-cart-item-with-img">' . $remove_btn . $thumbnail . '<span class="wcsc-cart-item-name-text">' . $item_name . $qty_html . '</span></div>';
+					return '<div class="wcsc-cart-item-with-img">' . $thumbnail . '<span class="wcsc-cart-item-name-text">' . $item_name . $qty_html . '</span></div>';
 				}
 			}
 		}
 
-		return '<div class="wcsc-cart-item-without-img">' . $remove_btn . '<span class="wcsc-cart-item-name-text">' . $item_name . $qty_html . '</span></div>';
+		return '<span class="wcsc-cart-item-name-text">' . $item_name . $qty_html . '</span>';
 	}
 
 	/**
@@ -1266,7 +1261,10 @@ class Checkout_Handler {
 			return;
 		}
 
-		$layout        = ! empty( $settings['order_bump_layout'] ) && 'grid' === $settings['order_bump_layout'] ? 'grid' : 'list';
+		$layout_desktop = ! empty( $settings['order_bump_layout'] ) ? $settings['order_bump_layout'] : 'list';
+		$layout_tablet  = ! empty( $settings['order_bump_layout_tablet'] ) ? $settings['order_bump_layout_tablet'] : $layout_desktop;
+		$layout_mobile  = ! empty( $settings['order_bump_layout_mobile'] ) ? $settings['order_bump_layout_mobile'] : ( 'grid' === $layout_desktop ? 'list' : $layout_desktop );
+
 		$section_title = ! empty( $settings['order_bump_section_title'] ) ? $settings['order_bump_section_title'] : __( 'ধামাকা অফার! সাথে এটাও যুক্ত করুন', 'wc-smart-checkout-builder' );
 		$action_text   = ! empty( $settings['order_bump_action_text'] ) ? $settings['order_bump_action_text'] : __( 'অর্ডার যুক্ত করুন', 'wc-smart-checkout-builder' );
 
@@ -1279,65 +1277,67 @@ class Checkout_Handler {
 		}
 
 		?>
-		<div class="wcas-block wcsc-order-bump-block wcsc-order-bump-layout-<?php echo esc_attr( $layout ); ?>" data-position="<?php echo esc_attr( $configured_pos ); ?>">
-			<?php if ( ! empty( $section_title ) ) : ?>
-				<h4 class="wcsc-order-bump-heading"><?php echo esc_html( $section_title ); ?></h4>
-			<?php endif; ?>
-			<div class="wcsc-order-bump-list">
-				<?php
-				foreach ( $product_ids as $pid ) :
-					$bump_product = wc_get_product( $pid );
-					if ( ! $bump_product || ! $bump_product->is_purchasable() ) {
-						continue;
-					}
-					$is_in_cart = in_array( $pid, $cart_product_ids, true );
-
-					// Strict image resolution to prevent wrong or mismatched images
-					$image_id = $bump_product->get_image_id();
-					if ( ! $image_id && $bump_product->is_type( 'variation' ) ) {
-						$image_id = get_post_thumbnail_id( $bump_product->get_parent_id() );
-					}
-					if ( ! $image_id ) {
-						$image_id = get_post_thumbnail_id( $pid );
-					}
-
-					$img_url = '';
-					if ( $image_id ) {
-						$img_src = wp_get_attachment_image_src( $image_id, 'thumbnail' );
-						if ( ! empty( $img_src[0] ) ) {
-							$img_url = $img_src[0];
+		<div class="wcas-block wcsc-order-bump-block wcsc-bump-d-<?php echo esc_attr( $layout_desktop ); ?> wcsc-bump-t-<?php echo esc_attr( $layout_tablet ); ?> wcsc-bump-m-<?php echo esc_attr( $layout_mobile ); ?> wcsc-order-bump-layout-<?php echo esc_attr( $layout_desktop ); ?>" data-position="<?php echo esc_attr( $configured_pos ); ?>">
+			<div class="wcas-order-bump-container">
+				<?php if ( ! empty( $section_title ) ) : ?>
+					<h4 class="wcsc-order-bump-heading"><?php echo esc_html( $section_title ); ?></h4>
+				<?php endif; ?>
+				<div class="wcsc-order-bump-list">
+					<?php
+					foreach ( $product_ids as $pid ) :
+						$bump_product = wc_get_product( $pid );
+						if ( ! $bump_product || ! $bump_product->is_purchasable() ) {
+							continue;
 						}
-					}
-					if ( ! $img_url && function_exists( 'get_the_post_thumbnail_url' ) ) {
-						$img_url = get_the_post_thumbnail_url( $pid, 'thumbnail' );
-					}
-					if ( ! $img_url && function_exists( 'wc_placeholder_img_src' ) ) {
-						$img_url = wc_placeholder_img_src( 'thumbnail' );
-					}
-					$price_html = $bump_product->get_price_html();
-					?>
-					<div class="wcsc-order-bump-card<?php echo $is_in_cart ? ' is-selected' : ''; ?>" data-product-id="<?php echo esc_attr( $pid ); ?>" data-action-text="<?php echo esc_attr( $action_text ); ?>">
-						<div class="wcsc-order-bump-check-wrap">
-							<input type="checkbox" class="wcsc-order-bump-checkbox" id="wcsc-bump-<?php echo esc_attr( $pid ); ?>" data-product-id="<?php echo esc_attr( $pid ); ?>" <?php checked( $is_in_cart, true ); ?> />
-							<label for="wcsc-bump-<?php echo esc_attr( $pid ); ?>" class="wcsc-order-bump-checkbox-label"></label>
-						</div>
-						<?php if ( $img_url ) : ?>
-							<div class="wcsc-order-bump-thumb-wrap">
-								<img src="<?php echo esc_url( $img_url ); ?>" alt="<?php echo esc_attr( $bump_product->get_name() ); ?>" class="wcsc-order-bump-thumb" />
+						$is_in_cart = in_array( $pid, $cart_product_ids, true );
+
+						// Strict image resolution to prevent wrong or mismatched images
+						$image_id = $bump_product->get_image_id();
+						if ( ! $image_id && $bump_product->is_type( 'variation' ) ) {
+							$image_id = get_post_thumbnail_id( $bump_product->get_parent_id() );
+						}
+						if ( ! $image_id ) {
+							$image_id = get_post_thumbnail_id( $pid );
+						}
+
+						$img_url = '';
+						if ( $image_id ) {
+							$img_src = wp_get_attachment_image_src( $image_id, 'thumbnail' );
+							if ( ! empty( $img_src[0] ) ) {
+								$img_url = $img_src[0];
+							}
+						}
+						if ( ! $img_url && function_exists( 'get_the_post_thumbnail_url' ) ) {
+							$img_url = get_the_post_thumbnail_url( $pid, 'thumbnail' );
+						}
+						if ( ! $img_url && function_exists( 'wc_placeholder_img_src' ) ) {
+							$img_url = wc_placeholder_img_src( 'thumbnail' );
+						}
+						$price_html = $bump_product->get_price_html();
+						?>
+						<div class="wcsc-order-bump-card<?php echo $is_in_cart ? ' is-selected' : ''; ?>" data-product-id="<?php echo esc_attr( $pid ); ?>" data-action-text="<?php echo esc_attr( $action_text ); ?>">
+							<div class="wcsc-order-bump-check-wrap">
+								<input type="checkbox" class="wcsc-order-bump-checkbox" id="wcsc-bump-<?php echo esc_attr( $pid ); ?>" data-product-id="<?php echo esc_attr( $pid ); ?>" <?php checked( $is_in_cart, true ); ?> />
+								<label for="wcsc-bump-<?php echo esc_attr( $pid ); ?>" class="wcsc-order-bump-checkbox-label"></label>
 							</div>
-						<?php endif; ?>
-						<div class="wcsc-order-bump-details">
-							<div class="wcsc-order-bump-title"><?php echo esc_html( $bump_product->get_name() ); ?></div>
-							<div class="wcsc-order-bump-price"><?php echo wp_kses_post( $price_html ); ?></div>
+							<?php if ( $img_url ) : ?>
+								<div class="wcsc-order-bump-thumb-wrap">
+									<img src="<?php echo esc_url( $img_url ); ?>" alt="<?php echo esc_attr( $bump_product->get_name() ); ?>" class="wcsc-order-bump-thumb" />
+								</div>
+							<?php endif; ?>
+							<div class="wcsc-order-bump-details">
+								<div class="wcsc-order-bump-title"><?php echo esc_html( $bump_product->get_name() ); ?></div>
+								<div class="wcsc-order-bump-price"><?php echo wp_kses_post( $price_html ); ?></div>
+							</div>
+							<div class="wcsc-order-bump-action">
+								<button type="button" class="wcsc-order-bump-btn<?php echo $is_in_cart ? ' is-active' : ''; ?>" data-product-id="<?php echo esc_attr( $pid ); ?>">
+									<span class="wcsc-order-bump-btn-icon"><?php echo $is_in_cart ? '✓' : '+'; ?></span>
+									<span class="wcsc-order-bump-btn-text"><?php echo $is_in_cart ? esc_html__( 'যুক্ত হয়েছে', 'wc-smart-checkout-builder' ) : esc_html( $action_text ); ?></span>
+								</button>
+							</div>
 						</div>
-						<div class="wcsc-order-bump-action">
-							<button type="button" class="wcsc-order-bump-btn<?php echo $is_in_cart ? ' is-active' : ''; ?>" data-product-id="<?php echo esc_attr( $pid ); ?>">
-								<span class="wcsc-order-bump-btn-icon"><?php echo $is_in_cart ? '✓' : '+'; ?></span>
-								<span class="wcsc-order-bump-btn-text"><?php echo $is_in_cart ? esc_html__( 'যুক্ত হয়েছে', 'wc-smart-checkout-builder' ) : esc_html( $action_text ); ?></span>
-							</button>
-						</div>
-					</div>
-				<?php endforeach; ?>
+					<?php endforeach; ?>
+				</div>
 			</div>
 		</div>
 		<?php
@@ -1449,50 +1449,6 @@ class Checkout_Handler {
 			'raw_total'     => $cart->get_total( 'edit' ),
 			'currency_text' => $clean_total,
 		) );
-	}
-
-	/**
-	 * AJAX handler to remove an individual cart item from the checkout review table.
-	 */
-	public static function ajax_remove_cart_item() {
-		check_ajax_referer( 'wcsc_checkout_nonce', 'nonce' );
-
-		if ( ! function_exists( 'WC' ) || ! WC()->cart ) {
-			wp_send_json_error( array( 'message' => __( 'WooCommerce cart unavailable.', 'wc-smart-checkout-builder' ) ) );
-		}
-
-		$cart_item_key = isset( $_POST['cart_item_key'] ) ? sanitize_text_field( wp_unslash( $_POST['cart_item_key'] ) ) : '';
-
-		if ( empty( $cart_item_key ) ) {
-			wp_send_json_error( array( 'message' => __( 'Invalid cart item key.', 'wc-smart-checkout-builder' ) ) );
-		}
-
-		$cart    = WC()->cart;
-		$removed = $cart->remove_cart_item( $cart_item_key );
-
-		if ( $removed ) {
-			$cart->calculate_totals();
-
-			$clean_total = html_entity_decode( wp_strip_all_tags( $cart->get_total() ), ENT_QUOTES, 'UTF-8' );
-			$clean_total = str_replace( "\xc2\xa0", ' ', $clean_total );
-
-			$cart_product_ids = array();
-			foreach ( $cart->get_cart() as $item ) {
-				$cart_product_ids[] = absint( $item['product_id'] );
-			}
-
-			wp_send_json_success( array(
-				'cart_item_key'    => $cart_item_key,
-				'item_count'       => $cart->get_cart_contents_count(),
-				'subtotal'         => $cart->get_cart_subtotal(),
-				'total'            => $cart->get_total(),
-				'raw_total'        => $cart->get_total( 'edit' ),
-				'currency_text'    => $clean_total,
-				'cart_product_ids' => $cart_product_ids,
-			) );
-		} else {
-			wp_send_json_error( array( 'message' => __( 'Could not remove cart item.', 'wc-smart-checkout-builder' ) ) );
-		}
 	}
 
 	public static function add_bd_phone_validation_flag() {

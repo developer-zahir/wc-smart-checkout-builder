@@ -222,66 +222,6 @@
 				$chk.prop('checked', nextState).trigger('change');
 			});
 
-			// Cart Item Removal in Order Review Table
-			this.$container.on('click', '.wcsc-remove-cart-item', function (e) {
-				e.preventDefault();
-				e.stopPropagation();
-
-				var $btn = $(this);
-				var itemKey = $btn.data('cart_item_key');
-				if (!itemKey || itemKey === 'preview_key') {
-					return;
-				}
-
-				if (!window.wcsc_params || !window.wcsc_params.ajax_url) {
-					return;
-				}
-
-				self.showLoading();
-				$btn.css('opacity', '0.4');
-
-				$.ajax({
-					url: window.wcsc_params.ajax_url,
-					type: 'POST',
-					data: {
-						action: 'wcsc_remove_cart_item',
-						nonce: window.wcsc_params.nonce,
-						cart_item_key: itemKey
-					},
-					dataType: 'json',
-					success: function (res) {
-						if (res && res.success) {
-							if (res.data && res.data.currency_text) {
-								self.syncOrderButtonPrice(res.data.currency_text);
-							}
-							if (res.data && res.data.cart_product_ids) {
-								// Sync Order Bump checkboxes/cards if an offer item was removed
-								self.$container.find('.wcsc-order-bump-card').each(function () {
-									var $card = $(this);
-									var pid = parseInt($card.data('product-id'), 10);
-									var inCart = res.data.cart_product_ids.indexOf(pid) !== -1;
-									var $chk = $card.find('.wcsc-order-bump-checkbox');
-									var $bBtn = $card.find('.wcsc-order-bump-btn');
-									var actionText = $card.data('action-text') || 'অর্ডার যুক্ত করুন';
-
-									$chk.prop('checked', inCart);
-									$card.toggleClass('is-selected', inCart);
-									$bBtn.toggleClass('is-active', inCart);
-									$bBtn.find('.wcsc-order-bump-btn-icon').text(inCart ? '✓' : '+');
-									$bBtn.find('.wcsc-order-bump-btn-text').text(inCart ? 'যুক্ত হয়েছে' : actionText);
-								});
-							}
-							// Recalculate and update the entire review table and totals via WooCommerce
-							$(document.body).trigger('update_checkout');
-						} else {
-							self.hideLoading();
-						}
-					},
-					error: function () {
-						self.hideLoading();
-					}
-				});
-			});
 
 			// Make shipping cards clickable
 			this.$container.on('click', '.wcsc-shipping-card', function (e) {
