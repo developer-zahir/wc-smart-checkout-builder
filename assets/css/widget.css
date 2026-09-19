@@ -1270,7 +1270,7 @@
    10. Mobile & Tablet Sticky Floating Order Button (< 1024px)
    ========================================================================== */
 .wcsc-mobile-sticky-bar {
-	display: block;
+	display: none;
 	position: fixed;
 	bottom: 0;
 	left: 0;
@@ -1284,6 +1284,18 @@
 	border: none;
 	box-sizing: border-box;
 	transition: transform 0.3s cubic-bezier(0.16, 1, 0.3, 1), opacity 0.3s ease;
+}
+
+@media (max-width: 1023px) {
+	.wcsc-mobile-sticky-bar {
+		display: block;
+	}
+}
+
+@media (min-width: 1024px) {
+	.wcsc-mobile-sticky-bar {
+		display: none !important;
+	}
 }
 
 .wcsc-mobile-sticky-bar.is-hidden {
@@ -1505,8 +1517,8 @@ body.elementor-editor-active .wcsc-mobile-sticky-bar,
 }
 
 .wcas-checkout-wrapper .wcsc-order-bump-list {
-	display: flex;
-	flex-direction: column;
+	display: grid;
+	grid-template-columns: repeat(1, minmax(0, 1fr));
 	gap: 10px;
 }
 
@@ -1523,6 +1535,7 @@ body.elementor-editor-active .wcsc-mobile-sticky-bar,
 	cursor: pointer;
 	box-sizing: border-box;
 	position: relative;
+	min-width: 0;
 }
 
 .wcas-checkout-wrapper .wcsc-order-bump-card:hover {
@@ -1650,15 +1663,7 @@ body.elementor-editor-active .wcsc-mobile-sticky-bar,
    Order Bump: Responsive Grid vs. List Rules
    ========================================================================= */
 
-/* Desktop Grid */
-.wcas-checkout-wrapper .wcsc-bump-d-grid .wcsc-order-bump-list,
-.elementor-order-bump-grid .wcas-checkout-wrapper .wcsc-order-bump-list,
-.wcsc-order-bump-grid .wcas-checkout-wrapper .wcsc-order-bump-list {
-	display: grid;
-	grid-template-columns: repeat(2, 1fr);
-	gap: 12px;
-}
-
+/* Desktop Grid Card Defaults */
 .wcas-checkout-wrapper .wcsc-bump-d-grid .wcsc-order-bump-card,
 .elementor-order-bump-grid .wcas-checkout-wrapper .wcsc-order-bump-card,
 .wcsc-order-bump-grid .wcas-checkout-wrapper .wcsc-order-bump-card {
@@ -1705,13 +1710,35 @@ body.elementor-editor-active .wcsc-mobile-sticky-bar,
 	padding: 8px 12px;
 }
 
+/* Desktop Columns (Applies to both List & Grid) */
+.wcas-checkout-wrapper .wcsc-bump-cols-d-1 .wcsc-order-bump-list,
+.wcsc-order-bump-cols-1 .wcas-checkout-wrapper .wcsc-order-bump-list {
+	display: grid !important;
+	grid-template-columns: repeat(1, minmax(0, 1fr)) !important;
+}
+.wcas-checkout-wrapper .wcsc-bump-cols-d-2 .wcsc-order-bump-list,
+.wcsc-order-bump-cols-2 .wcas-checkout-wrapper .wcsc-order-bump-list {
+	display: grid !important;
+	grid-template-columns: repeat(2, minmax(0, 1fr)) !important;
+}
+.wcas-checkout-wrapper .wcsc-bump-cols-d-3 .wcsc-order-bump-list,
+.wcsc-order-bump-cols-3 .wcas-checkout-wrapper .wcsc-order-bump-list {
+	display: grid !important;
+	grid-template-columns: repeat(3, minmax(0, 1fr)) !important;
+}
+.wcas-checkout-wrapper .wcsc-bump-cols-d-4 .wcsc-order-bump-list,
+.wcsc-order-bump-cols-4 .wcas-checkout-wrapper .wcsc-order-bump-list {
+	display: grid !important;
+	grid-template-columns: repeat(4, minmax(0, 1fr)) !important;
+}
+
 /* Tablet Overrides (<= 1024px) */
 @media (max-width: 1024px) {
 	/* Tablet explicitly set to List */
 	.wcas-checkout-wrapper .wcsc-bump-t-list .wcsc-order-bump-list,
 	.wcsc-order-bump-tablet-list .wcas-checkout-wrapper .wcsc-order-bump-list {
-		display: flex;
-		flex-direction: column;
+		display: grid;
+		grid-template-columns: repeat(1, minmax(0, 1fr));
 		gap: 10px;
 	}
 	.wcas-checkout-wrapper .wcsc-bump-t-list .wcsc-order-bump-card,
@@ -1744,7 +1771,7 @@ body.elementor-editor-active .wcsc-mobile-sticky-bar,
 	.wcas-checkout-wrapper .wcsc-bump-t-grid .wcsc-order-bump-list,
 	.wcsc-order-bump-tablet-grid .wcas-checkout-wrapper .wcsc-order-bump-list {
 		display: grid;
-		grid-template-columns: repeat(2, 1fr);
+		grid-template-columns: repeat(2, minmax(0, 1fr));
 		gap: 12px;
 	}
 	.wcas-checkout-wrapper .wcsc-bump-t-grid .wcsc-order-bump-card,
@@ -1776,6 +1803,28 @@ body.elementor-editor-active .wcsc-mobile-sticky-bar,
 		justify-content: center;
 		padding: 8px 12px;
 	}
+
+	/* Tablet Columns Override */
+	.wcas-checkout-wrapper .wcsc-bump-cols-t-1 .wcsc-order-bump-list,
+	.wcsc-order-bump-cols-tablet-1 .wcas-checkout-wrapper .wcsc-order-bump-list {
+		display: grid !important;
+		grid-template-columns: repeat(1, minmax(0, 1fr)) !important;
+	}
+	.wcas-checkout-wrapper .wcsc-bump-cols-t-2 .wcsc-order-bump-list,
+	.wcsc-order-bump-cols-tablet-2 .wcas-checkout-wrapper .wcsc-order-bump-list {
+		display: grid !important;
+		grid-template-columns: repeat(2, minmax(0, 1fr)) !important;
+	}
+	.wcas-checkout-wrapper .wcsc-bump-cols-t-3 .wcsc-order-bump-list,
+	.wcsc-order-bump-cols-tablet-3 .wcas-checkout-wrapper .wcsc-order-bump-list {
+		display: grid !important;
+		grid-template-columns: repeat(3, minmax(0, 1fr)) !important;
+	}
+	.wcas-checkout-wrapper .wcsc-bump-cols-t-4 .wcsc-order-bump-list,
+	.wcsc-order-bump-cols-tablet-4 .wcas-checkout-wrapper .wcsc-order-bump-list {
+		display: grid !important;
+		grid-template-columns: repeat(4, minmax(0, 1fr)) !important;
+	}
 }
 
 /* Mobile Overrides (<= 767px) */
@@ -1783,8 +1832,8 @@ body.elementor-editor-active .wcsc-mobile-sticky-bar,
 	/* Mobile set to List */
 	.wcas-checkout-wrapper .wcsc-bump-m-list .wcsc-order-bump-list,
 	.wcsc-order-bump-mobile-list .wcas-checkout-wrapper .wcsc-order-bump-list {
-		display: flex;
-		flex-direction: column;
+		display: grid;
+		grid-template-columns: repeat(1, minmax(0, 1fr));
 		gap: 10px;
 	}
 	.wcas-checkout-wrapper .wcsc-bump-m-list .wcsc-order-bump-card,
@@ -1822,7 +1871,7 @@ body.elementor-editor-active .wcsc-mobile-sticky-bar,
 	.wcas-checkout-wrapper .wcsc-bump-m-grid .wcsc-order-bump-list,
 	.wcsc-order-bump-mobile-grid .wcas-checkout-wrapper .wcsc-order-bump-list {
 		display: grid;
-		grid-template-columns: repeat(2, 1fr);
+		grid-template-columns: repeat(2, minmax(0, 1fr));
 		gap: 10px;
 	}
 	.wcas-checkout-wrapper .wcsc-bump-m-grid .wcsc-order-bump-card,
@@ -1854,6 +1903,28 @@ body.elementor-editor-active .wcsc-mobile-sticky-bar,
 		justify-content: center;
 		padding: 6px 10px;
 		font-size: 11px;
+	}
+
+	/* Mobile Columns Override */
+	.wcas-checkout-wrapper .wcsc-bump-cols-m-1 .wcsc-order-bump-list,
+	.wcsc-order-bump-cols-mobile-1 .wcas-checkout-wrapper .wcsc-order-bump-list {
+		display: grid !important;
+		grid-template-columns: repeat(1, minmax(0, 1fr)) !important;
+	}
+	.wcas-checkout-wrapper .wcsc-bump-cols-m-2 .wcsc-order-bump-list,
+	.wcsc-order-bump-cols-mobile-2 .wcas-checkout-wrapper .wcsc-order-bump-list {
+		display: grid !important;
+		grid-template-columns: repeat(2, minmax(0, 1fr)) !important;
+	}
+	.wcas-checkout-wrapper .wcsc-bump-cols-m-3 .wcsc-order-bump-list,
+	.wcsc-order-bump-cols-mobile-3 .wcas-checkout-wrapper .wcsc-order-bump-list {
+		display: grid !important;
+		grid-template-columns: repeat(3, minmax(0, 1fr)) !important;
+	}
+	.wcas-checkout-wrapper .wcsc-bump-cols-m-4 .wcsc-order-bump-list,
+	.wcsc-order-bump-cols-mobile-4 .wcas-checkout-wrapper .wcsc-order-bump-list {
+		display: grid !important;
+		grid-template-columns: repeat(4, minmax(0, 1fr)) !important;
 	}
 }
 

@@ -781,7 +781,7 @@ class Elementor_Widget extends Widget_Base {
 			array(
 				'label'       => esc_html__( 'Button Text', 'wc-smart-checkout-builder' ),
 				'type'        => Controls_Manager::TEXT,
-				'default'     => esc_html__( 'অর্ডার করুন', 'wc-smart-checkout-builder' ),
+				'default'     => esc_html__( 'অর্ডার সম্পূর্ণ করুন', 'wc-smart-checkout-builder' ),
 				'condition'   => array(
 					'enable_mobile_sticky_button' => 'yes',
 				),
@@ -790,11 +790,11 @@ class Elementor_Widget extends Widget_Base {
 
 		$this->end_controls_section();
 
-		// --- Section: Order Bump / Offer Products ---
+		// --- Section: Order Bump ---
 		$this->start_controls_section(
 			'section_order_bump',
 			array(
-				'label' => esc_html__( 'Order Bump (Offer Products)', 'wc-smart-checkout-builder' ),
+				'label' => esc_html__( 'Order Bump', 'wc-smart-checkout-builder' ),
 				'tab'   => Controls_Manager::TAB_CONTENT,
 			)
 		);
@@ -815,7 +815,7 @@ class Elementor_Widget extends Widget_Base {
 		$this->add_control(
 			'order_bump_products',
 			array(
-				'label'       => esc_html__( 'Select Offer Products (Max 4)', 'wc-smart-checkout-builder' ),
+				'label'       => esc_html__( 'Offer Products', 'wc-smart-checkout-builder' ),
 				'type'        => Controls_Manager::SELECT2,
 				'label_block' => true,
 				'multiple'    => true,
@@ -838,10 +838,35 @@ class Elementor_Widget extends Widget_Base {
 				'mobile_default'  => 'list',
 				'default'         => 'list',
 				'options'         => array(
-					'list' => esc_html__( 'Standard List (Stacked)', 'wc-smart-checkout-builder' ),
-					'grid' => esc_html__( 'Grid / Cards (Side by Side)', 'wc-smart-checkout-builder' ),
+					'list' => esc_html__( 'List', 'wc-smart-checkout-builder' ),
+					'grid' => esc_html__( 'Grid', 'wc-smart-checkout-builder' ),
 				),
 				'prefix_class'    => 'wcsc-order-bump%s-',
+				'condition'       => array(
+					'enable_order_bump' => 'yes',
+				),
+			)
+		);
+
+		$this->add_responsive_control(
+			'order_bump_columns',
+			array(
+				'label'           => esc_html__( 'Columns', 'wc-smart-checkout-builder' ),
+				'type'            => Controls_Manager::SELECT,
+				'desktop_default' => '1',
+				'tablet_default'  => '1',
+				'mobile_default'  => '1',
+				'default'         => '1',
+				'options'         => array(
+					'1' => esc_html__( '1 Column', 'wc-smart-checkout-builder' ),
+					'2' => esc_html__( '2 Columns', 'wc-smart-checkout-builder' ),
+					'3' => esc_html__( '3 Columns', 'wc-smart-checkout-builder' ),
+					'4' => esc_html__( '4 Columns', 'wc-smart-checkout-builder' ),
+				),
+				'prefix_class'    => 'wcsc-order-bump-cols%s-',
+				'selectors'       => array(
+					'{{WRAPPER}} .wcas-checkout-wrapper .wcsc-order-bump-list' => 'display: grid !important; grid-template-columns: repeat({{VALUE}}, minmax(0, 1fr)) !important;',
+				),
 				'condition'       => array(
 					'enable_order_bump' => 'yes',
 				),
@@ -851,12 +876,13 @@ class Elementor_Widget extends Widget_Base {
 		$this->add_control(
 			'order_bump_position',
 			array(
-				'label'     => esc_html__( 'Block Position', 'wc-smart-checkout-builder' ),
+				'label'     => esc_html__( 'Position', 'wc-smart-checkout-builder' ),
 				'type'      => Controls_Manager::SELECT,
-				'default'   => 'above_billing',
+				'default'   => 'above_customer_info',
 				'options'   => array(
-					'above_billing' => esc_html__( 'Above Customer / Billing & Shipping Info Block', 'wc-smart-checkout-builder' ),
-					'before_review' => esc_html__( 'Before Order Review Block', 'wc-smart-checkout-builder' ),
+					'above_customer_info' => esc_html__( 'Above Customer Info', 'wc-smart-checkout-builder' ),
+					'below_customer_info' => esc_html__( 'Below Customer Info', 'wc-smart-checkout-builder' ),
+					'before_order_review' => esc_html__( 'Before Order Review', 'wc-smart-checkout-builder' ),
 				),
 				'condition' => array(
 					'enable_order_bump' => 'yes',
@@ -1382,7 +1408,7 @@ class Elementor_Widget extends Widget_Base {
 				$this->add_control(
 					'checkout_fields_required_color',
 					array(
-						'label'     => esc_html__( 'Required Indicator (*) Color', 'wc-smart-checkout-builder' ),
+						'label'     => esc_html__( 'Required Indicator Color', 'wc-smart-checkout-builder' ),
 						'type'      => Controls_Manager::COLOR,
 						'selectors' => array(
 							'{{WRAPPER}} .woocommerce form .form-row label .required, {{WRAPPER}} .wcas-checkout-wrapper label .required, {{WRAPPER}} .wcas-checkout-wrapper label abbr.required' => 'color: {{VALUE}} !important;',
@@ -1393,7 +1419,7 @@ class Elementor_Widget extends Widget_Base {
 				$this->add_responsive_control(
 					'checkout_fields_label_spacing',
 					array(
-						'label'      => esc_html__( 'Label Spacing (Bottom Margin)', 'wc-smart-checkout-builder' ),
+						'label'      => esc_html__( 'Label Bottom Spacing', 'wc-smart-checkout-builder' ),
 						'type'       => Controls_Manager::SLIDER,
 						'size_units' => array( 'px', 'em' ),
 						'selectors'  => array(
@@ -2102,10 +2128,12 @@ class Elementor_Widget extends Widget_Base {
 		// ==========================================
 		// Table Header (thead)
 		// ==========================================
+		// Table Header
+		// ==========================================
 		$this->add_control(
 			'heading_table_header_style',
 			array(
-				'label'     => esc_html__( 'Table Header (thead)', 'wc-smart-checkout-builder' ),
+				'label'     => esc_html__( 'Table Header', 'wc-smart-checkout-builder' ),
 				'type'      => Controls_Manager::HEADING,
 				'separator' => 'before',
 			)
@@ -2143,12 +2171,12 @@ class Elementor_Widget extends Widget_Base {
 		);
 
 		// ==========================================
-		// Table Footer (tfoot)
+		// Table Footer
 		// ==========================================
 		$this->add_control(
 			'heading_table_footer_style',
 			array(
-				'label'     => esc_html__( 'Table Footer (tfoot)', 'wc-smart-checkout-builder' ),
+				'label'     => esc_html__( 'Table Footer', 'wc-smart-checkout-builder' ),
 				'type'      => Controls_Manager::HEADING,
 				'separator' => 'before',
 			)
@@ -2186,12 +2214,12 @@ class Elementor_Widget extends Widget_Base {
 		);
 
 		// ==========================================
-		// Individual Rows: Product Rows (.cart_item)
+		// Individual Rows: Product Rows
 		// ==========================================
 		$this->add_control(
 			'heading_product_rows_style',
 			array(
-				'label'     => esc_html__( 'Product Rows (.cart_item)', 'wc-smart-checkout-builder' ),
+				'label'     => esc_html__( 'Product Rows', 'wc-smart-checkout-builder' ),
 				'type'      => Controls_Manager::HEADING,
 				'separator' => 'before',
 			)
@@ -2229,12 +2257,12 @@ class Elementor_Widget extends Widget_Base {
 		);
 
 		// ==========================================
-		// Individual Rows: Subtotal Row (.cart-subtotal)
+		// Individual Rows: Subtotal Row
 		// ==========================================
 		$this->add_control(
 			'heading_subtotal_row_style',
 			array(
-				'label'     => esc_html__( 'Subtotal Row (.cart-subtotal)', 'wc-smart-checkout-builder' ),
+				'label'     => esc_html__( 'Subtotal Row', 'wc-smart-checkout-builder' ),
 				'type'      => Controls_Manager::HEADING,
 				'separator' => 'before',
 			)
@@ -2272,12 +2300,12 @@ class Elementor_Widget extends Widget_Base {
 		);
 
 		// ==========================================
-		// Individual Rows: Shipping Row (.shipping)
+		// Individual Rows: Shipping Row
 		// ==========================================
 		$this->add_control(
 			'heading_shipping_row_style',
 			array(
-				'label'     => esc_html__( 'Shipping Row (.shipping)', 'wc-smart-checkout-builder' ),
+				'label'     => esc_html__( 'Shipping Row', 'wc-smart-checkout-builder' ),
 				'type'      => Controls_Manager::HEADING,
 				'separator' => 'before',
 			)
@@ -2315,12 +2343,12 @@ class Elementor_Widget extends Widget_Base {
 		);
 
 		// ==========================================
-		// Individual Rows: Total Row (.order-total)
+		// Individual Rows: Total Row
 		// ==========================================
 		$this->add_control(
 			'heading_total_row_style',
 			array(
-				'label'     => esc_html__( 'Total Row (.order-total)', 'wc-smart-checkout-builder' ),
+				'label'     => esc_html__( 'Total Row', 'wc-smart-checkout-builder' ),
 				'type'      => Controls_Manager::HEADING,
 				'separator' => 'before',
 			)
@@ -2990,7 +3018,7 @@ class Elementor_Widget extends Widget_Base {
 		$this->add_responsive_control(
 			'order_bump_title_spacing',
 			array(
-				'label'      => esc_html__( 'Title Spacing (Bottom)', 'wc-smart-checkout-builder' ),
+				'label'      => esc_html__( 'Title Bottom Spacing', 'wc-smart-checkout-builder' ),
 				'type'       => Controls_Manager::SLIDER,
 				'size_units' => array( 'px', 'em' ),
 				'range'      => array(
@@ -3708,7 +3736,7 @@ class Elementor_Widget extends Widget_Base {
 				$this->add_control(
 					'order_button_solid_bg_hover',
 					array(
-						'label'     => esc_html__( 'Button Color (Hover)', 'wc-smart-checkout-builder' ),
+						'label'     => esc_html__( 'Hover Button Color', 'wc-smart-checkout-builder' ),
 						'type'      => Controls_Manager::COLOR,
 						'selectors' => array(
 							'{{WRAPPER}} .wcas-checkout-wrapper .wcas-block-order-button #place_order:hover, {{WRAPPER}} .wcas-checkout-wrapper .wcas-block-order-button .wcsc-order-now-btn:hover, {{WRAPPER}} #place_order:hover, {{WRAPPER}} .wcsc-order-now-btn:hover' => 'background-color: {{VALUE}} !important;',
@@ -3747,7 +3775,7 @@ class Elementor_Widget extends Widget_Base {
 				$this->add_control(
 					'order_button_hover_transition',
 					array(
-						'label'     => esc_html__( 'Transition Duration (s)', 'wc-smart-checkout-builder' ),
+						'label'     => esc_html__( 'Transition Duration', 'wc-smart-checkout-builder' ),
 						'type'      => Controls_Manager::SLIDER,
 						'range'     => array(
 							'px' => array( 'min' => 0.1, 'max' => 2, 'step' => 0.1 ),
@@ -3928,7 +3956,7 @@ class Elementor_Widget extends Widget_Base {
 				$this->add_control(
 					'mobile_sticky_hover_transition',
 					array(
-						'label'     => esc_html__( 'Transition Duration (s)', 'wc-smart-checkout-builder' ),
+						'label'     => esc_html__( 'Transition Duration', 'wc-smart-checkout-builder' ),
 						'type'      => Controls_Manager::SLIDER,
 						'range'     => array(
 							'px' => array( 'min' => 0.1, 'max' => 2, 'step' => 0.1 ),

@@ -686,7 +686,7 @@
 			decodedTotal = decodedTotal.replace(/\u00a0/g, ' ').replace(/<[^>]*>/g, '').trim();
 
 			// Update all order buttons synchronously
-			var $buttons = $(document).find('#place_order, .wcsc-order-now-btn, .wcas-block-order-button button, .wcsc-mobile-sticky-btn');
+			var $buttons = $(document).find('#place_order, .wcsc-order-now-btn, .wcas-block-order-button button');
 			$buttons.each(function () {
 				var $button = $(this);
 				var templateText = $button.attr('data-template-text') || $button.data('template-text');
@@ -704,12 +704,9 @@
 
 				// If button has separate inner text wrapper (e.g. beam/icon buttons), update inner text
 				var $innerBtnText = $button.find('.wcsc-btn-text');
-				var $innerStickyText = $button.find('.wcsc-sticky-text');
 
 				if ($innerBtnText.length) {
 					$innerBtnText.html(newButtonText);
-				} else if ($innerStickyText.length) {
-					$innerStickyText.html(newButtonText);
 				} else {
 					$button.html(newButtonText);
 				}
@@ -842,34 +839,31 @@
 				return;
 			}
 
-			// Observe the main order button so floating button only hides when the actual submit button is visible
-			var targetBtn = self.$container.find('.wcas-block-order-button, #place_order, .wcsc-order-now-btn')[0];
-			if (!targetBtn) {
-				targetBtn = self.$container.find('.wcas-checkout-wrapper')[0] || self.$container[0];
-			}
+			// Observe the main checkout form so floating button auto-hides as soon as checkout enters viewport
+			var targetWrapper = self.$container.find('.wcas-checkout-wrapper')[0] || self.$container[0];
 
-			if (targetBtn && 'IntersectionObserver' in window) {
+			if (targetWrapper && 'IntersectionObserver' in window) {
 				var observer = new IntersectionObserver(function (entries) {
 					entries.forEach(function (entry) {
 						if (entry.isIntersecting) {
-							// Main order button is directly visible in viewport, hide floating button
+							// Main checkout form is in viewport, hide floating button to prevent clutter
 							$(stickyBar).addClass('is-hidden');
 						} else {
 							var rect = entry.boundingClientRect;
-							// If button is below viewport, user is browsing higher content, show floating button
+							// If checkout is below viewport, user is browsing higher content, show floating button
 							if (rect.top > 0) {
 								$(stickyBar).removeClass('is-hidden');
 							} else {
-								// User has scrolled below button, hide
+								// User has scrolled below checkout section, keep hidden
 								$(stickyBar).addClass('is-hidden');
 							}
 						}
 					});
 				}, {
-					threshold: 0.1,
+					threshold: 0.05,
 					rootMargin: '0px 0px 0px 0px'
 				});
-				observer.observe(targetBtn);
+				observer.observe(targetWrapper);
 			}
 		},
 

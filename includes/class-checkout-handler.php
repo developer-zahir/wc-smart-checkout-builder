@@ -566,7 +566,7 @@ class Checkout_Handler {
 	 * Block 1 — Checkout Form (native billing + shipping fields).
 	 */
 	private static function render_checkout_form_block() {
-		self::render_order_bump_block( 'above_billing' );
+		self::render_order_bump_block( 'above_customer_info' );
 		?>
 		<div class="wcas-block wcas-block-checkout-form">
 			<h3 class="wcsc-section-title wcas-block-title"><?php echo esc_html( self::get_billing_label() ); ?></h3>
@@ -584,6 +584,7 @@ class Checkout_Handler {
 			</div>
 		</div>
 		<?php
+		self::render_order_bump_block( 'below_customer_info' );
 	}
 
 	/**
@@ -973,7 +974,7 @@ class Checkout_Handler {
 	 * The shipping method selection interface NEVER appears here.
 	 */
 	private static function render_order_review_block() {
-		self::render_order_bump_block( 'before_review' );
+		self::render_order_bump_block( 'before_order_review' );
 		$heading = ! empty( self::$active_widget_settings['order_review_heading_text'] )
 			? sanitize_text_field( self::$active_widget_settings['order_review_heading_text'] )
 			: esc_html__( 'Your order', 'wc-smart-checkout-builder' );
@@ -1157,26 +1158,12 @@ class Checkout_Handler {
 	 * @param string $text
 	 */
 	public static function render_mobile_sticky_button_html( $text ) {
-		$current_total = '';
-		if ( function_exists( 'WC' ) && WC()->cart ) {
-			$current_total = WC()->cart->get_total();
-		}
-		if ( empty( $current_total ) && self::$active_product ) {
-			$current_total = wc_price( self::$active_product->get_price() );
-		}
-		if ( ! empty( $current_total ) ) {
-			$clean_total = html_entity_decode( wp_strip_all_tags( $current_total ), ENT_QUOTES, 'UTF-8' );
-			$clean_total = str_replace( "\xc2\xa0", ' ', $clean_total );
-			$price_html  = '<span class="wcsc-btn-price-wrap"><span class="wcsc-btn-price">' . esc_html( $clean_total ) . '</span></span>';
-			if ( strpos( $text, '{total_price}' ) !== false ) {
-				$text = str_replace( '{total_price}', $price_html, $text );
-			}
-		}
+		$text = str_replace( '{total_price}', '', $text );
 		?>
 		<div class="wcsc-mobile-sticky-bar" id="wcsc-mobile-sticky-bar">
 			<button type="button" class="wcsc-mobile-sticky-btn">
 				<span class="wcsc-sticky-shine"></span>
-				<span class="wcsc-sticky-text"><?php echo wp_kses_post( $text ); ?></span>
+				<span class="wcsc-sticky-text"><?php echo esc_html( trim( $text ) ); ?></span>
 			</button>
 		</div>
 		<?php
@@ -1241,7 +1228,7 @@ class Checkout_Handler {
 	/**
 	 * Render the Order Bump / Offer Products block if enabled for the specified position.
 	 *
-	 * @param string $target_position 'above_billing' or 'before_review'
+	 * @param string $target_position 'above_customer_info', 'below_customer_info', or 'before_order_review'
 	 */
 	public static function render_order_bump_block( $target_position = '' ) {
 		$settings = self::$active_widget_settings;
@@ -1249,7 +1236,17 @@ class Checkout_Handler {
 			return;
 		}
 
-		$configured_pos = ! empty( $settings['order_bump_position'] ) ? $settings['order_bump_position'] : 'above_billing';
+		$raw_pos = ! empty( $settings['order_bump_position'] ) ? $settings['order_bump_position'] : 'above_customer_info';
+		if ( 'above_billing' === $raw_pos ) {
+			$configured_pos = 'above_customer_info';
+		} elseif ( 'below_billing' === $raw_pos ) {
+			$configured_pos = 'below_customer_info';
+		} elseif ( 'before_review' === $raw_pos ) {
+			$configured_pos = 'before_order_review';
+		} else {
+			$configured_pos = $raw_pos;
+		}
+
 		if ( $configured_pos !== $target_position ) {
 			return;
 		}
@@ -1265,6 +1262,10 @@ class Checkout_Handler {
 		$layout_tablet  = ! empty( $settings['order_bump_layout_tablet'] ) ? $settings['order_bump_layout_tablet'] : $layout_desktop;
 		$layout_mobile  = ! empty( $settings['order_bump_layout_mobile'] ) ? $settings['order_bump_layout_mobile'] : ( 'grid' === $layout_desktop ? 'list' : $layout_desktop );
 
+		$cols_desktop = ! empty( $settings['order_bump_columns'] ) ? $settings['order_bump_columns'] : '1';
+		$cols_tablet  = ! empty( $settings['order_bump_columns_tablet'] ) ? $settings['order_bump_columns_tablet'] : $cols_desktop;
+		$cols_mobile  = ! empty( $settings['order_bump_columns_mobile'] ) ? $settings['order_bump_columns_mobile'] : '1';
+
 		$section_title = ! empty( $settings['order_bump_section_title'] ) ? $settings['order_bump_section_title'] : __( 'ধামাকা অফার! সাথে এটাও যুক্ত করুন', 'wc-smart-checkout-builder' );
 		$action_text   = ! empty( $settings['order_bump_action_text'] ) ? $settings['order_bump_action_text'] : __( 'অর্ডার যুক্ত করুন', 'wc-smart-checkout-builder' );
 
@@ -1277,7 +1278,7 @@ class Checkout_Handler {
 		}
 
 		?>
-		<div class="wcas-block wcsc-order-bump-block wcsc-bump-d-<?php echo esc_attr( $layout_desktop ); ?> wcsc-bump-t-<?php echo esc_attr( $layout_tablet ); ?> wcsc-bump-m-<?php echo esc_attr( $layout_mobile ); ?> wcsc-order-bump-layout-<?php echo esc_attr( $layout_desktop ); ?>" data-position="<?php echo esc_attr( $configured_pos ); ?>">
+		<div class="wcas-block wcsc-order-bump-block wcsc-bump-d-<?php echo esc_attr( $layout_desktop ); ?> wcsc-bump-t-<?php echo esc_attr( $layout_tablet ); ?> wcsc-bump-m-<?php echo esc_attr( $layout_mobile ); ?> wcsc-bump-cols-d-<?php echo esc_attr( $cols_desktop ); ?> wcsc-bump-cols-t-<?php echo esc_attr( $cols_tablet ); ?> wcsc-bump-cols-m-<?php echo esc_attr( $cols_mobile ); ?> wcsc-order-bump-layout-<?php echo esc_attr( $layout_desktop ); ?>" data-position="<?php echo esc_attr( $configured_pos ); ?>">
 			<div class="wcas-order-bump-container">
 				<?php if ( ! empty( $section_title ) ) : ?>
 					<h4 class="wcsc-order-bump-heading"><?php echo esc_html( $section_title ); ?></h4>
