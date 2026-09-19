@@ -411,38 +411,58 @@ class Checkout_Handler {
 				}
 				?>
 
-				<div class="wcas-checkout-column wcas-checkout-column-left">
-					<?php
-					if ( ! empty( $blocks_enabled['checkout_form'] ) ) {
-						self::render_checkout_form_block();
-					}
-					if ( ! empty( $blocks_enabled['shipping'] ) ) {
-						self::render_shipping_block();
-					}
-					if ( 'left_column' === $order_button_pos ) {
+				<?php if ( '1_column' === $layout ) : ?>
+					<div class="wcas-checkout-column wcas-checkout-column-single">
+						<?php
+						if ( ! empty( $blocks_enabled['checkout_form'] ) ) {
+							self::render_checkout_form_block();
+						}
+						if ( ! empty( $blocks_enabled['shipping'] ) ) {
+							self::render_shipping_block();
+						}
+						if ( ! empty( $blocks_enabled['order_review'] ) ) {
+							self::render_order_review_block();
+						}
+						if ( ! empty( $blocks_enabled['payment'] ) ) {
+							self::render_payment_block();
+						}
 						self::render_order_button_block();
-					}
-					?>
-				</div>
-
-				<div class="wcas-checkout-column wcas-checkout-column-right">
-					<?php
-					if ( ! empty( $blocks_enabled['order_review'] ) ) {
-						self::render_order_review_block();
-					}
-					if ( ! empty( $blocks_enabled['payment'] ) ) {
-						self::render_payment_block();
-					}
-					if ( 'right_column' === $order_button_pos ) {
-						self::render_order_button_block();
-					}
-					?>
-				</div>
-
-				<?php if ( 'full_width' === $order_button_pos ) : ?>
-					<div class="wcas-checkout-row-full">
-						<?php self::render_order_button_block(); ?>
+						?>
 					</div>
+				<?php else : ?>
+					<div class="wcas-checkout-column wcas-checkout-column-left">
+						<?php
+						if ( ! empty( $blocks_enabled['checkout_form'] ) ) {
+							self::render_checkout_form_block();
+						}
+						if ( ! empty( $blocks_enabled['shipping'] ) ) {
+							self::render_shipping_block();
+						}
+						if ( 'left_column' === $order_button_pos ) {
+							self::render_order_button_block();
+						}
+						?>
+					</div>
+
+					<div class="wcas-checkout-column wcas-checkout-column-right">
+						<?php
+						if ( ! empty( $blocks_enabled['order_review'] ) ) {
+							self::render_order_review_block();
+						}
+						if ( ! empty( $blocks_enabled['payment'] ) ) {
+							self::render_payment_block();
+						}
+						if ( 'right_column' === $order_button_pos ) {
+							self::render_order_button_block();
+						}
+						?>
+					</div>
+
+					<?php if ( 'full_width' === $order_button_pos ) : ?>
+						<div class="wcas-checkout-row-full">
+							<?php self::render_order_button_block(); ?>
+						</div>
+					<?php endif; ?>
 				<?php endif; ?>
 			</div>
 
@@ -460,9 +480,8 @@ class Checkout_Handler {
 			echo '<input type="hidden" name="wcsc_show_cart_item_image" value="' . esc_attr( ( ! isset( $settings['show_cart_item_image'] ) || 'yes' === $settings['show_cart_item_image'] ) ? 'yes' : 'no' ) . '" />';
 			echo '<input type="hidden" name="wcsc_is_smart_checkout" value="yes" />';
 
-			$sticky_enabled = true;
-			if ( ( isset( $settings['style_enable_mobile_sticky_button'] ) && 'no' === $settings['style_enable_mobile_sticky_button'] ) ||
-			     ( isset( $settings['enable_mobile_sticky_button'] ) && 'no' === $settings['enable_mobile_sticky_button'] ) ) {
+			$sticky_enabled = ! isset( $settings['enable_mobile_sticky_button'] ) || 'yes' === $settings['enable_mobile_sticky_button'];
+			if ( isset( $settings['style_enable_mobile_sticky_button'] ) && 'no' === $settings['style_enable_mobile_sticky_button'] ) {
 				$sticky_enabled = false;
 			}
 

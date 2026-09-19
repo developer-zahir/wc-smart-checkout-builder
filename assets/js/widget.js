@@ -613,30 +613,44 @@
 		initMobileStickyObserver: function () {
 			var self = this;
 			var stickyBar = self.$container.find('.wcsc-mobile-sticky-bar')[0] || document.getElementById('wcsc-mobile-sticky-bar');
-			var targetEl = self.$container.find('.wcas-checkout-wrapper')[0] || document.querySelector('.wcas-checkout-wrapper') || self.$container[0];
+			if (!stickyBar) {
+				return;
+			}
 
-			if (stickyBar && targetEl && 'IntersectionObserver' in window) {
+			// In Elementor editor preview, keep the floating button visible and previewable
+			if ($('body').hasClass('elementor-editor-active') || (window.elementorFrontend && window.elementorFrontend.isEditMode && window.elementorFrontend.isEditMode())) {
+				$(stickyBar).removeClass('is-hidden');
+				return;
+			}
+
+			// Observe the main order button so floating button only hides when the actual submit button is visible
+			var targetBtn = self.$container.find('.wcas-block-order-button, #place_order, .wcsc-order-now-btn')[0];
+			if (!targetBtn) {
+				targetBtn = self.$container.find('.wcas-checkout-wrapper')[0] || self.$container[0];
+			}
+
+			if (targetBtn && 'IntersectionObserver' in window) {
 				var observer = new IntersectionObserver(function (entries) {
 					entries.forEach(function (entry) {
 						if (entry.isIntersecting) {
-							// As soon as entire checkout widget enters viewport, automatically hide the floating button
+							// Main order button is directly visible in viewport, hide floating button
 							$(stickyBar).addClass('is-hidden');
 						} else {
 							var rect = entry.boundingClientRect;
-							// If checkout widget is below viewport (user browsing top landing content), show button
+							// If button is below viewport, user is browsing higher content, show floating button
 							if (rect.top > 0) {
 								$(stickyBar).removeClass('is-hidden');
 							} else {
-								// User has scrolled completely past the widget, keep hidden
+								// User has scrolled below button, hide
 								$(stickyBar).addClass('is-hidden');
 							}
 						}
 					});
 				}, {
-					threshold: 0,
+					threshold: 0.1,
 					rootMargin: '0px 0px 0px 0px'
 				});
-				observer.observe(targetEl);
+				observer.observe(targetBtn);
 			}
 		},
 

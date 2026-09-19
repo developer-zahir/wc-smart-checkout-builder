@@ -441,7 +441,7 @@
 	font-size: 1.15rem;
 	font-weight: 700;
 	color: #000000;
-	margin: 0 0 16px 0;
+	margin: 0 0 8px 0;
 	padding-bottom: 0;
 	border-bottom: none;
 	line-height: 1.3;
@@ -471,38 +471,46 @@
 	box-shadow: none !important;
 }
 
-/* --- 2 Column Layout (Side-by-Side on Desktop) --- */
+/* --- 2 Column Layout (Side-by-Side on Desktop via Explicit CSS Grid) --- */
 .wcas-layout-two-column.wcas-checkout-wrapper,
-.wcas-layout-two-column .wcas-checkout-wrapper {
-	display: flex;
-	flex-direction: row;
-	flex-wrap: wrap;
-	gap: var(--wcsc-col-gap, 30px);
-	align-items: flex-start;
-}
-
-.wcas-layout-two-column.wcas-checkout-wrapper > .wcas-checkout-column,
-.wcas-layout-two-column .wcas-checkout-wrapper > .wcas-checkout-column,
-.wcas-layout-two-column.wcas-checkout-wrapper .wcas-checkout-column,
-.wcas-layout-two-column .wcas-checkout-wrapper .wcas-checkout-column {
-	flex: 1 1 calc(50% - (var(--wcsc-col-gap, 30px) / 2));
-	max-width: calc(50% - (var(--wcsc-col-gap, 30px) / 2));
-	width: calc(50% - (var(--wcsc-col-gap, 30px) / 2));
-	display: flex;
-	flex-direction: column;
-	gap: var(--wcsc-row-gap, 24px);
+.wcas-layout-two-column .wcas-checkout-wrapper,
+.wcsc-layout-2-col.wcas-checkout-wrapper {
+	display: grid !important;
+	grid-template-columns: 1fr 1fr !important;
+	gap: var(--wcsc-col-gap, 30px) !important;
+	align-items: start !important;
 	box-sizing: border-box;
 }
 
-/* Full Width Order Button Row (spans 100% beneath both columns) */
+.wcas-layout-two-column .wcas-checkout-column-left {
+	grid-column: 1 !important;
+	width: 100% !important;
+	max-width: 100% !important;
+	display: flex !important;
+	flex-direction: column !important;
+	gap: var(--wcsc-row-gap, 16px) !important;
+	box-sizing: border-box;
+}
+
+.wcas-layout-two-column .wcas-checkout-column-right {
+	grid-column: 2 !important;
+	width: 100% !important;
+	max-width: 100% !important;
+	display: flex !important;
+	flex-direction: column !important;
+	gap: var(--wcsc-row-gap, 16px) !important;
+	box-sizing: border-box;
+}
+
+/* Full Width Order Button Row (spans both columns 1 and 2 beneath) */
 .wcas-checkout-wrapper .wcas-checkout-row-full,
 .wcas-layout-two-column.wcas-checkout-wrapper .wcas-checkout-row-full,
 .wcas-layout-two-column .wcas-checkout-wrapper .wcas-checkout-row-full {
-	flex: 0 0 100% !important;
+	grid-column: 1 / -1 !important;
 	width: 100% !important;
 	max-width: 100% !important;
 	box-sizing: border-box;
-	margin-top: var(--wcsc-row-gap, 24px);
+	margin-top: var(--wcsc-row-gap, 16px);
 }
 
 .wcas-checkout-wrapper .wcas-checkout-row-full .wcas-block-order-button {
@@ -511,19 +519,21 @@
 
 /* --- 1 Column Layout (Stacked) --- */
 .wcas-layout-one-column.wcas-checkout-wrapper,
-.wcas-layout-one-column .wcas-checkout-wrapper {
-	display: flex;
-	flex-direction: column;
-	gap: var(--wcsc-row-gap, 24px);
+.wcas-layout-one-column .wcas-checkout-wrapper,
+.wcsc-layout-1-col.wcas-checkout-wrapper {
+	display: flex !important;
+	flex-direction: column !important;
+	gap: var(--wcsc-row-gap, 16px) !important;
+	box-sizing: border-box;
 }
 
-.wcas-layout-one-column.wcas-checkout-wrapper > .wcas-checkout-column,
-.wcas-layout-one-column .wcas-checkout-wrapper > .wcas-checkout-column {
-	width: 100%;
-	max-width: 100%;
-	display: flex;
-	flex-direction: column;
-	gap: var(--wcsc-row-gap, 24px);
+.wcas-checkout-column-single {
+	width: 100% !important;
+	max-width: 100% !important;
+	display: flex !important;
+	flex-direction: column !important;
+	gap: var(--wcsc-row-gap, 16px) !important;
+	box-sizing: border-box;
 }
 
 /* In One-Column layout, natural vertical flow keeps Order Now at the bottom */
@@ -584,55 +594,27 @@
 	box-sizing: border-box !important;
 }
 
-/* One-Column Layout: Force Order Button to the Very Bottom */
-.wcas-layout-one-column.wcas-checkout-wrapper > .wcas-checkout-column,
-.wcas-layout-one-column .wcas-checkout-wrapper > .wcas-checkout-column,
-.wcas-layout-one-column .wcas-checkout-column {
-	display: contents !important;
-}
-.wcas-layout-one-column .wcas-block-checkout-form { order: 10 !important; }
-.wcas-layout-one-column .wcas-block-shipping      { order: 20 !important; }
-.wcas-layout-one-column .wcas-block-order-review  { order: 30 !important; }
-.wcas-layout-one-column .wcas-block-payment       { order: 40 !important; }
-.wcas-layout-one-column .wcas-checkout-row-full   { order: 998 !important; }
-.wcas-layout-one-column .wcas-block-order-button  {
-	order: 999 !important;
-	width: 100% !important;
-	flex: 1 1 100% !important;
-}
-
-/* ==========================================================================
-   5. Responsive — Stacking & Mobile Behavior (< 1024px)
-   ========================================================================== */
+/* Responsive — Stacking & Mobile Behavior (< 1024px) */
 @media (max-width: 1023px) {
 	.wcas-layout-two-column.wcas-checkout-wrapper,
-	.wcas-layout-two-column .wcas-checkout-wrapper {
+	.wcas-layout-two-column .wcas-checkout-wrapper,
+	.wcsc-layout-2-col.wcas-checkout-wrapper {
+		display: flex !important;
 		flex-direction: column !important;
-		gap: var(--wcsc-row-gap, 24px) !important;
+		gap: var(--wcsc-row-gap, 16px) !important;
+	}
+
+	.wcas-layout-two-column .wcas-checkout-column-left,
+	.wcas-layout-two-column .wcas-checkout-column-right {
+		grid-column: auto !important;
+		width: 100% !important;
+		max-width: 100% !important;
 	}
 
 	.wcas-checkout-wrapper {
 		display: flex !important;
 		flex-direction: column !important;
-		gap: var(--wcsc-row-gap, 20px) !important;
-	}
-
-	.wcas-checkout-wrapper > .wcas-checkout-column,
-	.wcas-checkout-wrapper .wcas-checkout-column {
-		display: contents !important;
-	}
-
-	.wcas-checkout-wrapper .wcas-block-checkout-form { order: 10 !important; }
-	.wcas-checkout-wrapper .wcas-block-shipping      { order: 20 !important; }
-	.wcas-checkout-wrapper .wcas-block-order-review  { order: 30 !important; }
-	.wcas-checkout-wrapper .wcas-block-payment       { order: 40 !important; }
-	.wcas-checkout-wrapper .wcas-checkout-row-full   { order: 998 !important; }
-
-	/* Tablet & Mobile: Order Now Button MUST ALWAYS stay at the very bottom */
-	.wcas-checkout-wrapper .wcas-block-order-button {
-		order: 999 !important;
-		width: 100% !important;
-		flex: 1 1 100% !important;
+		gap: var(--wcsc-row-gap, 16px) !important;
 	}
 }
 
@@ -663,7 +645,7 @@
    6. Native checkout form resets (scoped)
    ========================================================================== */
 .wcsc-product-checkout-widget .woocommerce form .form-row {
-	margin-bottom: 14px;
+	margin-bottom: 8px;
 	padding: 0;
 }
 
@@ -672,7 +654,7 @@
 	font-size: 0.875rem;
 	font-weight: 600;
 	color: #000000;
-	margin-bottom: 5px;
+	margin-bottom: 4px;
 }
 
 .wcsc-product-checkout-widget .woocommerce form .form-row input.input-text,
@@ -703,14 +685,14 @@
 	border-collapse: collapse;
 	border: 1px solid #e2e8f0;
 	border-radius: 4px;
-	margin-bottom: 20px;
+	margin-bottom: 8px;
 	background: #ffffff;
 	overflow: hidden;
 }
 
 .wcsc-product-checkout-widget table.shop_table th,
 .wcsc-product-checkout-widget table.shop_table td {
-	padding: 12px 16px;
+	padding: 10px 14px;
 	border-bottom: 1px solid #edf2f7;
 	text-align: left;
 	font-size: 0.9rem;
@@ -740,9 +722,14 @@
 	background-color: #ffffff;
 }
 
+/* Subtotal Column & Table Data Values Left Alignment */
+.wcsc-product-checkout-widget table.shop_table th.product-total,
 .wcsc-product-checkout-widget table.shop_table tbody td.product-total,
+.wcsc-product-checkout-widget table.shop_table tfoot tr.cart-subtotal td,
+.wcsc-product-checkout-widget table.shop_table tfoot tr.wcas-order-review-subtotal td,
+.wcsc-product-checkout-widget table.shop_table td.product-total,
 .wcsc-product-checkout-widget table.shop_table tfoot td {
-	text-align: right !important;
+	text-align: left !important;
 }
 
 /* Order Total Row Background Covering Full Row (TH & TD) */
@@ -995,7 +982,7 @@
 	padding: 0;
 	margin: 0;
 	list-style: none;
-	gap: 12px;
+	gap: 8px;
 }
 
 .wcas-checkout-wrapper .wcas-block-shipping ul#shipping_method li.wcsc-shipping-card {
@@ -1004,7 +991,7 @@
 	background: #ffffff;
 	border: 1px solid #e2e8f0;
 	border-radius: 8px;
-	padding: 16px 20px;
+	padding: 12px 16px;
 	cursor: pointer;
 	transition: all 0.2s ease;
 }
@@ -1039,29 +1026,31 @@
 	-webkit-appearance: none;
 	width: 18px;
 	height: 18px;
-	border: 2px solid #cbd5e0;
+	border: 2px solid var(--wcsc-radio-border, #cbd5e0);
 	border-radius: 50%;
 	outline: none;
-	background: #fff;
+	background: var(--wcsc-radio-bg, #ffffff);
 	position: relative;
 	cursor: pointer;
 	flex-shrink: 0;
 }
 
-.wcas-checkout-wrapper .wcas-block-shipping ul#shipping_method li.wcsc-shipping-card > input[type="radio"]:checked {
-	border-color: #2b6cb0;
-	background: #2b6cb0;
+.wcas-checkout-wrapper .wcas-block-shipping ul#shipping_method li.wcsc-shipping-card > input[type="radio"]:checked,
+.wcas-checkout-wrapper .wcas-block-shipping ul#shipping_method li.wcsc-shipping-card.is-active > input[type="radio"] {
+	border-color: var(--wcsc-radio-checked-border, #2b6cb0) !important;
+	background: var(--wcsc-radio-checked-bg, #2b6cb0) !important;
 }
 
-.wcas-checkout-wrapper .wcas-block-shipping ul#shipping_method li.wcsc-shipping-card > input[type="radio"]:checked::after {
-	content: "";
-	position: absolute;
-	top: 4px;
-	left: 4px;
-	width: 6px;
-	height: 6px;
-	border-radius: 50%;
-	background: #fff;
+.wcas-checkout-wrapper .wcas-block-shipping ul#shipping_method li.wcsc-shipping-card > input[type="radio"]:checked::after,
+.wcas-checkout-wrapper .wcas-block-shipping ul#shipping_method li.wcsc-shipping-card.is-active > input[type="radio"]::after {
+	content: "" !important;
+	position: absolute !important;
+	top: 4px !important;
+	left: 4px !important;
+	width: 6px !important;
+	height: 6px !important;
+	border-radius: 50% !important;
+	background: var(--wcsc-radio-dot, #ffffff) !important;
 }
 
 .wcas-checkout-wrapper .wcas-block-shipping ul#shipping_method li.wcsc-shipping-card > label .amount {
@@ -1196,7 +1185,7 @@
    10. Mobile & Tablet Sticky Floating Order Button (< 1024px)
    ========================================================================== */
 .wcsc-mobile-sticky-bar {
-	display: none;
+	display: block;
 	position: fixed;
 	bottom: 0;
 	left: 0;
@@ -1212,20 +1201,20 @@
 	transition: transform 0.3s cubic-bezier(0.16, 1, 0.3, 1), opacity 0.3s ease;
 }
 
-@media (max-width: 1023px) {
-	.wcsc-mobile-sticky-bar {
-		display: block;
-	}
-	.wcsc-mobile-sticky-bar.is-hidden {
-		transform: translateY(100%);
-		opacity: 0;
-		pointer-events: none;
-	}
+.wcsc-mobile-sticky-bar.is-hidden {
+	transform: translateY(100%);
+	opacity: 0;
+	pointer-events: none;
 }
 
-/* In active Elementor editor, prevent sticky bar from covering the editor bottom bar */
-body.elementor-editor-active .wcsc-mobile-sticky-bar {
-	display: none !important;
+/* In active Elementor editor, allow previewing the floating button cleanly */
+body.elementor-editor-active .wcsc-mobile-sticky-bar,
+.elementor-editor-active .wcsc-mobile-sticky-bar {
+	display: block !important;
+	opacity: 1 !important;
+	transform: none !important;
+	pointer-events: auto !important;
+	z-index: 99998 !important;
 }
 
 .wcsc-mobile-sticky-btn {

@@ -463,9 +463,8 @@ if ( '1_column' === $checkout_layout ) {
 	</div>
 
 	<?php
-	$sticky_enabled = true;
-	if ( ( isset( $settings['style_enable_mobile_sticky_button'] ) && 'no' === $settings['style_enable_mobile_sticky_button'] ) ||
-	     ( isset( $settings['enable_mobile_sticky_button'] ) && 'no' === $settings['enable_mobile_sticky_button'] ) ) {
+	$sticky_enabled = ! isset( $settings['enable_mobile_sticky_button'] ) || 'yes' === $settings['enable_mobile_sticky_button'];
+	if ( isset( $settings['style_enable_mobile_sticky_button'] ) && 'no' === $settings['style_enable_mobile_sticky_button'] ) {
 		$sticky_enabled = false;
 	}
 

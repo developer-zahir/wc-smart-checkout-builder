@@ -1749,6 +1749,27 @@ class Elementor_Widget extends Widget_Base {
 			)
 		);
 
+		$shipping_card_sel = '{{WRAPPER}} .wcas-checkout-wrapper .wcas-block-shipping ul#shipping_method li.wcsc-shipping-card, {{WRAPPER}} .wcsc-shipping-card';
+		$shipping_card_active_sel = '{{WRAPPER}} .wcas-checkout-wrapper .wcas-block-shipping ul#shipping_method li.wcsc-shipping-card.is-active, {{WRAPPER}} .wcsc-shipping-card.is-active';
+		$shipping_radio_sel = '{{WRAPPER}} .wcas-checkout-wrapper .wcas-block-shipping ul#shipping_method li.wcsc-shipping-card > input[type="radio"], {{WRAPPER}} .wcsc-shipping-card input[type="radio"]';
+		$shipping_radio_active_sel = '{{WRAPPER}} .wcas-checkout-wrapper .wcas-block-shipping ul#shipping_method li.wcsc-shipping-card.is-active > input[type="radio"], {{WRAPPER}} .wcas-checkout-wrapper .wcas-block-shipping ul#shipping_method li.wcsc-shipping-card > input[type="radio"]:checked, {{WRAPPER}} .wcsc-shipping-card.is-active input[type="radio"], {{WRAPPER}} .wcsc-shipping-card input[type="radio"]:checked';
+		$shipping_radio_dot_sel = '{{WRAPPER}} .wcas-checkout-wrapper .wcas-block-shipping ul#shipping_method li.wcsc-shipping-card.is-active > input[type="radio"]::after, {{WRAPPER}} .wcas-checkout-wrapper .wcas-block-shipping ul#shipping_method li.wcsc-shipping-card > input[type="radio"]:checked::after, {{WRAPPER}} .wcsc-shipping-card.is-active input[type="radio"]::after, {{WRAPPER}} .wcsc-shipping-card input[type="radio"]:checked::after';
+
+		$this->add_responsive_control(
+			'shipping_card_min_height',
+			array(
+				'label'      => esc_html__( 'Min Height', 'wc-smart-checkout-builder' ),
+				'type'       => Controls_Manager::SLIDER,
+				'size_units' => array( 'px', 'em', 'vh' ),
+				'range'      => array(
+					'px' => array( 'min' => 20, 'max' => 150 ),
+				),
+				'selectors'  => array(
+					$shipping_card_sel => 'min-height: {{SIZE}}{{UNIT}} !important; display: flex !important; align-items: center !important;',
+				),
+			)
+		);
+
 		$this->add_responsive_control(
 			'shipping_card_padding',
 			array(
@@ -1764,7 +1785,7 @@ class Elementor_Widget extends Widget_Base {
 					'isLinked' => false,
 				),
 				'selectors'  => array(
-					'{{WRAPPER}} .wcsc-shipping-card' => 'padding: {{TOP}}{{UNIT}} {{RIGHT}}{{UNIT}} {{BOTTOM}}{{UNIT}} {{LEFT}}{{UNIT}};',
+					$shipping_card_sel => 'padding: {{TOP}}{{UNIT}} {{RIGHT}}{{UNIT}} {{BOTTOM}}{{UNIT}} {{LEFT}}{{UNIT}} !important;',
 				),
 			)
 		);
@@ -1776,8 +1797,17 @@ class Elementor_Widget extends Widget_Base {
 				'type'       => Controls_Manager::DIMENSIONS,
 				'size_units' => array( 'px', 'em', '%' ),
 				'selectors'  => array(
-					'{{WRAPPER}} .wcsc-shipping-card' => 'margin: {{TOP}}{{UNIT}} {{RIGHT}}{{UNIT}} {{BOTTOM}}{{UNIT}} {{LEFT}}{{UNIT}};',
+					$shipping_card_sel => 'margin: {{TOP}}{{UNIT}} {{RIGHT}}{{UNIT}} {{BOTTOM}}{{UNIT}} {{LEFT}}{{UNIT}} !important;',
 				),
+			)
+		);
+
+		$this->add_group_control(
+			Group_Control_Border::get_type(),
+			array(
+				'name'     => 'shipping_card_border',
+				'label'    => esc_html__( 'Border', 'wc-smart-checkout-builder' ),
+				'selector' => $shipping_card_sel,
 			)
 		);
 
@@ -1796,7 +1826,7 @@ class Elementor_Widget extends Widget_Base {
 					'isLinked' => true,
 				),
 				'selectors'  => array(
-					'{{WRAPPER}} .wcsc-shipping-card' => 'border-radius: {{TOP}}{{UNIT}} {{RIGHT}}{{UNIT}} {{BOTTOM}}{{UNIT}} {{LEFT}}{{UNIT}};',
+					$shipping_card_sel => 'border-radius: {{TOP}}{{UNIT}} {{RIGHT}}{{UNIT}} {{BOTTOM}}{{UNIT}} {{LEFT}}{{UNIT}} !important;',
 				),
 			)
 		);
@@ -1815,7 +1845,7 @@ class Elementor_Widget extends Widget_Base {
 					),
 				),
 				'selectors'  => array(
-					'{{WRAPPER}} .wcas-block-shipping ul#shipping_method' => 'gap: {{SIZE}}{{UNIT}};',
+					'{{WRAPPER}} .wcas-block-shipping ul#shipping_method' => 'gap: {{SIZE}}{{UNIT}} !important;',
 				),
 			)
 		);
@@ -1852,7 +1882,7 @@ class Elementor_Widget extends Widget_Base {
 				'label'     => esc_html__( 'Background Color', 'wc-smart-checkout-builder' ),
 				'type'      => Controls_Manager::COLOR,
 				'selectors' => array(
-					'{{WRAPPER}} .wcsc-shipping-card' => 'background-color: {{VALUE}};',
+					$shipping_card_sel => 'background-color: {{VALUE}} !important;',
 				),
 			)
 		);
@@ -1863,18 +1893,29 @@ class Elementor_Widget extends Widget_Base {
 				'label'     => esc_html__( 'Border Color', 'wc-smart-checkout-builder' ),
 				'type'      => Controls_Manager::COLOR,
 				'selectors' => array(
-					'{{WRAPPER}} .wcsc-shipping-card' => 'border-color: {{VALUE}};',
+					$shipping_card_sel => 'border-color: {{VALUE}} !important;',
 				),
 			)
 		);
 
 		$this->add_control(
-			'shipping_card_radio_accent',
+			'shipping_card_radio_border_color',
 			array(
-				'label'     => esc_html__( 'Radio Accent Color', 'wc-smart-checkout-builder' ),
+				'label'     => esc_html__( 'Radio Border Color', 'wc-smart-checkout-builder' ),
 				'type'      => Controls_Manager::COLOR,
 				'selectors' => array(
-					'{{WRAPPER}} .wcsc-shipping-card input[type="radio"]' => 'accent-color: {{VALUE}};',
+					$shipping_radio_sel => '--wcsc-radio-border: {{VALUE}} !important; border-color: {{VALUE}} !important;',
+				),
+			)
+		);
+
+		$this->add_control(
+			'shipping_card_radio_bg_color',
+			array(
+				'label'     => esc_html__( 'Radio Background Color', 'wc-smart-checkout-builder' ),
+				'type'      => Controls_Manager::COLOR,
+				'selectors' => array(
+					$shipping_radio_sel => '--wcsc-radio-bg: {{VALUE}} !important; background: {{VALUE}} !important;',
 				),
 			)
 		);
@@ -1885,7 +1926,7 @@ class Elementor_Widget extends Widget_Base {
 				'label'     => esc_html__( 'Title Color', 'wc-smart-checkout-builder' ),
 				'type'      => Controls_Manager::COLOR,
 				'selectors' => array(
-					'{{WRAPPER}} .wcsc-shipping-card label' => 'color: {{VALUE}};',
+					'{{WRAPPER}} .wcsc-shipping-card label' => 'color: {{VALUE}} !important;',
 				),
 			)
 		);
@@ -1896,7 +1937,7 @@ class Elementor_Widget extends Widget_Base {
 				'label'     => esc_html__( 'Price Color', 'wc-smart-checkout-builder' ),
 				'type'      => Controls_Manager::COLOR,
 				'selectors' => array(
-					'{{WRAPPER}} .wcsc-shipping-card label .amount' => 'color: {{VALUE}};',
+					'{{WRAPPER}} .wcsc-shipping-card label .amount' => 'color: {{VALUE}} !important;',
 				),
 			)
 		);
@@ -1915,7 +1956,7 @@ class Elementor_Widget extends Widget_Base {
 				'label'     => esc_html__( 'Background Color', 'wc-smart-checkout-builder' ),
 				'type'      => Controls_Manager::COLOR,
 				'selectors' => array(
-					'{{WRAPPER}} .wcsc-shipping-card.is-active' => 'background-color: {{VALUE}};',
+					$shipping_card_active_sel => 'background-color: {{VALUE}} !important;',
 				),
 			)
 		);
@@ -1926,7 +1967,7 @@ class Elementor_Widget extends Widget_Base {
 				'label'     => esc_html__( 'Border Color', 'wc-smart-checkout-builder' ),
 				'type'      => Controls_Manager::COLOR,
 				'selectors' => array(
-					'{{WRAPPER}} .wcsc-shipping-card.is-active' => 'border-color: {{VALUE}}; box-shadow: 0 0 0 1px {{VALUE}};',
+					$shipping_card_active_sel => 'border-color: {{VALUE}} !important; box-shadow: 0 0 0 1px {{VALUE}} !important;',
 				),
 			)
 		);
@@ -1934,10 +1975,21 @@ class Elementor_Widget extends Widget_Base {
 		$this->add_control(
 			'shipping_card_active_radio_accent',
 			array(
-				'label'     => esc_html__( 'Radio Accent Color', 'wc-smart-checkout-builder' ),
+				'label'     => esc_html__( 'Radio Selected Color', 'wc-smart-checkout-builder' ),
 				'type'      => Controls_Manager::COLOR,
 				'selectors' => array(
-					'{{WRAPPER}} .wcsc-shipping-card.is-active input[type="radio"]' => 'accent-color: {{VALUE}}; border-color: {{VALUE}} !important; background: {{VALUE}} !important;',
+					$shipping_radio_active_sel => '--wcsc-radio-checked-bg: {{VALUE}} !important; --wcsc-radio-checked-border: {{VALUE}} !important; border-color: {{VALUE}} !important; background: {{VALUE}} !important; accent-color: {{VALUE}} !important;',
+				),
+			)
+		);
+
+		$this->add_control(
+			'shipping_card_active_radio_dot',
+			array(
+				'label'     => esc_html__( 'Radio Dot Indicator Color', 'wc-smart-checkout-builder' ),
+				'type'      => Controls_Manager::COLOR,
+				'selectors' => array(
+					$shipping_radio_dot_sel => '--wcsc-radio-dot: {{VALUE}} !important; background: {{VALUE}} !important;',
 				),
 			)
 		);
@@ -1948,7 +2000,7 @@ class Elementor_Widget extends Widget_Base {
 				'label'     => esc_html__( 'Title Color', 'wc-smart-checkout-builder' ),
 				'type'      => Controls_Manager::COLOR,
 				'selectors' => array(
-					'{{WRAPPER}} .wcsc-shipping-card.is-active label' => 'color: {{VALUE}};',
+					'{{WRAPPER}} .wcsc-shipping-card.is-active label' => 'color: {{VALUE}} !important;',
 				),
 			)
 		);
@@ -1959,7 +2011,7 @@ class Elementor_Widget extends Widget_Base {
 				'label'     => esc_html__( 'Price Color', 'wc-smart-checkout-builder' ),
 				'type'      => Controls_Manager::COLOR,
 				'selectors' => array(
-					'{{WRAPPER}} .wcsc-shipping-card.is-active label .amount' => 'color: {{VALUE}};',
+					'{{WRAPPER}} .wcsc-shipping-card.is-active label .amount' => 'color: {{VALUE}} !important;',
 				),
 			)
 		);
@@ -2646,7 +2698,69 @@ class Elementor_Widget extends Widget_Base {
 
 		$checkout_input_error_sel = '{{WRAPPER}} .woocommerce form .form-row.woocommerce-invalid input.input-text, {{WRAPPER}} .woocommerce form .form-row.woocommerce-invalid textarea, {{WRAPPER}} .woocommerce form .form-row.woocommerce-invalid select, {{WRAPPER}} .woocommerce form.checkout input.input-text.wcsc-invalid, {{WRAPPER}} .woocommerce form.checkout textarea.wcsc-invalid, {{WRAPPER}} .woocommerce form.checkout select.wcsc-invalid, {{WRAPPER}} .wcas-checkout-wrapper .woocommerce-invalid input.input-text, {{WRAPPER}} .wcas-checkout-wrapper .woocommerce-invalid textarea, {{WRAPPER}} .wcas-checkout-wrapper .woocommerce-invalid select, {{WRAPPER}} .wcas-checkout-wrapper input.input-text.wcsc-invalid, {{WRAPPER}} .wcas-checkout-wrapper textarea.wcsc-invalid, {{WRAPPER}} .wcas-checkout-wrapper select.wcsc-invalid';
 
-		$checkout_label_sel = '{{WRAPPER}} .woocommerce form .form-row label, {{WRAPPER}} .wcas-checkout-wrapper .form-row label, {{WRAPPER}} .wcas-checkout-wrapper label';
+		$checkout_label_sel = '{{WRAPPER}} .woocommerce form .form-row label, {{WRAPPER}} .wcas-checkout-wrapper .form-row label, {{WRAPPER}} .wcas-checkout-wrapper .wcas-block-checkout-form label, {{WRAPPER}} .wcas-checkout-wrapper #customer_details label, {{WRAPPER}} .wcas-checkout-wrapper label';
+
+		// --- Dedicated Field Labels Controls ---
+		$this->add_control(
+			'heading_checkout_field_labels',
+			array(
+				'label'     => esc_html__( 'Field Labels', 'wc-smart-checkout-builder' ),
+				'type'      => Controls_Manager::HEADING,
+			)
+		);
+
+		$this->add_control(
+			'checkout_fields_label_color',
+			array(
+				'label'     => esc_html__( 'Label Color', 'wc-smart-checkout-builder' ),
+				'type'      => Controls_Manager::COLOR,
+				'selectors' => array(
+					$checkout_label_sel => 'color: {{VALUE}} !important;',
+				),
+			)
+		);
+
+		$this->add_group_control(
+			Group_Control_Typography::get_type(),
+			array(
+				'name'     => 'checkout_fields_label_typography',
+				'label'    => esc_html__( 'Label Typography', 'wc-smart-checkout-builder' ),
+				'selector' => $checkout_label_sel,
+			)
+		);
+
+		$this->add_control(
+			'checkout_fields_required_color',
+			array(
+				'label'     => esc_html__( 'Required Indicator (*) Color', 'wc-smart-checkout-builder' ),
+				'type'      => Controls_Manager::COLOR,
+				'selectors' => array(
+					'{{WRAPPER}} .woocommerce form .form-row label .required, {{WRAPPER}} .wcas-checkout-wrapper label .required, {{WRAPPER}} .wcas-checkout-wrapper label abbr.required' => 'color: {{VALUE}} !important;',
+				),
+			)
+		);
+
+		$this->add_responsive_control(
+			'checkout_fields_label_spacing',
+			array(
+				'label'      => esc_html__( 'Label Spacing (Bottom Margin)', 'wc-smart-checkout-builder' ),
+				'type'       => Controls_Manager::SLIDER,
+				'size_units' => array( 'px', 'em' ),
+				'selectors'  => array(
+					$checkout_label_sel => 'margin-bottom: {{SIZE}}{{UNIT}} !important;',
+				),
+			)
+		);
+
+		// --- Input Field Controls ---
+		$this->add_control(
+			'heading_checkout_inputs',
+			array(
+				'label'     => esc_html__( 'Input Fields', 'wc-smart-checkout-builder' ),
+				'type'      => Controls_Manager::HEADING,
+				'separator' => 'before',
+			)
+		);
 
 		$this->start_controls_tabs( 'tabs_checkout_fields_style' );
 
@@ -2861,56 +2975,6 @@ class Elementor_Widget extends Widget_Base {
 
 		$this->end_controls_tab();
 
-		// Labels Tab
-		$this->start_controls_tab(
-			'tab_fields_labels',
-			array( 'label' => esc_html__( 'Labels', 'wc-smart-checkout-builder' ) )
-		);
-
-		$this->add_group_control(
-			Group_Control_Typography::get_type(),
-			array(
-				'name'     => 'checkout_fields_label_typography',
-				'label'    => esc_html__( 'Label Typography', 'wc-smart-checkout-builder' ),
-				'selector' => $checkout_label_sel,
-			)
-		);
-
-		$this->add_control(
-			'checkout_fields_label_color',
-			array(
-				'label'     => esc_html__( 'Label Color', 'wc-smart-checkout-builder' ),
-				'type'      => Controls_Manager::COLOR,
-				'selectors' => array(
-					$checkout_label_sel => 'color: {{VALUE}} !important;',
-				),
-			)
-		);
-
-		$this->add_control(
-			'checkout_fields_required_color',
-			array(
-				'label'     => esc_html__( 'Required Indicator (*) Color', 'wc-smart-checkout-builder' ),
-				'type'      => Controls_Manager::COLOR,
-				'selectors' => array(
-					'{{WRAPPER}} .woocommerce form .form-row label .required, {{WRAPPER}} .wcas-checkout-wrapper label .required' => 'color: {{VALUE}} !important;',
-				),
-			)
-		);
-
-		$this->add_responsive_control(
-			'checkout_fields_label_spacing',
-			array(
-				'label'      => esc_html__( 'Label Spacing', 'wc-smart-checkout-builder' ),
-				'type'       => Controls_Manager::SLIDER,
-				'size_units' => array( 'px', 'em' ),
-				'selectors'  => array(
-					$checkout_label_sel => 'margin-bottom: {{SIZE}}{{UNIT}} !important;',
-				),
-			)
-		);
-
-		$this->end_controls_tab();
 		$this->end_controls_tabs();
 
 		$this->end_controls_section();
