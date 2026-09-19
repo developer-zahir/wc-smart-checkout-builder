@@ -1928,3 +1928,23 @@ body.elementor-editor-active .wcsc-mobile-sticky-bar,
 	}
 }
 
+/* =========================================================================
+   Thank You Page Duplicate Output Suppression
+   ========================================================================= */
+.woocommerce-order-received .woocommerce > .woocommerce-thankyou-order-received:not(.wcsc-ty-success-title),
+.woocommerce-order-received .woocommerce > .woocommerce-order-overview,
+.woocommerce-order-received .woocommerce > .woocommerce-order-details,
+.woocommerce-order-received .woocommerce > .woocommerce-customer-details,
+.woocommerce-order-received .woocommerce > p:first-child:not(.wcsc-thank-you-wrapper *),
+.woocommerce-order-received .woocommerce-order-details,
+.woocommerce-order-received .woocommerce-customer-details,
+.elementor-widget-wcsc_thank_you ~ .woocommerce-order-details,
+.elementor-widget-wcsc_thank_you ~ .woocommerce-customer-details,
+.elementor-widget-wcsc_thank_you ~ .woocommerce-order-overview,
+.wcsc-thank-you-wrapper ~ .woocommerce-order-details,
+.wcsc-thank-you-wrapper ~ .woocommerce-customer-details,
+.wcsc-thank-you-wrapper ~ .woocommerce-order-overview {
+	display: none !important;
+}
+
+

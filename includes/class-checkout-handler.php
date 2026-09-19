@@ -55,6 +55,13 @@ class Checkout_Handler {
 	public static $is_rendering_plugin_order_button = false;
 
 	/**
+	 * Flag to ensure order bump renders exactly once at the configured position.
+	 *
+	 * @var bool
+	 */
+	public static $order_bump_rendered = false;
+
+	/**
 	 * Cached native review-order HTML.
 	 *
 	 * Captured once per render cycle so that both the Shipping block
@@ -89,6 +96,32 @@ class Checkout_Handler {
 		add_action( 'wp_ajax_nopriv_wcsc_toggle_order_bump', array( __CLASS__, 'ajax_toggle_order_bump' ) );
 
 		add_action( 'woocommerce_after_checkout_validation', array( __CLASS__, 'validate_bd_phone_number' ), 10, 2 );
+
+		// Dynamic WooCommerce checkout hooks for Order Bump positioning fallback
+		add_action( 'woocommerce_checkout_before_customer_details', array( __CLASS__, 'hook_bump_above_customer_info' ), 5 );
+		add_action( 'woocommerce_checkout_after_customer_details', array( __CLASS__, 'hook_bump_below_customer_info' ), 20 );
+		add_action( 'woocommerce_checkout_before_order_review', array( __CLASS__, 'hook_bump_before_order_review' ), 5 );
+	}
+
+	/**
+	 * Dynamic hook callback for Order Bump above customer info.
+	 */
+	public static function hook_bump_above_customer_info() {
+		self::render_order_bump_block( 'above_customer_info' );
+	}
+
+	/**
+	 * Dynamic hook callback for Order Bump below customer info.
+	 */
+	public static function hook_bump_below_customer_info() {
+		self::render_order_bump_block( 'below_customer_info' );
+	}
+
+	/**
+	 * Dynamic hook callback for Order Bump before order review.
+	 */
+	public static function hook_bump_before_order_review() {
+		self::render_order_bump_block( 'before_order_review' );
 	}
 
 	/**
@@ -332,6 +365,7 @@ class Checkout_Handler {
 		self::$active_widget_settings = $settings;
 		self::$active_product         = $product;
 		self::$review_order_html      = null;
+		self::$order_bump_rendered    = false;
 
 		if ( function_exists( 'WC' ) && WC()->session ) {
 			$show_img_val = ( ! isset( $settings['show_cart_item_image'] ) || 'yes' === $settings['show_cart_item_image'] ) ? 'yes' : 'no';
@@ -1231,17 +1265,21 @@ class Checkout_Handler {
 	 * @param string $target_position 'above_customer_info', 'below_customer_info', or 'before_order_review'
 	 */
 	public static function render_order_bump_block( $target_position = '' ) {
+		if ( self::$order_bump_rendered ) {
+			return;
+		}
+
 		$settings = self::$active_widget_settings;
 		if ( empty( $settings ) || empty( $settings['enable_order_bump'] ) || 'yes' !== $settings['enable_order_bump'] ) {
 			return;
 		}
 
 		$raw_pos = ! empty( $settings['order_bump_position'] ) ? $settings['order_bump_position'] : 'above_customer_info';
-		if ( 'above_billing' === $raw_pos ) {
+		if ( 'above_billing' === $raw_pos || 'top_billing' === $raw_pos || 'above_customer' === $raw_pos ) {
 			$configured_pos = 'above_customer_info';
-		} elseif ( 'below_billing' === $raw_pos ) {
+		} elseif ( 'below_billing' === $raw_pos || 'before_order_button' === $raw_pos || 'below_customer' === $raw_pos || 'after_customer_info' === $raw_pos ) {
 			$configured_pos = 'below_customer_info';
-		} elseif ( 'before_review' === $raw_pos ) {
+		} elseif ( 'before_review' === $raw_pos || 'inside_review' === $raw_pos || 'before_order' === $raw_pos ) {
 			$configured_pos = 'before_order_review';
 		} else {
 			$configured_pos = $raw_pos;
@@ -1257,6 +1295,8 @@ class Checkout_Handler {
 		if ( empty( $product_ids ) ) {
 			return;
 		}
+
+		self::$order_bump_rendered = true;
 
 		$layout_desktop = ! empty( $settings['order_bump_layout'] ) ? $settings['order_bump_layout'] : 'list';
 		$layout_tablet  = ! empty( $settings['order_bump_layout_tablet'] ) ? $settings['order_bump_layout_tablet'] : $layout_desktop;

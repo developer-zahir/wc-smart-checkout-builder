@@ -177,17 +177,21 @@ if ( '1_column' === $checkout_layout ) {
 			};
 
 			// Render Order Bump block helper for editor preview
-			$render_order_bump_html = function ( $target_pos ) use ( $settings ) {
+			$rendered_bump_editor   = false;
+			$render_order_bump_html = function ( $target_pos ) use ( &$rendered_bump_editor, $settings ) {
+				if ( $rendered_bump_editor ) {
+					return;
+				}
 				$enabled = ! empty( $settings['enable_order_bump'] ) && 'yes' === $settings['enable_order_bump'];
 				if ( ! $enabled ) {
 					return;
 				}
 				$raw_pos = ! empty( $settings['order_bump_position'] ) ? $settings['order_bump_position'] : 'above_customer_info';
-				if ( 'above_billing' === $raw_pos ) {
+				if ( 'above_billing' === $raw_pos || 'top_billing' === $raw_pos || 'above_customer' === $raw_pos ) {
 					$pos = 'above_customer_info';
-				} elseif ( 'below_billing' === $raw_pos ) {
+				} elseif ( 'below_billing' === $raw_pos || 'before_order_button' === $raw_pos || 'below_customer' === $raw_pos || 'after_customer_info' === $raw_pos ) {
 					$pos = 'below_customer_info';
-				} elseif ( 'before_review' === $raw_pos ) {
+				} elseif ( 'before_review' === $raw_pos || 'inside_review' === $raw_pos || 'before_order' === $raw_pos ) {
 					$pos = 'before_order_review';
 				} else {
 					$pos = $raw_pos;
@@ -195,6 +199,7 @@ if ( '1_column' === $checkout_layout ) {
 				if ( $pos !== $target_pos ) {
 					return;
 				}
+				$rendered_bump_editor = true;
 
 				$section_title = ! empty( $settings['order_bump_section_title'] ) ? $settings['order_bump_section_title'] : __( 'ধামাকা অফার! সাথে এটাও যুক্ত করুন', 'wc-smart-checkout-builder' );
 				$action_text   = ! empty( $settings['order_bump_action_text'] ) ? $settings['order_bump_action_text'] : __( 'অর্ডার যুক্ত করুন', 'wc-smart-checkout-builder' );

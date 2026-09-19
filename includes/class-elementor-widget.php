@@ -808,6 +808,7 @@ class Elementor_Widget extends Widget_Base {
 				'label_off'    => esc_html__( 'No', 'wc-smart-checkout-builder' ),
 				'return_value' => 'yes',
 				'default'      => 'no',
+				'render_type'  => 'template',
 				'description'  => esc_html__( 'Add special upsell / bump products directly inside the checkout page.', 'wc-smart-checkout-builder' ),
 			)
 		);
@@ -821,6 +822,7 @@ class Elementor_Widget extends Widget_Base {
 				'multiple'    => true,
 				'options'     => Product_Handler::get_bump_product_options(),
 				'default'     => array(),
+				'render_type' => 'template',
 				'condition'   => array(
 					'enable_order_bump' => 'yes',
 				),
@@ -842,6 +844,7 @@ class Elementor_Widget extends Widget_Base {
 					'grid' => esc_html__( 'Grid', 'wc-smart-checkout-builder' ),
 				),
 				'prefix_class'    => 'wcsc-order-bump%s-',
+				'render_type'     => 'template',
 				'condition'       => array(
 					'enable_order_bump' => 'yes',
 				),
@@ -864,6 +867,7 @@ class Elementor_Widget extends Widget_Base {
 					'4' => esc_html__( '4 Columns', 'wc-smart-checkout-builder' ),
 				),
 				'prefix_class'    => 'wcsc-order-bump-cols%s-',
+				'render_type'     => 'template',
 				'selectors'       => array(
 					'{{WRAPPER}} .wcas-checkout-wrapper .wcsc-order-bump-list' => 'display: grid !important; grid-template-columns: repeat({{VALUE}}, minmax(0, 1fr)) !important;',
 				),
@@ -876,15 +880,16 @@ class Elementor_Widget extends Widget_Base {
 		$this->add_control(
 			'order_bump_position',
 			array(
-				'label'     => esc_html__( 'Position', 'wc-smart-checkout-builder' ),
-				'type'      => Controls_Manager::SELECT,
-				'default'   => 'above_customer_info',
-				'options'   => array(
+				'label'       => esc_html__( 'Position', 'wc-smart-checkout-builder' ),
+				'type'        => Controls_Manager::SELECT,
+				'default'     => 'above_customer_info',
+				'options'     => array(
 					'above_customer_info' => esc_html__( 'Above Customer Info', 'wc-smart-checkout-builder' ),
 					'below_customer_info' => esc_html__( 'Below Customer Info', 'wc-smart-checkout-builder' ),
 					'before_order_review' => esc_html__( 'Before Order Review', 'wc-smart-checkout-builder' ),
 				),
-				'condition' => array(
+				'render_type' => 'template',
+				'condition'   => array(
 					'enable_order_bump' => 'yes',
 				),
 			)
@@ -893,10 +898,11 @@ class Elementor_Widget extends Widget_Base {
 		$this->add_control(
 			'order_bump_section_title',
 			array(
-				'label'     => esc_html__( 'Section Title', 'wc-smart-checkout-builder' ),
-				'type'      => Controls_Manager::TEXT,
-				'default'   => esc_html__( 'ধামাকা অফার! সাথে এটাও যুক্ত করুন', 'wc-smart-checkout-builder' ),
-				'condition' => array(
+				'label'       => esc_html__( 'Section Title', 'wc-smart-checkout-builder' ),
+				'type'        => Controls_Manager::TEXT,
+				'default'     => esc_html__( 'ধামাকা অফার! সাথে এটাও যুক্ত করুন', 'wc-smart-checkout-builder' ),
+				'render_type' => 'template',
+				'condition'   => array(
 					'enable_order_bump' => 'yes',
 				),
 			)
@@ -905,10 +911,11 @@ class Elementor_Widget extends Widget_Base {
 		$this->add_control(
 			'order_bump_action_text',
 			array(
-				'label'     => esc_html__( 'Action Button Text', 'wc-smart-checkout-builder' ),
-				'type'      => Controls_Manager::TEXT,
-				'default'   => esc_html__( 'অর্ডার যুক্ত করুন', 'wc-smart-checkout-builder' ),
-				'condition' => array(
+				'label'       => esc_html__( 'Action Button Text', 'wc-smart-checkout-builder' ),
+				'type'        => Controls_Manager::TEXT,
+				'default'     => esc_html__( 'অর্ডার যুক্ত করুন', 'wc-smart-checkout-builder' ),
+				'render_type' => 'template',
+				'condition'   => array(
 					'enable_order_bump' => 'yes',
 				),
 			)
@@ -2899,12 +2906,38 @@ class Elementor_Widget extends Widget_Base {
 			)
 		);
 
+		// Block Spacing (Margin & Padding)
+		$this->add_responsive_control(
+			'order_bump_block_margin',
+			array(
+				'label'      => esc_html__( 'Margin', 'wc-smart-checkout-builder' ),
+				'type'       => Controls_Manager::DIMENSIONS,
+				'size_units' => array( 'px', 'em', '%' ),
+				'selectors'  => array(
+					'{{WRAPPER}} .wcsc-order-bump-block' => 'margin: {{TOP}}{{UNIT}} {{RIGHT}}{{UNIT}} {{BOTTOM}}{{UNIT}} {{LEFT}}{{UNIT}} !important;',
+				),
+			)
+		);
+
+		$this->add_responsive_control(
+			'order_bump_block_padding',
+			array(
+				'label'      => esc_html__( 'Padding', 'wc-smart-checkout-builder' ),
+				'type'       => Controls_Manager::DIMENSIONS,
+				'size_units' => array( 'px', 'em', '%' ),
+				'selectors'  => array(
+					'{{WRAPPER}} .wcsc-order-bump-block' => 'padding: {{TOP}}{{UNIT}} {{RIGHT}}{{UNIT}} {{BOTTOM}}{{UNIT}} {{LEFT}}{{UNIT}} !important;',
+				),
+			)
+		);
+
 		// Container Sizing & Alignment
 		$this->add_control(
 			'heading_order_bump_container_style',
 			array(
-				'label' => esc_html__( 'Container', 'wc-smart-checkout-builder' ),
-				'type'  => Controls_Manager::HEADING,
+				'label'     => esc_html__( 'Container', 'wc-smart-checkout-builder' ),
+				'type'      => Controls_Manager::HEADING,
+				'separator' => 'before',
 			)
 		);
 

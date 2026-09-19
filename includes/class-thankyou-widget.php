@@ -12,6 +12,20 @@ use Elementor\Group_Control_Border;
 
 class ThankYou_Widget extends Widget_Base {
 
+	public function __construct( $data = array(), $args = null ) {
+		parent::__construct( $data, $args );
+		add_action( 'template_redirect', array( __CLASS__, 'suppress_default_thankyou_details' ), 5 );
+	}
+
+	/**
+	 * Suppress default WooCommerce thank you page template output.
+	 */
+	public static function suppress_default_thankyou_details() {
+		if ( function_exists( 'is_order_received_page' ) && is_order_received_page() ) {
+			remove_action( 'woocommerce_thankyou', 'woocommerce_order_details_table', 10 );
+		}
+	}
+
 	public function get_name() { return 'wcsc_thank_you'; }
 	public function get_title() { return esc_html__( 'Thank You / Order Details', 'wc-smart-checkout-builder' ); }
 	public function get_icon() { return 'eicon-woocommerce'; }
@@ -216,10 +230,26 @@ class ThankYou_Widget extends Widget_Base {
 		}
 
 		// Fire native woocommerce_thankyou action for Pixel, GTM (GTM4WP), and conversion tracking
+		// Suppress default WooCommerce order details output so only our custom layout renders
 		static $fired_thankyou = array();
 		if ( empty( $fired_thankyou[ $order->get_id() ] ) ) {
 			$fired_thankyou[ $order->get_id() ] = true;
+
+			// Unhook WooCommerce default order details table
+			remove_action( 'woocommerce_thankyou', 'woocommerce_order_details_table', 10 );
+
+			// Buffer action execution to capture tracking scripts while stripping duplicate HTML tables
+			ob_start();
 			do_action( 'woocommerce_thankyou', $order->get_id() );
+			$raw_thankyou_output = ob_get_clean();
+
+			if ( ! empty( $raw_thankyou_output ) ) {
+				// Strip duplicate order/customer detail sections if still injected by themes/templates
+				$clean_output = preg_replace( '/<section class="woocommerce-order-details[^"]*">.*?<\/section>/is', '', $raw_thankyou_output );
+				$clean_output = preg_replace( '/<section class="woocommerce-customer-details[^"]*">.*?<\/section>/is', '', $clean_output );
+				$clean_output = preg_replace( '/<ul class="woocommerce-order-overview[^"]*">.*?<\/ul>/is', '', $clean_output );
+				echo $clean_output; // phpcs:ignore WordPress.Security.EscapeOutput.OutputNotEscaped
+			}
 		}
 
 		$settings = $this->get_settings_for_display();
@@ -319,6 +349,23 @@ class ThankYou_Widget extends Widget_Base {
 			.wcsc-ty-address-col { flex: 1 1 240px; border: 1px solid #e2e8f0; border-radius: 8px; padding: 16px; background: #ffffff; }
 			.wcsc-ty-address-col h3 { margin: 0 0 10px 0; font-size: 1.05rem; font-weight: 600; color: #1a202c; }
 			.wcsc-ty-address-col address { font-style: normal; line-height: 1.5; color: #4a5568; font-size: 0.925rem; }
+
+			/* Suppress default WooCommerce Thank You duplicate content */
+			.woocommerce-order-received .woocommerce > .woocommerce-thankyou-order-received:not(.wcsc-ty-success-title),
+			.woocommerce-order-received .woocommerce > .woocommerce-order-overview,
+			.woocommerce-order-received .woocommerce > .woocommerce-order-details,
+			.woocommerce-order-received .woocommerce > .woocommerce-customer-details,
+			.woocommerce-order-received .woocommerce > p:first-child:not(.wcsc-thank-you-wrapper *),
+			.woocommerce-order-received .woocommerce-order-details,
+			.woocommerce-order-received .woocommerce-customer-details,
+			.elementor-widget-wcsc_thank_you ~ .woocommerce-order-details,
+			.elementor-widget-wcsc_thank_you ~ .woocommerce-customer-details,
+			.elementor-widget-wcsc_thank_you ~ .woocommerce-order-overview,
+			.wcsc-thank-you-wrapper ~ .woocommerce-order-details,
+			.wcsc-thank-you-wrapper ~ .woocommerce-customer-details,
+			.wcsc-thank-you-wrapper ~ .woocommerce-order-overview {
+				display: none !important;
+			}
 		</style>';
 
 		if ( 'yes' === $settings['show_success_msg'] ) {
