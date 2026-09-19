@@ -878,24 +878,6 @@ class Elementor_Widget extends Widget_Base {
 		);
 
 		$this->add_control(
-			'order_bump_position',
-			array(
-				'label'       => esc_html__( 'Position', 'wc-smart-checkout-builder' ),
-				'type'        => Controls_Manager::SELECT,
-				'default'     => 'above_customer_info',
-				'options'     => array(
-					'above_customer_info' => esc_html__( 'Above Customer Info', 'wc-smart-checkout-builder' ),
-					'below_customer_info' => esc_html__( 'Below Customer Info', 'wc-smart-checkout-builder' ),
-					'before_order_review' => esc_html__( 'Before Order Review', 'wc-smart-checkout-builder' ),
-				),
-				'render_type' => 'template',
-				'condition'   => array(
-					'enable_order_bump' => 'yes',
-				),
-			)
-		);
-
-		$this->add_control(
 			'order_bump_section_title',
 			array(
 				'label'       => esc_html__( 'Section Title', 'wc-smart-checkout-builder' ),
@@ -2928,6 +2910,46 @@ class Elementor_Widget extends Widget_Base {
 				'selectors'  => array(
 					'{{WRAPPER}} .wcsc-order-bump-block' => 'padding: {{TOP}}{{UNIT}} {{RIGHT}}{{UNIT}} {{BOTTOM}}{{UNIT}} {{LEFT}}{{UNIT}} !important;',
 				),
+			)
+		);
+
+		$this->add_group_control(
+			Group_Control_Background::get_type(),
+			array(
+				'name'     => 'order_bump_block_bg',
+				'label'    => esc_html__( 'Background', 'wc-smart-checkout-builder' ),
+				'types'    => array( 'classic', 'gradient' ),
+				'selector' => '{{WRAPPER}} .wcsc-order-bump-block',
+			)
+		);
+
+		$this->add_group_control(
+			Group_Control_Border::get_type(),
+			array(
+				'name'     => 'order_bump_block_border',
+				'label'    => esc_html__( 'Border', 'wc-smart-checkout-builder' ),
+				'selector' => '{{WRAPPER}} .wcsc-order-bump-block',
+			)
+		);
+
+		$this->add_responsive_control(
+			'order_bump_block_border_radius',
+			array(
+				'label'      => esc_html__( 'Border Radius', 'wc-smart-checkout-builder' ),
+				'type'       => Controls_Manager::DIMENSIONS,
+				'size_units' => array( 'px', '%' ),
+				'selectors'  => array(
+					'{{WRAPPER}} .wcsc-order-bump-block' => 'border-radius: {{TOP}}{{UNIT}} {{RIGHT}}{{UNIT}} {{BOTTOM}}{{UNIT}} {{LEFT}}{{UNIT}} !important;',
+				),
+			)
+		);
+
+		$this->add_group_control(
+			Group_Control_Box_Shadow::get_type(),
+			array(
+				'name'     => 'order_bump_block_box_shadow',
+				'label'    => esc_html__( 'Box Shadow', 'wc-smart-checkout-builder' ),
+				'selector' => '{{WRAPPER}} .wcsc-order-bump-block',
 			)
 		);
 

@@ -178,25 +178,12 @@ if ( '1_column' === $checkout_layout ) {
 
 			// Render Order Bump block helper for editor preview
 			$rendered_bump_editor   = false;
-			$render_order_bump_html = function ( $target_pos ) use ( &$rendered_bump_editor, $settings ) {
+			$render_order_bump_html = function () use ( &$rendered_bump_editor, $settings ) {
 				if ( $rendered_bump_editor ) {
 					return;
 				}
 				$enabled = ! empty( $settings['enable_order_bump'] ) && 'yes' === $settings['enable_order_bump'];
 				if ( ! $enabled ) {
-					return;
-				}
-				$raw_pos = ! empty( $settings['order_bump_position'] ) ? $settings['order_bump_position'] : 'above_customer_info';
-				if ( 'above_billing' === $raw_pos || 'top_billing' === $raw_pos || 'above_customer' === $raw_pos ) {
-					$pos = 'above_customer_info';
-				} elseif ( 'below_billing' === $raw_pos || 'before_order_button' === $raw_pos || 'below_customer' === $raw_pos || 'after_customer_info' === $raw_pos ) {
-					$pos = 'below_customer_info';
-				} elseif ( 'before_review' === $raw_pos || 'inside_review' === $raw_pos || 'before_order' === $raw_pos ) {
-					$pos = 'before_order_review';
-				} else {
-					$pos = $raw_pos;
-				}
-				if ( $pos !== $target_pos ) {
 					return;
 				}
 				$rendered_bump_editor = true;
@@ -226,37 +213,48 @@ if ( '1_column' === $checkout_layout ) {
 							if ( ! $image_id ) {
 								$image_id = get_post_thumbnail_id( $pid );
 							}
-							$image_url = $image_id ? wp_get_attachment_image_url( $image_id, 'woocommerce_thumbnail' ) : wc_placeholder_img_src( 'woocommerce_thumbnail' );
+							$img_url = '';
+							if ( $image_id ) {
+								$img_src = wp_get_attachment_image_src( $image_id, 'thumbnail' );
+								if ( ! empty( $img_src[0] ) ) {
+									$img_url = $img_src[0];
+								}
+							}
+							if ( ! $img_url && function_exists( 'get_the_post_thumbnail_url' ) ) {
+								$img_url = get_the_post_thumbnail_url( $pid, 'thumbnail' );
+							}
+							if ( ! $img_url && function_exists( 'wc_placeholder_img_src' ) ) {
+								$img_url = wc_placeholder_img_src( 'thumbnail' );
+							}
 							$bump_items[] = array(
 								'id'         => $pid,
 								'name'       => $bp->get_name(),
 								'price_html' => $bp->get_price_html(),
-								'image'      => $image_url,
+								'image'      => $img_url,
 							);
 						}
 					}
 				}
 
-				// Fallback dummy products for editor preview when no products are selected
+				// Fallback sample items in editor preview if no products selected yet
 				if ( empty( $bump_items ) ) {
-					$placeholder_img = wc_placeholder_img_src( 'woocommerce_thumbnail' );
 					$bump_items = array(
 						array(
 							'id'         => 9991,
-							'name'       => esc_html__( 'স্পেশাল প্রিমিয়াম অফার প্রোডাক্ট ১', 'wc-smart-checkout-builder' ),
+							'name'       => esc_html__( 'স্পেশাল কম্বো অফার প্রোডাক্ট ১', 'wc-smart-checkout-builder' ),
 							'price_html' => '<del>' . wc_price( 150 ) . '</del> <ins>' . wc_price( 99 ) . '</ins>',
-							'image'      => $placeholder_img,
+							'image'      => function_exists( 'wc_placeholder_img_src' ) ? wc_placeholder_img_src( 'thumbnail' ) : '',
 						),
 						array(
 							'id'         => 9992,
 							'name'       => esc_html__( 'স্পেশাল প্রিমিয়াম অফার প্রোডাক্ট ২', 'wc-smart-checkout-builder' ),
 							'price_html' => '<del>' . wc_price( 250 ) . '</del> <ins>' . wc_price( 199 ) . '</ins>',
-							'image'      => $placeholder_img,
+							'image'      => function_exists( 'wc_placeholder_img_src' ) ? wc_placeholder_img_src( 'thumbnail' ) : '',
 						),
 					);
 				}
 				?>
-				<div class="wcas-block wcsc-order-bump-block wcsc-bump-d-<?php echo esc_attr( $layout_desktop ); ?> wcsc-bump-t-<?php echo esc_attr( $layout_tablet ); ?> wcsc-bump-m-<?php echo esc_attr( $layout_mobile ); ?> wcsc-bump-cols-d-<?php echo esc_attr( $cols_desktop ); ?> wcsc-bump-cols-t-<?php echo esc_attr( $cols_tablet ); ?> wcsc-bump-cols-m-<?php echo esc_attr( $cols_mobile ); ?> wcsc-order-bump-layout-<?php echo esc_attr( $layout_desktop ); ?>" data-position="<?php echo esc_attr( $pos ); ?>">
+				<div class="wcas-block wcsc-order-bump-block wcsc-bump-d-<?php echo esc_attr( $layout_desktop ); ?> wcsc-bump-t-<?php echo esc_attr( $layout_tablet ); ?> wcsc-bump-m-<?php echo esc_attr( $layout_mobile ); ?> wcsc-bump-cols-d-<?php echo esc_attr( $cols_desktop ); ?> wcsc-bump-cols-t-<?php echo esc_attr( $cols_tablet ); ?> wcsc-bump-cols-m-<?php echo esc_attr( $cols_mobile ); ?> wcsc-order-bump-layout-<?php echo esc_attr( $layout_desktop ); ?>">
 					<div class="wcas-order-bump-container">
 						<?php if ( ! empty( $section_title ) ) : ?>
 							<h4 class="wcsc-order-bump-heading"><?php echo esc_html( $section_title ); ?></h4>
@@ -315,7 +313,7 @@ if ( '1_column' === $checkout_layout ) {
 			};
 
 			$render_customer_info_html = function () use ( $render_order_bump_html, $billing_heading_text ) {
-				$render_order_bump_html( 'above_customer_info' );
+				$render_order_bump_html();
 				?>
 				<div class="wcas-block wcas-block-checkout-form">
 					<h3 class="wcsc-section-title wcas-block-title"><?php echo esc_html( $billing_heading_text ); ?></h3>
@@ -442,7 +440,6 @@ if ( '1_column' === $checkout_layout ) {
 					</div>
 				</div>
 				<?php
-				$render_order_bump_html( 'below_customer_info' );
 			};
 
 			$render_shipping_html = function () use ( $shipping_label_text, $preview_shipping_methods ) {
@@ -471,8 +468,7 @@ if ( '1_column' === $checkout_layout ) {
 				<?php
 			};
 
-			$render_order_review_html = function () use ( $render_order_bump_html, $order_review_heading_text, $product_label_text, $subtotal_label_text, $settings, $product, $product_name, $price_html, $default_shipping_cost, $preview_total, $total_label_text ) {
-				$render_order_bump_html( 'before_order_review' );
+			$render_order_review_html = function () use ( $order_review_heading_text, $product_label_text, $subtotal_label_text, $settings, $product, $product_name, $price_html, $default_shipping_cost, $preview_total, $total_label_text ) {
 				?>
 				<div class="wcas-block wcas-block-order-review">
 					<h3 id="order_review_heading" class="wcsc-section-title wcas-block-title"><?php echo esc_html( $order_review_heading_text ); ?></h3>

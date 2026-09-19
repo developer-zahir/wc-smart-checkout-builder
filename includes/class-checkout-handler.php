@@ -96,32 +96,6 @@ class Checkout_Handler {
 		add_action( 'wp_ajax_nopriv_wcsc_toggle_order_bump', array( __CLASS__, 'ajax_toggle_order_bump' ) );
 
 		add_action( 'woocommerce_after_checkout_validation', array( __CLASS__, 'validate_bd_phone_number' ), 10, 2 );
-
-		// Dynamic WooCommerce checkout hooks for Order Bump positioning fallback
-		add_action( 'woocommerce_checkout_before_customer_details', array( __CLASS__, 'hook_bump_above_customer_info' ), 5 );
-		add_action( 'woocommerce_checkout_after_customer_details', array( __CLASS__, 'hook_bump_below_customer_info' ), 20 );
-		add_action( 'woocommerce_checkout_before_order_review', array( __CLASS__, 'hook_bump_before_order_review' ), 5 );
-	}
-
-	/**
-	 * Dynamic hook callback for Order Bump above customer info.
-	 */
-	public static function hook_bump_above_customer_info() {
-		self::render_order_bump_block( 'above_customer_info' );
-	}
-
-	/**
-	 * Dynamic hook callback for Order Bump below customer info.
-	 */
-	public static function hook_bump_below_customer_info() {
-		self::render_order_bump_block( 'below_customer_info' );
-	}
-
-	/**
-	 * Dynamic hook callback for Order Bump before order review.
-	 */
-	public static function hook_bump_before_order_review() {
-		self::render_order_bump_block( 'before_order_review' );
 	}
 
 	/**
@@ -600,7 +574,7 @@ class Checkout_Handler {
 	 * Block 1 — Checkout Form (native billing + shipping fields).
 	 */
 	private static function render_checkout_form_block() {
-		self::render_order_bump_block( 'above_customer_info' );
+		self::render_order_bump_block();
 		?>
 		<div class="wcas-block wcas-block-checkout-form">
 			<h3 class="wcsc-section-title wcas-block-title"><?php echo esc_html( self::get_billing_label() ); ?></h3>
@@ -618,7 +592,6 @@ class Checkout_Handler {
 			</div>
 		</div>
 		<?php
-		self::render_order_bump_block( 'below_customer_info' );
 	}
 
 	/**
@@ -1008,7 +981,6 @@ class Checkout_Handler {
 	 * The shipping method selection interface NEVER appears here.
 	 */
 	private static function render_order_review_block() {
-		self::render_order_bump_block( 'before_order_review' );
 		$heading = ! empty( self::$active_widget_settings['order_review_heading_text'] )
 			? sanitize_text_field( self::$active_widget_settings['order_review_heading_text'] )
 			: esc_html__( 'Your order', 'wc-smart-checkout-builder' );
@@ -1260,32 +1232,16 @@ class Checkout_Handler {
 	}
 
 	/**
-	 * Render the Order Bump / Offer Products block if enabled for the specified position.
-	 *
-	 * @param string $target_position 'above_customer_info', 'below_customer_info', or 'before_order_review'
+	 * Render the Order Bump / Offer Products block if enabled.
+	 * Fixed permanently above customer info / below variations.
 	 */
-	public static function render_order_bump_block( $target_position = '' ) {
+	public static function render_order_bump_block() {
 		if ( self::$order_bump_rendered ) {
 			return;
 		}
 
 		$settings = self::$active_widget_settings;
 		if ( empty( $settings ) || empty( $settings['enable_order_bump'] ) || 'yes' !== $settings['enable_order_bump'] ) {
-			return;
-		}
-
-		$raw_pos = ! empty( $settings['order_bump_position'] ) ? $settings['order_bump_position'] : 'above_customer_info';
-		if ( 'above_billing' === $raw_pos || 'top_billing' === $raw_pos || 'above_customer' === $raw_pos ) {
-			$configured_pos = 'above_customer_info';
-		} elseif ( 'below_billing' === $raw_pos || 'before_order_button' === $raw_pos || 'below_customer' === $raw_pos || 'after_customer_info' === $raw_pos ) {
-			$configured_pos = 'below_customer_info';
-		} elseif ( 'before_review' === $raw_pos || 'inside_review' === $raw_pos || 'before_order' === $raw_pos ) {
-			$configured_pos = 'before_order_review';
-		} else {
-			$configured_pos = $raw_pos;
-		}
-
-		if ( $configured_pos !== $target_position ) {
 			return;
 		}
 
@@ -1318,7 +1274,7 @@ class Checkout_Handler {
 		}
 
 		?>
-		<div class="wcas-block wcsc-order-bump-block wcsc-bump-d-<?php echo esc_attr( $layout_desktop ); ?> wcsc-bump-t-<?php echo esc_attr( $layout_tablet ); ?> wcsc-bump-m-<?php echo esc_attr( $layout_mobile ); ?> wcsc-bump-cols-d-<?php echo esc_attr( $cols_desktop ); ?> wcsc-bump-cols-t-<?php echo esc_attr( $cols_tablet ); ?> wcsc-bump-cols-m-<?php echo esc_attr( $cols_mobile ); ?> wcsc-order-bump-layout-<?php echo esc_attr( $layout_desktop ); ?>" data-position="<?php echo esc_attr( $configured_pos ); ?>">
+		<div class="wcas-block wcsc-order-bump-block wcsc-bump-d-<?php echo esc_attr( $layout_desktop ); ?> wcsc-bump-t-<?php echo esc_attr( $layout_tablet ); ?> wcsc-bump-m-<?php echo esc_attr( $layout_mobile ); ?> wcsc-bump-cols-d-<?php echo esc_attr( $cols_desktop ); ?> wcsc-bump-cols-t-<?php echo esc_attr( $cols_tablet ); ?> wcsc-bump-cols-m-<?php echo esc_attr( $cols_mobile ); ?> wcsc-order-bump-layout-<?php echo esc_attr( $layout_desktop ); ?>">
 			<div class="wcas-order-bump-container">
 				<?php if ( ! empty( $section_title ) ) : ?>
 					<h4 class="wcsc-order-bump-heading"><?php echo esc_html( $section_title ); ?></h4>
