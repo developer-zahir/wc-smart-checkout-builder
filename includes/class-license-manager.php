@@ -207,9 +207,13 @@ class License_Manager {
 		}
 
 		self::clear_caches();
+		$server_msg = ( isset( $body->message ) && ! empty( $body->message ) )
+			? sanitize_text_field( $body->message )
+			: __( 'লাইসেন্স কি-টি অবৈধ অথবা সার্ভার থেকে ব্লক করা হয়েছে। অনুগ্রহ করে অ্যাডমিনের সাথে যোগাযোগ করুন।', 'wc-smart-checkout-builder' );
+
 		return array(
 			'success' => false,
-			'message' => __( 'লাইসেন্স কি-টি অবৈধ অথবা সার্ভার থেকে ব্লক করা হয়েছে। অনুগ্রহ করে অ্যাডমিনের সাথে যোগাযোগ করুন।', 'wc-smart-checkout-builder' ),
+			'message' => $server_msg,
 			'status'  => $status,
 		);
 	}
@@ -240,6 +244,10 @@ class License_Manager {
 	 * AJAX handler for license activation.
 	 */
 	public static function ajax_activate_license() {
+		if ( ob_get_length() ) {
+			ob_clean();
+		}
+
 		check_ajax_referer( 'wcsc_license_nonce', 'nonce' );
 
 		if ( ! current_user_can( 'manage_options' ) ) {
@@ -260,6 +268,10 @@ class License_Manager {
 	 * AJAX handler for license deactivation.
 	 */
 	public static function ajax_deactivate_license() {
+		if ( ob_get_length() ) {
+			ob_clean();
+		}
+
 		check_ajax_referer( 'wcsc_license_nonce', 'nonce' );
 
 		if ( ! current_user_can( 'manage_options' ) ) {

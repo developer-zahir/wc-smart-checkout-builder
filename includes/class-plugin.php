@@ -893,11 +893,21 @@ class Plugin {
 					formData.append('license_key', key);
 					formData.append('nonce', licenseNonce);
 
-					fetch(ajaxurl, {
+					var ajaxUrl = (typeof ajaxurl !== 'undefined') ? ajaxurl : '<?php echo esc_url( admin_url( 'admin-ajax.php' ) ); ?>';
+
+					fetch(ajaxUrl, {
 						method: 'POST',
 						body: formData
 					})
-					.then(function(res) { return res.json(); })
+					.then(function(res) {
+						return res.text().then(function(text) {
+							try {
+								return JSON.parse(text);
+							} catch (e) {
+								throw new Error(text || 'Invalid server response (HTTP ' + res.status + ')');
+							}
+						});
+					})
 					.then(function(res) {
 						activateBtn.disabled = false;
 						activateBtn.textContent = origText;
@@ -908,14 +918,15 @@ class Plugin {
 							msgBox.style.background = '#ecfdf5';
 							msgBox.style.borderLeftColor = '#10b981';
 							msgBox.style.color = '#065f46';
-							msgBox.innerHTML = '✓ ' + (res.data.message || 'License Active');
+							msgBox.innerHTML = '✓ ' + ((res.data && res.data.message) ? res.data.message : '<?php echo esc_js( __( 'লাইসেন্স সফলভাবে অ্যাক্টিভ হয়েছে।', 'wc-smart-checkout-builder' ) ); ?>');
 							setTimeout(function() { window.location.hash = '#tab-license'; window.location.reload(); }, 1200);
 						} else {
 							msgBox.className = 'wcsc-alert-box wcsc-notice';
 							msgBox.style.background = '#fef2f2';
 							msgBox.style.borderLeftColor = '#ef4444';
 							msgBox.style.color = '#991b1b';
-							msgBox.innerHTML = '✕ ' + (res.data.message || 'Activation Failed');
+							var errMsg = (res.data && res.data.message) ? res.data.message : '<?php echo esc_js( __( 'অ্যাক্টিভেশন ব্যর্থ হয়েছে।', 'wc-smart-checkout-builder' ) ); ?>';
+							msgBox.innerHTML = '✕ ' + errMsg;
 						}
 					})
 					.catch(function(err) {
@@ -926,7 +937,7 @@ class Plugin {
 						msgBox.style.background = '#fef2f2';
 						msgBox.style.borderLeftColor = '#ef4444';
 						msgBox.style.color = '#991b1b';
-						msgBox.innerHTML = '✕ Error connecting to server.';
+						msgBox.innerHTML = '✕ ' + (err.message || 'Error connecting to server.');
 					});
 				});
 			}
