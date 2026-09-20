@@ -82,10 +82,9 @@
 				$group.find('.wcsc-attribute-input').val(val);
 
 				var template = $group.find('.wcsc-attribute-header').attr('data-label-template');
-				var placeholderRegex = /\{+(?:value|selected_variation)\}+/gi;
 				if (template) {
-					if (placeholderRegex.test(template)) {
-						$group.find('.wcsc-attribute-label').text(template.replace(placeholderRegex, label));
+					if (/\{+(?:value|selected_variation)\}+/i.test(template)) {
+						$group.find('.wcsc-attribute-label').text(template.replace(/\{+(?:value|selected_variation)\}+/gi, label));
 					} else {
 						$group.find('.wcsc-attribute-label').text(template);
 					}
@@ -522,10 +521,9 @@
 				if ($selected.length) {
 					var valLabel = $selected.data('label') || $selected.data('value');
 					var template = $group.find('.wcsc-attribute-header').attr('data-label-template');
-					var placeholderRegex = /\{+(?:value|selected_variation)\}+/gi;
 					if (template) {
-						if (placeholderRegex.test(template)) {
-							$group.find('.wcsc-attribute-label').text(template.replace(placeholderRegex, valLabel));
+						if (/\{+(?:value|selected_variation)\}+/i.test(template)) {
+							$group.find('.wcsc-attribute-label').text(template.replace(/\{+(?:value|selected_variation)\}+/gi, valLabel));
 						} else {
 							$group.find('.wcsc-attribute-label').text(template);
 						}

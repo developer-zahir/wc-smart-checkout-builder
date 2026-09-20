@@ -53,14 +53,15 @@ class Variation_Handler {
 			$label        = wc_attribute_label( $attribute_name, $product );
 			$attr_key     = strtolower( trim( $label ) );
 			$attr_slug    = sanitize_title( $attribute_name );
+			$custom_label = '';
 
-			// Determine label (custom label override or WooCommerce default).
+			// Determine custom label override if configured.
 			if ( isset( $label_overrides[ $attr_key ] ) ) {
-				$label = $label_overrides[ $attr_key ];
+				$custom_label = $label_overrides[ $attr_key ];
 			} elseif ( isset( $label_overrides[ strtolower( $attribute_name ) ] ) ) {
-				$label = $label_overrides[ strtolower( $attribute_name ) ];
+				$custom_label = $label_overrides[ strtolower( $attribute_name ) ];
 			} elseif ( isset( $label_overrides[ $attr_slug ] ) ) {
-				$label = $label_overrides[ $attr_slug ];
+				$custom_label = $label_overrides[ $attr_slug ];
 			}
 
 			// Determine display type (override or default).
@@ -95,6 +96,7 @@ class Variation_Handler {
 			$parsed_attributes[] = array(
 				'name'          => $attribute_name,
 				'label'         => $label,
+				'custom_label'  => $custom_label,
 				'display_type'  => $display_type,
 				'default_value' => $default_value,
 				'options'       => $parsed_options,
