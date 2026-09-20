@@ -3,7 +3,7 @@
  * Plugin Name:       WC Smart Checkout Builder
  * Plugin URI:        https://github.com/developer-zahir/wc-smart-checkout-builder
  * Description:       A lightweight Elementor widget for selecting WooCommerce products and checking out.
- * Version:           1.7.3
+ * Version:           1.7.4
  * Author:            Developer Zahir
  * Author URI:        https://developerzahir.com
  * Text Domain:       wc-smart-checkout-builder
@@ -20,7 +20,7 @@ if ( ! defined( 'ABSPATH' ) ) {
 	exit; // Exit if accessed directly.
 }
 
-define( 'WCSC_VERSION', '1.7.3' );
+define( 'WCSC_VERSION', '1.7.4' );
 define( 'WCSC_FILE', __FILE__ );
 define( 'WCSC_PATH', plugin_dir_path( __FILE__ ) );
 define( 'WCSC_URL', plugin_dir_url( __FILE__ ) );
@@ -45,8 +45,12 @@ function wcsc_init() {
 	require_once WCSC_PATH . 'includes/class-product-handler.php';
 	require_once WCSC_PATH . 'includes/class-variation-handler.php';
 	require_once WCSC_PATH . 'includes/class-checkout-handler.php';
+	require_once WCSC_PATH . 'includes/class-license-manager.php';
 	require_once WCSC_PATH . 'includes/class-updater.php';
 	require_once WCSC_PATH . 'includes/class-plugin.php';
+
+	// Initialize License Manager.
+	\WCSC\License_Manager::init();
 
 	// Bootstrap plugin.
 	\WCSC\Plugin::instance();

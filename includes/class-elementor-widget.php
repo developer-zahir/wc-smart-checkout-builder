@@ -4737,6 +4737,19 @@ class Elementor_Widget extends Widget_Base {
 	 */
 	protected function render() {
 		$settings = $this->get_settings_for_display();
+
+		// Check license status if explicitly inactive / blocked by server.
+		if ( class_exists( '\WCSC\License_Manager' ) && 'inactive' === License_Manager::get_license_status() ) {
+			if ( current_user_can( 'manage_options' ) ) {
+				?>
+				<div class="wcsc-notice-warning" style="padding: 20px; background: #fef2f2; border-left: 4px solid #ef4444; color: #991b1b; margin: 20px 0; font-family: -apple-system, BlinkMacSystemFont, sans-serif;">
+					<p style="margin: 0;"><strong><?php esc_html_e( 'License Blocked:', 'wc-smart-checkout-builder' ); ?></strong> <?php esc_html_e( 'WC Smart Checkout Builder প্লাগিনের লাইসেন্সটি ইনঅ্যাক্টিভ বা সার্ভার থেকে ব্লক করা হয়েছে। অনুগ্রহ করে সাপোর্টে যোগাযোগ করুন।', 'wc-smart-checkout-builder' ); ?></p>
+				</div>
+				<?php
+			}
+			return;
+		}
+
 		$product  = Product_Handler::get_product_from_settings( $settings );
 
 		if ( ! $product ) {

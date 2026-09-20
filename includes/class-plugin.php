@@ -319,6 +319,29 @@ class Plugin {
 		register_setting( 'wcsc_settings_group', 'wcsc_enable_thank_you' );
 		register_setting( 'wcsc_settings_group', 'wcsc_thank_you_page_id' );
 		register_setting( 'wcsc_settings_group', 'wcsc_custom_css' );
+		register_setting( 'wcsc_settings_group', 'wcsc_license_key', array(
+			'type'              => 'string',
+			'sanitize_callback' => array( $this, 'sanitize_license_key' ),
+		) );
+	}
+
+	/**
+	 * Sanitize and auto-verify license key on settings save.
+	 *
+	 * @param string $key
+	 * @return string
+	 */
+	public function sanitize_license_key( $key ) {
+		$key     = sanitize_text_field( trim( $key ) );
+		$old_key = License_Manager::get_license_key();
+
+		if ( ! empty( $key ) && $key !== $old_key ) {
+			License_Manager::activate_license( $key );
+		} elseif ( empty( $key ) && ! empty( $old_key ) ) {
+			License_Manager::deactivate_license();
+		}
+
+		return $key;
 	}
 
 	/**
@@ -650,6 +673,10 @@ class Plugin {
 					<span class="dashicons dashicons-editor-code"></span>
 					<?php esc_html_e( 'Custom CSS', 'wc-smart-checkout-builder' ); ?>
 				</button>
+				<button type="button" class="wcsc-tab-btn" data-tab="tab-license">
+					<span class="dashicons dashicons-admin-network"></span>
+					<?php esc_html_e( 'License Activation', 'wc-smart-checkout-builder' ); ?>
+				</button>
 			</div>
 
 			<div class="wcsc-dashboard-body">
@@ -733,6 +760,69 @@ class Plugin {
 						</div>
 					</div>
 
+					<!-- Tab 4: License & Activation -->
+					<div class="wcsc-tab-pane" id="tab-license">
+						<div class="wcsc-section-card">
+							<h2 class="wcsc-card-heading"><?php esc_html_e( 'License Management & Server Sync', 'wc-smart-checkout-builder' ); ?></h2>
+							<p class="wcsc-card-desc"><?php esc_html_e( 'Enter your license key to activate full access and automatic updates. Connected to app.developerzahir.com licensing server.', 'wc-smart-checkout-builder' ); ?></p>
+
+							<?php
+							$license_key    = License_Manager::get_license_key();
+							$license_status = License_Manager::get_license_status();
+							$is_active      = 'active' === $license_status;
+							?>
+
+							<div class="wcsc-form-group" style="max-width: 650px;">
+								<label for="wcsc_license_key" class="wcsc-form-label"><?php esc_html_e( 'License Key', 'wc-smart-checkout-builder' ); ?></label>
+								<div style="display: flex; gap: 10px; align-items: center; flex-wrap: wrap;">
+									<input type="text" name="wcsc_license_key" id="wcsc_license_key" value="<?php echo esc_attr( $license_key ); ?>" class="regular-text" style="flex: 1; min-width: 250px; padding: 10px 14px; border: 1px solid #cbd5e1; border-radius: 0; font-family: monospace; font-size: 15px;" placeholder="TP-XXXX-XXXX-XXXX-XXXX" />
+									<button type="button" id="wcsc-activate-license-btn" class="button button-primary wcsc-save-btn" style="padding: 10px 20px !important; height: auto;">
+										<?php echo $is_active ? esc_html__( 'Re-verify License', 'wc-smart-checkout-builder' ) : esc_html__( 'Activate License', 'wc-smart-checkout-builder' ); ?>
+									</button>
+									<?php if ( ! empty( $license_key ) ) : ?>
+										<button type="button" id="wcsc-deactivate-license-btn" class="button wcsc-button-secondary" style="padding: 10px 16px; height: auto;">
+											<?php esc_html_e( 'Deactivate', 'wc-smart-checkout-builder' ); ?>
+										</button>
+									<?php endif; ?>
+								</div>
+								<div id="wcsc-license-ajax-msg" style="margin-top: 14px; display: none;"></div>
+							</div>
+
+							<div style="margin-top: 25px; padding: 22px; background: #f8fafc; border: 1px solid #e2e8f0; border-radius: 0; max-width: 650px;">
+								<div style="display: flex; justify-content: space-between; align-items: center; margin-bottom: 14px;">
+									<span style="font-weight: 600; font-size: 14px; color: #475569;"><?php esc_html_e( 'License Status:', 'wc-smart-checkout-builder' ); ?></span>
+									<?php if ( $is_active ) : ?>
+										<span id="wcsc-status-pill" style="background: #10b981; color: #ffffff; padding: 5px 14px; font-size: 12px; font-weight: 700; border-radius: 20px; letter-spacing: 0.5px;">✓ <?php esc_html_e( 'ACTIVE & VERIFIED', 'wc-smart-checkout-builder' ); ?></span>
+									<?php elseif ( 'unregistered' === $license_status ) : ?>
+										<span id="wcsc-status-pill" style="background: #f59e0b; color: #ffffff; padding: 5px 14px; font-size: 12px; font-weight: 700; border-radius: 20px; letter-spacing: 0.5px;">⚠ <?php esc_html_e( 'UNREGISTERED', 'wc-smart-checkout-builder' ); ?></span>
+									<?php else : ?>
+										<span id="wcsc-status-pill" style="background: #ef4444; color: #ffffff; padding: 5px 14px; font-size: 12px; font-weight: 700; border-radius: 20px; letter-spacing: 0.5px;">✕ <?php esc_html_e( 'INACTIVE / BLOCKED', 'wc-smart-checkout-builder' ); ?></span>
+									<?php endif; ?>
+								</div>
+
+								<div style="display: flex; justify-content: space-between; align-items: center; font-size: 13px; color: #64748b; padding: 8px 0; border-top: 1px solid #e2e8f0;">
+									<span><?php esc_html_e( 'Product:', 'wc-smart-checkout-builder' ); ?></span>
+									<span style="font-weight: 600; color: #1e293b;">WC Smart Checkout Builder</span>
+								</div>
+
+								<div style="display: flex; justify-content: space-between; align-items: center; font-size: 13px; color: #64748b; padding: 8px 0; border-top: 1px solid #e2e8f0;">
+									<span><?php esc_html_e( 'Licensing Server:', 'wc-smart-checkout-builder' ); ?></span>
+									<span style="font-family: monospace; color: #2563eb;">app.developerzahir.com</span>
+								</div>
+
+								<div style="display: flex; justify-content: space-between; align-items: center; font-size: 13px; color: #64748b; padding: 8px 0; border-top: 1px solid #e2e8f0;">
+									<span><?php esc_html_e( 'Cache & Fallback Protection:', 'wc-smart-checkout-builder' ); ?></span>
+									<span><?php esc_html_e( '6 Hours (Graceful Fallback)', 'wc-smart-checkout-builder' ); ?></span>
+								</div>
+
+								<div style="display: flex; justify-content: space-between; align-items: center; font-size: 13px; color: #64748b; padding: 8px 0; border-top: 1px solid #e2e8f0;">
+									<span><?php esc_html_e( 'Webhook Instant Revocation:', 'wc-smart-checkout-builder' ); ?></span>
+									<span style="color: #10b981; font-weight: 600;">✓ <?php esc_html_e( 'Listening (Auto Purge Caches)', 'wc-smart-checkout-builder' ); ?></span>
+								</div>
+							</div>
+						</div>
+					</div>
+
 					<div style="margin-top: 30px; padding-top: 20px; border-top: 1px solid #e2e8f0;">
 						<?php submit_button( __( 'Save All Changes', 'wc-smart-checkout-builder' ), 'primary', 'submit', false, array( 'class' => 'wcsc-save-btn' ) ); ?>
 					</div>
@@ -746,20 +836,35 @@ class Plugin {
 			var tabButtons = document.querySelectorAll('.wcsc-tab-btn');
 			var tabPanes = document.querySelectorAll('.wcsc-tab-pane');
 
+			function switchTab(targetTab) {
+				tabButtons.forEach(function(b) { b.classList.remove('active'); });
+				tabPanes.forEach(function(p) { p.classList.remove('active'); });
+
+				var btn = document.querySelector('.wcsc-tab-btn[data-tab="' + targetTab + '"]');
+				var pane = document.getElementById(targetTab);
+				if (btn && pane) {
+					btn.classList.add('active');
+					pane.classList.add('active');
+				}
+			}
+
 			tabButtons.forEach(function(btn) {
 				btn.addEventListener('click', function() {
 					var targetTab = this.getAttribute('data-tab');
-
-					tabButtons.forEach(function(b) { b.classList.remove('active'); });
-					tabPanes.forEach(function(p) { p.classList.remove('active'); });
-
-					this.classList.add('active');
-					var activePane = document.getElementById(targetTab);
-					if (activePane) {
-						activePane.classList.add('active');
+					switchTab(targetTab);
+					if (history.replaceState) {
+						history.replaceState(null, null, '#' + targetTab);
 					}
 				});
 			});
+
+			// Auto open tab from hash URL
+			if (window.location.hash) {
+				var hashTab = window.location.hash.replace('#', '');
+				if (document.getElementById(hashTab)) {
+					switchTab(hashTab);
+				}
+			}
 
 			// Page selector edit button link
 			var select = document.getElementById('wcsc_thank_you_page_id');
@@ -774,6 +879,93 @@ class Plugin {
 					} else {
 						editBtn.style.display = 'none';
 					}
+				});
+			}
+
+			// AJAX License Activation
+			var activateBtn = document.getElementById('wcsc-activate-license-btn');
+			var deactivateBtn = document.getElementById('wcsc-deactivate-license-btn');
+			var keyInput = document.getElementById('wcsc_license_key');
+			var msgBox = document.getElementById('wcsc-license-ajax-msg');
+			var licenseNonce = '<?php echo esc_js( wp_create_nonce( 'wcsc_license_nonce' ) ); ?>';
+
+			if (activateBtn) {
+				activateBtn.addEventListener('click', function() {
+					var key = keyInput.value.trim();
+					if (!key) {
+						alert('<?php echo esc_js( __( 'অনুগ্রহ করে একটি লাইসেন্স কি প্রবেশ করান।', 'wc-smart-checkout-builder' ) ); ?>');
+						keyInput.focus();
+						return;
+					}
+
+					var origText = activateBtn.textContent;
+					activateBtn.disabled = true;
+					activateBtn.textContent = '<?php echo esc_js( __( 'অ্যাক্টিভেট হচ্ছে...', 'wc-smart-checkout-builder' ) ); ?>';
+					msgBox.style.display = 'none';
+
+					var formData = new FormData();
+					formData.append('action', 'wcsc_activate_license');
+					formData.append('license_key', key);
+					formData.append('nonce', licenseNonce);
+
+					fetch(ajaxurl, {
+						method: 'POST',
+						body: formData
+					})
+					.then(function(res) { return res.json(); })
+					.then(function(res) {
+						activateBtn.disabled = false;
+						activateBtn.textContent = origText;
+						msgBox.style.display = 'block';
+
+						if (res.success) {
+							msgBox.className = 'wcsc-alert-box wcsc-notice';
+							msgBox.style.background = '#ecfdf5';
+							msgBox.style.borderLeftColor = '#10b981';
+							msgBox.style.color = '#065f46';
+							msgBox.innerHTML = '✓ ' + (res.data.message || 'License Active');
+							setTimeout(function() { window.location.hash = '#tab-license'; window.location.reload(); }, 1200);
+						} else {
+							msgBox.className = 'wcsc-alert-box wcsc-notice';
+							msgBox.style.background = '#fef2f2';
+							msgBox.style.borderLeftColor = '#ef4444';
+							msgBox.style.color = '#991b1b';
+							msgBox.innerHTML = '✕ ' + (res.data.message || 'Activation Failed');
+						}
+					})
+					.catch(function(err) {
+						activateBtn.disabled = false;
+						activateBtn.textContent = origText;
+						msgBox.style.display = 'block';
+						msgBox.className = 'wcsc-alert-box wcsc-notice';
+						msgBox.style.background = '#fef2f2';
+						msgBox.style.borderLeftColor = '#ef4444';
+						msgBox.style.color = '#991b1b';
+						msgBox.innerHTML = '✕ Error connecting to server.';
+					});
+				});
+			}
+
+			if (deactivateBtn) {
+				deactivateBtn.addEventListener('click', function() {
+					if (!confirm('<?php echo esc_js( __( 'আপনি কি নিশ্চিত যে এই সাইট থেকে লাইসেন্স ডি-অ্যাক্টিভ করতে চান?', 'wc-smart-checkout-builder' ) ); ?>')) {
+						return;
+					}
+
+					deactivateBtn.disabled = true;
+					var formData = new FormData();
+					formData.append('action', 'wcsc_deactivate_license');
+					formData.append('nonce', licenseNonce);
+
+					fetch(ajaxurl, {
+						method: 'POST',
+						body: formData
+					})
+					.then(function(res) { return res.json(); })
+					.then(function() {
+						window.location.hash = '#tab-license';
+						window.location.reload();
+					});
 				});
 			}
 		});
