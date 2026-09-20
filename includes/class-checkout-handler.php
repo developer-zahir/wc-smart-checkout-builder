@@ -1245,8 +1245,7 @@ class Checkout_Handler {
 			return;
 		}
 
-		$product_ids = ! empty( $settings['order_bump_products'] ) ? (array) $settings['order_bump_products'] : array();
-		$product_ids = array_slice( array_filter( array_map( 'absint', $product_ids ) ), 0, 4 );
+		$product_ids = Product_Handler::get_order_bump_product_ids( $settings );
 
 		if ( empty( $product_ids ) ) {
 			return;

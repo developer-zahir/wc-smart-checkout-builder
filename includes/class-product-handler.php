@@ -200,4 +200,123 @@ class Product_Handler {
 
 		return $options;
 	}
+
+	/**
+	 * Get product IDs for Order Bump based on widget settings (Manual, Related, or Best Selling).
+	 *
+	 * @param array $settings Widget settings.
+	 * @return array Array of product IDs.
+	 */
+	public static function get_order_bump_product_ids( $settings ) {
+		if ( empty( $settings ) || empty( $settings['enable_order_bump'] ) || 'yes' !== $settings['enable_order_bump'] ) {
+			return array();
+		}
+
+		$limit      = ! empty( $settings['order_bump_product_limit'] ) ? absint( $settings['order_bump_product_limit'] ) : 2;
+		$limit      = max( 1, min( 4, $limit ) );
+		$query_type = ! empty( $settings['order_bump_query_type'] ) ? $settings['order_bump_query_type'] : 'manual';
+
+		// 1. Manual selection
+		if ( 'manual' === $query_type ) {
+			$product_ids = ! empty( $settings['order_bump_products'] ) ? (array) $settings['order_bump_products'] : array();
+			return array_slice( array_filter( array_map( 'absint', $product_ids ) ), 0, $limit );
+		}
+
+		// Collect base IDs (items in cart or current product) to find relations or exclude duplicates
+		$base_ids = array();
+		if ( function_exists( 'WC' ) && WC()->cart ) {
+			foreach ( WC()->cart->get_cart() as $cart_item ) {
+				if ( ! empty( $cart_item['product_id'] ) ) {
+					$base_ids[] = absint( $cart_item['product_id'] );
+				}
+			}
+		}
+		if ( empty( $base_ids ) ) {
+			$current_p = self::get_product_from_settings( $settings );
+			if ( $current_p && is_a( $current_p, 'WC_Product' ) ) {
+				$base_ids[] = $current_p->get_id();
+			}
+		}
+
+		// 2. Related Products
+		if ( 'related' === $query_type ) {
+			$related_ids = array();
+			if ( ! empty( $base_ids ) ) {
+				foreach ( $base_ids as $bid ) {
+					if ( function_exists( 'wc_get_related_products' ) ) {
+						$rel = wc_get_related_products( $bid, $limit * 2, $base_ids );
+						if ( ! empty( $rel ) ) {
+							foreach ( $rel as $rid ) {
+								$rid = absint( $rid );
+								if ( ! in_array( $rid, $related_ids, true ) && ! in_array( $rid, $base_ids, true ) ) {
+									$related_ids[] = $rid;
+								}
+							}
+						}
+					}
+				}
+			}
+
+			// If not enough related products found, fill with popular published products
+			if ( count( $related_ids ) < $limit && function_exists( 'wc_get_products' ) ) {
+				$fallback_products = wc_get_products( array(
+					'limit'        => $limit,
+					'status'       => 'publish',
+					'orderby'      => 'popularity',
+					'order'        => 'DESC',
+					'exclude'      => array_merge( $base_ids, $related_ids ),
+					'stock_status' => 'instock',
+				) );
+				foreach ( $fallback_products as $fp ) {
+					if ( $fp && is_a( $fp, 'WC_Product' ) ) {
+						$related_ids[] = $fp->get_id();
+					}
+				}
+			}
+
+			return array_slice( $related_ids, 0, $limit );
+		}
+
+		// 3. Best Selling Products
+		if ( 'bestselling' === $query_type ) {
+			$bestselling_ids = array();
+			if ( function_exists( 'wc_get_products' ) ) {
+				$bestselling = wc_get_products( array(
+					'limit'        => $limit,
+					'status'       => 'publish',
+					'orderby'      => 'total_sales',
+					'order'        => 'DESC',
+					'exclude'      => $base_ids,
+					'stock_status' => 'instock',
+				) );
+
+				foreach ( $bestselling as $bp ) {
+					if ( $bp && is_a( $bp, 'WC_Product' ) ) {
+						$bestselling_ids[] = $bp->get_id();
+					}
+				}
+
+				// If total_sales query returned nothing (e.g. brand new store), fallback to popularity
+				if ( empty( $bestselling_ids ) ) {
+					$popular = wc_get_products( array(
+						'limit'        => $limit,
+						'status'       => 'publish',
+						'orderby'      => 'popularity',
+						'order'        => 'DESC',
+						'exclude'      => $base_ids,
+						'stock_status' => 'instock',
+					) );
+					foreach ( $popular as $pp ) {
+						if ( $pp && is_a( $pp, 'WC_Product' ) ) {
+							$bestselling_ids[] = $pp->get_id();
+						}
+					}
+				}
+			}
+
+			return array_slice( $bestselling_ids, 0, $limit );
+		}
+
+		return array();
+	}
 }

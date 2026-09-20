@@ -199,8 +199,7 @@ if ( '1_column' === $checkout_layout ) {
 				$cols_tablet  = ! empty( $settings['order_bump_columns_tablet'] ) ? $settings['order_bump_columns_tablet'] : $cols_desktop;
 				$cols_mobile  = ! empty( $settings['order_bump_columns_mobile'] ) ? $settings['order_bump_columns_mobile'] : '1';
 
-				$product_ids = ! empty( $settings['order_bump_products'] ) ? (array) $settings['order_bump_products'] : array();
-				$product_ids = array_slice( array_filter( array_map( 'absint', $product_ids ) ), 0, 4 );
+				$product_ids = class_exists( '\WCSC\Product_Handler' ) ? \WCSC\Product_Handler::get_order_bump_product_ids( $settings ) : array();
 
 				$bump_items = array();
 				if ( ! empty( $product_ids ) ) {
@@ -239,7 +238,9 @@ if ( '1_column' === $checkout_layout ) {
 
 				// Fallback sample items in editor preview if no products selected yet
 				if ( empty( $bump_items ) ) {
-					$bump_items = array(
+					$preview_limit = ! empty( $settings['order_bump_product_limit'] ) ? absint( $settings['order_bump_product_limit'] ) : 2;
+					$preview_limit = max( 1, min( 4, $preview_limit ) );
+					$sample_items  = array(
 						array(
 							'id'         => 9991,
 							'name'       => esc_html__( 'স্পেশাল কম্বো অফার প্রোডাক্ট ১', 'wc-smart-checkout-builder' ),
@@ -252,7 +253,20 @@ if ( '1_column' === $checkout_layout ) {
 							'price_html' => '<del>' . wc_price( 250 ) . '</del> <ins>' . wc_price( 199 ) . '</ins>',
 							'image'      => function_exists( 'wc_placeholder_img_src' ) ? wc_placeholder_img_src( 'thumbnail' ) : '',
 						),
+						array(
+							'id'         => 9993,
+							'name'       => esc_html__( 'স্পেশাল প্রিমিয়াম অফার প্রোডাক্ট ৩', 'wc-smart-checkout-builder' ),
+							'price_html' => '<del>' . wc_price( 300 ) . '</del> <ins>' . wc_price( 249 ) . '</ins>',
+							'image'      => function_exists( 'wc_placeholder_img_src' ) ? wc_placeholder_img_src( 'thumbnail' ) : '',
+						),
+						array(
+							'id'         => 9994,
+							'name'       => esc_html__( 'স্পেশাল প্রিমিয়াম অফার প্রোডাক্ট ৪', 'wc-smart-checkout-builder' ),
+							'price_html' => '<del>' . wc_price( 400 ) . '</del> <ins>' . wc_price( 349 ) . '</ins>',
+							'image'      => function_exists( 'wc_placeholder_img_src' ) ? wc_placeholder_img_src( 'thumbnail' ) : '',
+						),
 					);
+					$bump_items = array_slice( $sample_items, 0, $preview_limit );
 				}
 				?>
 				<div class="wcas-block wcsc-order-bump-block wcsc-bump-d-<?php echo esc_attr( $layout_desktop ); ?> wcsc-bump-t-<?php echo esc_attr( $layout_tablet ); ?> wcsc-bump-m-<?php echo esc_attr( $layout_mobile ); ?> wcsc-bump-cols-d-<?php echo esc_attr( $cols_desktop ); ?> wcsc-bump-cols-t-<?php echo esc_attr( $cols_tablet ); ?> wcsc-bump-cols-m-<?php echo esc_attr( $cols_mobile ); ?> wcsc-order-bump-layout-<?php echo esc_attr( $layout_desktop ); ?>">

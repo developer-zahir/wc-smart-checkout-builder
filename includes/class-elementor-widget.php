@@ -814,6 +814,41 @@ class Elementor_Widget extends Widget_Base {
 		);
 
 		$this->add_control(
+			'order_bump_query_type',
+			array(
+				'label'       => esc_html__( 'Query Type', 'wc-smart-checkout-builder' ),
+				'type'        => Controls_Manager::SELECT,
+				'default'     => 'manual',
+				'options'     => array(
+					'manual'      => esc_html__( 'Manual Selection', 'wc-smart-checkout-builder' ),
+					'related'     => esc_html__( 'Related Products', 'wc-smart-checkout-builder' ),
+					'bestselling' => esc_html__( 'Best Selling Products', 'wc-smart-checkout-builder' ),
+				),
+				'render_type' => 'template',
+				'condition'   => array(
+					'enable_order_bump' => 'yes',
+				),
+			)
+		);
+
+		$this->add_control(
+			'order_bump_product_limit',
+			array(
+				'label'       => esc_html__( 'Product Limit', 'wc-smart-checkout-builder' ),
+				'type'        => Controls_Manager::NUMBER,
+				'min'         => 1,
+				'max'         => 4,
+				'step'        => 1,
+				'default'     => 2,
+				'render_type' => 'template',
+				'condition'   => array(
+					'enable_order_bump' => 'yes',
+				),
+				'description' => esc_html__( 'Maximum number of products to offer (1-4).', 'wc-smart-checkout-builder' ),
+			)
+		);
+
+		$this->add_control(
 			'order_bump_products',
 			array(
 				'label'       => esc_html__( 'Offer Products', 'wc-smart-checkout-builder' ),
@@ -824,7 +859,8 @@ class Elementor_Widget extends Widget_Base {
 				'default'     => array(),
 				'render_type' => 'template',
 				'condition'   => array(
-					'enable_order_bump' => 'yes',
+					'enable_order_bump'     => 'yes',
+					'order_bump_query_type' => 'manual',
 				),
 				'description' => esc_html__( 'Select up to 4 products to offer during checkout.', 'wc-smart-checkout-builder' ),
 			)
@@ -1824,16 +1860,7 @@ class Elementor_Widget extends Widget_Base {
 			array(
 				'name'     => 'shipping_card_title_typography',
 				'label'    => esc_html__( 'Title / Label Typography', 'wc-smart-checkout-builder' ),
-				'selector' => '{{WRAPPER}} .wcsc-shipping-card label',
-			)
-		);
-
-		$this->add_group_control(
-			Group_Control_Typography::get_type(),
-			array(
-				'name'     => 'shipping_card_price_typography',
-				'label'    => esc_html__( 'Price Typography', 'wc-smart-checkout-builder' ),
-				'selector' => '{{WRAPPER}} .wcsc-shipping-card label .amount',
+				'selector' => '{{WRAPPER}} .wcsc-shipping-card label, {{WRAPPER}} .wcsc-shipping-card label .amount, {{WRAPPER}} .wcas-block-shipping ul#shipping_method li label, {{WRAPPER}} .wcas-block-shipping ul#shipping_method li label .amount',
 			)
 		);
 
