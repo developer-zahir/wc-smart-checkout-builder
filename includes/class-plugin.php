@@ -927,7 +927,7 @@ class Plugin {
 					var origText = activateBtn.textContent;
 					activateBtn.disabled = true;
 
-					var countdown = 10;
+					var countdown = 15;
 					activateBtn.textContent = '<?php echo esc_js( __( 'অ্যাক্টিভেট হচ্ছে...', 'wc-smart-checkout-builder' ) ); ?> (' + countdown + 's)';
 					var countdownTimer = setInterval(function() {
 						countdown--;
@@ -943,13 +943,13 @@ class Plugin {
 					formData.append('license_key', key);
 					formData.append('nonce', licenseNonce);
 
-					// 10-second hard timeout controller so the button never stays stuck
+					// 18-second hard timeout controller so the button never stays stuck
 					var controller = (typeof AbortController !== 'undefined') ? new AbortController() : null;
 					var hardTimeout = setTimeout(function() {
 						if (controller) {
 							controller.abort();
 						}
-					}, 10000);
+					}, 18000);
 
 					fetch(ajaxUrl, {
 						method: 'POST',
@@ -1023,7 +1023,7 @@ class Plugin {
 						msgBox.style.color = '#991b1b';
 
 						if (err && err.name === 'AbortError') {
-							msgBox.innerHTML = '✕ <strong><?php echo esc_js( __( 'সংযোগের সময় শেষ (Timeout)!', 'wc-smart-checkout-builder' ) ); ?></strong><br><?php echo esc_js( __( '১০ সেকেন্ডের মধ্যে লাইসেন্স সার্ভার থেকে কোনো উত্তর আসেনি। হোস্টিং থেকে আউটগোয়িং কানেকশন ব্লক থাকতে পারে বা সার্ভার ফায়ারওয়ালে রিকোয়েস্ট আটকে আছে। নিচের "সার্ভার সংযোগ টেস্ট করুন" বাটনে ক্লিক করে কানেকশন যাচাই করুন।', 'wc-smart-checkout-builder' ) ); ?>';
+							msgBox.innerHTML = '✕ <strong><?php echo esc_js( __( 'সংযোগের সময় শেষ (Timeout)!', 'wc-smart-checkout-builder' ) ); ?></strong><br><?php echo esc_js( __( '১৮ সেকেন্ডের মধ্যে লাইসেন্স সার্ভার থেকে কোনো উত্তর আসেনি। হোস্টিং থেকে আউটগোয়িং কানেকশন ব্লক থাকতে পারে বা সার্ভার ফায়ারওয়ালে রিকোয়েস্ট আটকে আছে। নিচের "সার্ভার সংযোগ টেস্ট করুন" বাটনে ক্লিক করে কানেকশন যাচাই করুন।', 'wc-smart-checkout-builder' ) ); ?>';
 						} else {
 							msgBox.innerHTML = '✕ <strong>' + (err.message || 'Error connecting to server.') + '</strong>';
 						}
@@ -1073,6 +1073,7 @@ class Plugin {
 						e.preventDefault();
 					}
 					var origTestText = testConnBtn.textContent;
+					var currentKey = keyInput ? keyInput.value.trim() : '';
 					testConnBtn.disabled = true;
 					testConnBtn.textContent = '<?php echo esc_js( __( 'যাচাই করা হচ্ছে...', 'wc-smart-checkout-builder' ) ); ?>';
 					testConnMsg.style.display = 'block';
@@ -1080,11 +1081,14 @@ class Plugin {
 					testConnMsg.style.background = '#f1f5f9';
 					testConnMsg.style.borderLeftColor = '#64748b';
 					testConnMsg.style.color = '#334155';
-					testConnMsg.innerHTML = '<?php echo esc_js( __( 'লাইসেন্স সার্ভারে পিং পাঠানো হচ্ছে, অপেক্ষা করুন...', 'wc-smart-checkout-builder' ) ); ?>';
+					testConnMsg.innerHTML = currentKey ? '<?php echo esc_js( __( 'লাইসেন্স কি এবং সার্ভার সংযোগ যাচাই করা হচ্ছে, অপেক্ষা করুন...', 'wc-smart-checkout-builder' ) ); ?>' : '<?php echo esc_js( __( 'লাইসেন্স সার্ভারে পিং পাঠানো হচ্ছে, অপেক্ষা করুন...', 'wc-smart-checkout-builder' ) ); ?>';
 
 					var formData = new FormData();
 					formData.append('action', 'wcsc_test_license_connection');
 					formData.append('nonce', licenseNonce);
+					if (currentKey) {
+						formData.append('license_key', currentKey);
+					}
 
 					fetch(ajaxUrl, {
 						method: 'POST',

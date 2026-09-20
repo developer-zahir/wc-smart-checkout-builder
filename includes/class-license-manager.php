@@ -183,7 +183,7 @@ class License_Manager {
 		$domain = self::get_site_domain();
 
 		$response = wp_remote_post( self::SERVER_URL, array(
-			'timeout'    => 8,
+			'timeout'    => 15,
 			'sslverify'  => false,
 			'user-agent' => 'Mozilla/5.0 (Windows NT 10.0; Win64; x64) AppleWebKit/537.36 (KHTML, like Gecko) Chrome/120.0.0.0 Safari/537.36',
 			'headers'    => array(
@@ -382,18 +382,22 @@ class License_Manager {
 		$domain     = self::get_site_domain();
 		$start_time = microtime( true );
 
+		$passed_key = isset( $_POST['license_key'] ) ? sanitize_text_field( wp_unslash( $_POST['license_key'] ) ) : '';
+		$ping_key   = ! empty( $passed_key ) ? $passed_key : 'TP-PING-TEST';
+		$action     = ! empty( $passed_key ) ? 'check' : 'ping';
+
 		$response = wp_remote_post( self::SERVER_URL, array(
-			'timeout'    => 10,
+			'timeout'    => 15,
 			'sslverify'  => false,
 			'user-agent' => 'Mozilla/5.0 (Windows NT 10.0; Win64; x64) AppleWebKit/537.36 (KHTML, like Gecko) Chrome/120.0.0.0 Safari/537.36',
 			'headers'    => array(
 				'Accept' => 'application/json',
 			),
 			'body'       => array(
-				'key'    => 'TP-PING-TEST',
+				'key'    => $ping_key,
 				'url'    => $domain,
 				'plugin' => self::PLUGIN_NAME,
-				'action' => 'check',
+				'action' => $action,
 			),
 		) );
 
@@ -410,9 +414,23 @@ class License_Manager {
 
 		$code     = (int) wp_remote_retrieve_response_code( $response );
 		$raw_body = wp_remote_retrieve_body( $response );
+		$body     = json_decode( $raw_body );
+
+		$status     = ( isset( $body->status ) ) ? sanitize_text_field( $body->status ) : '';
+		$server_msg = ( isset( $body->message ) ) ? sanitize_text_field( $body->message ) : '';
+
+		if ( 'active' === $status ) {
+			$diag_msg = sprintf( __( 'সার্ভার সংযোগ সফল (রেসপন্স সময়: %d ms)। লাইসেন্স কি সক্রিয় ও বৈধ!', 'wc-smart-checkout-builder' ), $latency );
+		} elseif ( 'online' === $status ) {
+			$diag_msg = sprintf( __( 'সার্ভার সংযোগ সফল ও সচল (রেসপন্স সময়: %d ms)। লাইসেন্স সার্ভার লাইভ আছে।', 'wc-smart-checkout-builder' ), $latency );
+		} elseif ( ! empty( $server_msg ) ) {
+			$diag_msg = sprintf( __( 'সার্ভার সংযোগ সফল (রেসপন্স সময়: %d ms)। সার্ভার ফিডব্যাক: %s', 'wc-smart-checkout-builder' ), $latency, $server_msg );
+		} else {
+			$diag_msg = sprintf( __( 'সার্ভার সংযোগ সফল (HTTP %d, রেসপন্স সময়: %d ms)', 'wc-smart-checkout-builder' ), $code, $latency );
+		}
 
 		wp_send_json_success( array(
-			'message'    => sprintf( __( 'সার্ভার সংযোগ সফল (HTTP %d, রেসপন্স সময়: %d ms)', 'wc-smart-checkout-builder' ), $code, $latency ),
+			'message'    => $diag_msg,
 			'http_code'  => $code,
 			'latency_ms' => $latency,
 			'domain'     => $domain,
