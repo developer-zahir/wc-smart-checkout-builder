@@ -891,6 +891,21 @@ class Elementor_Widget extends Widget_Base {
 		);
 
 		$this->add_control(
+			'order_bump_section_subtitle',
+			array(
+				'label'       => esc_html__( 'Section Subtitle / Short Description', 'wc-smart-checkout-builder' ),
+				'type'        => Controls_Manager::TEXTAREA,
+				'rows'        => 2,
+				'default'     => '',
+				'placeholder' => esc_html__( 'এক ক্লিকে আপনার বিশেষ ছাড়ে প্রোডাক্টটি যুক্ত করুন', 'wc-smart-checkout-builder' ),
+				'render_type' => 'template',
+				'condition'   => array(
+					'enable_order_bump' => 'yes',
+				),
+			)
+		);
+
+		$this->add_control(
 			'order_bump_action_text',
 			array(
 				'label'       => esc_html__( 'Action Button Text', 'wc-smart-checkout-builder' ),
@@ -2079,39 +2094,11 @@ class Elementor_Widget extends Widget_Base {
 			)
 		);
 
-		// Outer Block Container & Title Override
+		// Outer Block Container & Section Heading
 		$this->register_block_container_controls(
 			'order_summary',
 			'{{WRAPPER}} .wcas-checkout-wrapper .wcas-block-order-review, {{WRAPPER}} .wcas-checkout-wrapper .wcas-block-order-summary',
-			'{{WRAPPER}} .wcas-checkout-wrapper .wcas-block-order-review .wcas-block-title, {{WRAPPER}} .wcas-checkout-wrapper .wcas-block-order-summary .wcas-block-title'
-		);
-
-		$this->add_control(
-			'heading_checkout_titles',
-			array(
-				'label'     => esc_html__( 'Section Headings', 'wc-smart-checkout-builder' ),
-				'type'      => Controls_Manager::HEADING,
-				'separator' => 'before',
-			)
-		);
-
-		$this->add_control(
-			'checkout_heading_color',
-			array(
-				'label'     => esc_html__( 'Heading Color', 'wc-smart-checkout-builder' ),
-				'type'      => Controls_Manager::COLOR,
-				'selectors' => array(
-					'{{WRAPPER}} .wcsc-section-title, {{WRAPPER}} .woocommerce-billing-fields h3, {{WRAPPER}} #order_review_heading' => 'color: {{VALUE}};',
-				),
-			)
-		);
-
-		$this->add_group_control(
-			Group_Control_Typography::get_type(),
-			array(
-				'name'     => 'checkout_heading_typography',
-				'selector' => '{{WRAPPER}} .wcsc-section-title, {{WRAPPER}} .woocommerce-billing-fields h3, {{WRAPPER}} #order_review_heading',
-			)
+			'{{WRAPPER}} .wcas-checkout-wrapper .wcas-block-order-review .wcas-block-title, {{WRAPPER}} .wcas-checkout-wrapper .wcas-block-order-summary .wcas-block-title, {{WRAPPER}} .wcas-checkout-wrapper #order_review_heading, {{WRAPPER}} #order_review_heading'
 		);
 
 		// ==========================================
@@ -3020,24 +3007,16 @@ class Elementor_Widget extends Widget_Base {
 		$this->add_control(
 			'heading_order_bump_title_style',
 			array(
-				'label'     => esc_html__( 'Section Title', 'wc-smart-checkout-builder' ),
+				'label'     => esc_html__( 'Section Heading', 'wc-smart-checkout-builder' ),
 				'type'      => Controls_Manager::HEADING,
 				'separator' => 'before',
-			)
-		);
-
-		$this->add_group_control(
-			Group_Control_Typography::get_type(),
-			array(
-				'name'     => 'order_bump_title_typography',
-				'selector' => '{{WRAPPER}} .wcsc-order-bump-heading',
 			)
 		);
 
 		$this->add_responsive_control(
 			'order_bump_title_align',
 			array(
-				'label'     => esc_html__( 'Alignment', 'wc-smart-checkout-builder' ),
+				'label'     => esc_html__( 'Text Alignment', 'wc-smart-checkout-builder' ),
 				'type'      => Controls_Manager::CHOOSE,
 				'options'   => array(
 					'left'   => array(
@@ -3054,36 +3033,192 @@ class Elementor_Widget extends Widget_Base {
 					),
 				),
 				'selectors' => array(
-					'{{WRAPPER}} .wcsc-order-bump-heading' => 'text-align: {{VALUE}}; justify-content: {{VALUE}};',
+					'{{WRAPPER}} .wcsc-order-bump-heading' => 'text-align: {{VALUE}} !important; justify-content: {{VALUE}} !important;',
 				),
+			)
+		);
+
+		$this->add_group_control(
+			Group_Control_Typography::get_type(),
+			array(
+				'name'     => 'order_bump_title_typography',
+				'label'    => esc_html__( 'Typography', 'wc-smart-checkout-builder' ),
+				'selector' => '{{WRAPPER}} .wcsc-order-bump-heading',
 			)
 		);
 
 		$this->add_control(
 			'order_bump_title_color',
 			array(
-				'label'     => esc_html__( 'Title Color', 'wc-smart-checkout-builder' ),
+				'label'     => esc_html__( 'Text Color', 'wc-smart-checkout-builder' ),
 				'type'      => Controls_Manager::COLOR,
 				'selectors' => array(
-					'{{WRAPPER}} .wcsc-order-bump-heading' => 'color: {{VALUE}};',
+					'{{WRAPPER}} .wcsc-order-bump-heading' => 'color: {{VALUE}} !important;',
 				),
 			)
 		);
 
 		$this->add_responsive_control(
-			'order_bump_title_spacing',
+			'order_bump_title_margin',
 			array(
-				'label'      => esc_html__( 'Title Bottom Spacing', 'wc-smart-checkout-builder' ),
+				'label'      => esc_html__( 'Margin', 'wc-smart-checkout-builder' ),
+				'type'       => Controls_Manager::DIMENSIONS,
+				'size_units' => array( 'px', 'em', '%' ),
+				'selectors'  => array(
+					'{{WRAPPER}} .wcsc-order-bump-heading' => 'margin: {{TOP}}{{UNIT}} {{RIGHT}}{{UNIT}} {{BOTTOM}}{{UNIT}} {{LEFT}}{{UNIT}} !important;',
+				),
+			)
+		);
+
+		$this->add_responsive_control(
+			'order_bump_title_padding',
+			array(
+				'label'      => esc_html__( 'Padding', 'wc-smart-checkout-builder' ),
+				'type'       => Controls_Manager::DIMENSIONS,
+				'size_units' => array( 'px', 'em', '%' ),
+				'selectors'  => array(
+					'{{WRAPPER}} .wcsc-order-bump-heading' => 'padding: {{TOP}}{{UNIT}} {{RIGHT}}{{UNIT}} {{BOTTOM}}{{UNIT}} {{LEFT}}{{UNIT}} !important;',
+				),
+			)
+		);
+
+		$this->add_group_control(
+			Group_Control_Border::get_type(),
+			array(
+				'name'     => 'order_bump_title_border',
+				'label'    => esc_html__( 'Border', 'wc-smart-checkout-builder' ),
+				'selector' => '{{WRAPPER}} .wcsc-order-bump-heading',
+			)
+		);
+
+		$this->add_responsive_control(
+			'order_bump_title_border_radius',
+			array(
+				'label'      => esc_html__( 'Border Radius', 'wc-smart-checkout-builder' ),
+				'type'       => Controls_Manager::DIMENSIONS,
+				'size_units' => array( 'px', '%' ),
+				'selectors'  => array(
+					'{{WRAPPER}} .wcsc-order-bump-heading' => 'border-radius: {{TOP}}{{UNIT}} {{RIGHT}}{{UNIT}} {{BOTTOM}}{{UNIT}} {{LEFT}}{{UNIT}} !important;',
+				),
+			)
+		);
+
+		// ==========================================
+		// Section Subtitle
+		// ==========================================
+		$this->add_control(
+			'heading_order_bump_subtitle_style',
+			array(
+				'label'     => esc_html__( 'Section Subtitle', 'wc-smart-checkout-builder' ),
+				'type'      => Controls_Manager::HEADING,
+				'separator' => 'before',
+				'condition' => array(
+					'order_bump_section_subtitle!' => '',
+				),
+			)
+		);
+
+		$this->add_responsive_control(
+			'order_bump_subtitle_align',
+			array(
+				'label'     => esc_html__( 'Text Alignment', 'wc-smart-checkout-builder' ),
+				'type'      => Controls_Manager::CHOOSE,
+				'options'   => array(
+					'left'   => array(
+						'title' => esc_html__( 'Left', 'wc-smart-checkout-builder' ),
+						'icon'  => 'eicon-text-align-left',
+					),
+					'center' => array(
+						'title' => esc_html__( 'Center', 'wc-smart-checkout-builder' ),
+						'icon'  => 'eicon-text-align-center',
+					),
+					'right'  => array(
+						'title' => esc_html__( 'Right', 'wc-smart-checkout-builder' ),
+						'icon'  => 'eicon-text-align-right',
+					),
+				),
+				'selectors' => array(
+					'{{WRAPPER}} .wcsc-order-bump-subtitle' => 'text-align: {{VALUE}} !important; justify-content: {{VALUE}} !important;',
+				),
+				'condition' => array(
+					'order_bump_section_subtitle!' => '',
+				),
+			)
+		);
+
+		$this->add_group_control(
+			Group_Control_Typography::get_type(),
+			array(
+				'name'      => 'order_bump_subtitle_typography',
+				'label'     => esc_html__( 'Typography', 'wc-smart-checkout-builder' ),
+				'selector'  => '{{WRAPPER}} .wcsc-order-bump-subtitle',
+				'condition' => array(
+					'order_bump_section_subtitle!' => '',
+				),
+			)
+		);
+
+		$this->add_control(
+			'order_bump_subtitle_color',
+			array(
+				'label'     => esc_html__( 'Text Color', 'wc-smart-checkout-builder' ),
+				'type'      => Controls_Manager::COLOR,
+				'selectors' => array(
+					'{{WRAPPER}} .wcsc-order-bump-subtitle' => 'color: {{VALUE}} !important;',
+				),
+				'condition' => array(
+					'order_bump_section_subtitle!' => '',
+				),
+			)
+		);
+
+		$this->add_responsive_control(
+			'order_bump_subtitle_margin',
+			array(
+				'label'      => esc_html__( 'Margin', 'wc-smart-checkout-builder' ),
+				'type'       => Controls_Manager::DIMENSIONS,
+				'size_units' => array( 'px', 'em', '%' ),
+				'selectors'  => array(
+					'{{WRAPPER}} .wcsc-order-bump-subtitle' => 'margin: {{TOP}}{{UNIT}} {{RIGHT}}{{UNIT}} {{BOTTOM}}{{UNIT}} {{LEFT}}{{UNIT}} !important;',
+				),
+				'condition'  => array(
+					'order_bump_section_subtitle!' => '',
+				),
+			)
+		);
+
+		$this->add_responsive_control(
+			'order_bump_subtitle_padding',
+			array(
+				'label'      => esc_html__( 'Padding', 'wc-smart-checkout-builder' ),
+				'type'       => Controls_Manager::DIMENSIONS,
+				'size_units' => array( 'px', 'em', '%' ),
+				'selectors'  => array(
+					'{{WRAPPER}} .wcsc-order-bump-subtitle' => 'padding: {{TOP}}{{UNIT}} {{RIGHT}}{{UNIT}} {{BOTTOM}}{{UNIT}} {{LEFT}}{{UNIT}} !important;',
+				),
+				'condition'  => array(
+					'order_bump_section_subtitle!' => '',
+				),
+			)
+		);
+
+		$this->add_responsive_control(
+			'order_bump_title_subtitle_gap',
+			array(
+				'label'      => esc_html__( 'Gap / Spacing Between Title & Subtitle', 'wc-smart-checkout-builder' ),
 				'type'       => Controls_Manager::SLIDER,
 				'size_units' => array( 'px', 'em' ),
 				'range'      => array(
 					'px' => array(
 						'min' => 0,
-						'max' => 50,
+						'max' => 60,
 					),
 				),
 				'selectors'  => array(
-					'{{WRAPPER}} .wcsc-order-bump-heading' => 'margin-bottom: {{SIZE}}{{UNIT}};',
+					'{{WRAPPER}} .wcsc-order-bump-heading' => 'margin-bottom: {{SIZE}}{{UNIT}} !important;',
+				),
+				'condition'  => array(
+					'order_bump_section_subtitle!' => '',
 				),
 			)
 		);
@@ -4504,19 +4639,33 @@ class Elementor_Widget extends Widget_Base {
 		$this->add_control(
 			'heading_block_title_' . $key,
 			array(
-				'label'     => esc_html__( 'Title Styling Override', 'wc-smart-checkout-builder' ),
+				'label'     => esc_html__( 'Section Heading', 'wc-smart-checkout-builder' ),
 				'type'      => Controls_Manager::HEADING,
 				'separator' => 'before',
 			)
 		);
 
-		$this->add_control(
-			'block_title_color_' . $key,
+		$this->add_responsive_control(
+			'block_title_align_' . $key,
 			array(
-				'label'     => esc_html__( 'Title Color', 'wc-smart-checkout-builder' ),
-				'type'      => Controls_Manager::COLOR,
+				'label'     => esc_html__( 'Text Alignment', 'wc-smart-checkout-builder' ),
+				'type'      => Controls_Manager::CHOOSE,
+				'options'   => array(
+					'left'   => array(
+						'title' => esc_html__( 'Left', 'wc-smart-checkout-builder' ),
+						'icon'  => 'eicon-text-align-left',
+					),
+					'center' => array(
+						'title' => esc_html__( 'Center', 'wc-smart-checkout-builder' ),
+						'icon'  => 'eicon-text-align-center',
+					),
+					'right'  => array(
+						'title' => esc_html__( 'Right', 'wc-smart-checkout-builder' ),
+						'icon'  => 'eicon-text-align-right',
+					),
+				),
 				'selectors' => array(
-					$title_selector => 'color: {{VALUE}};',
+					$title_selector => 'text-align: {{VALUE}} !important;',
 				),
 			)
 		);
@@ -4525,8 +4674,43 @@ class Elementor_Widget extends Widget_Base {
 			Group_Control_Typography::get_type(),
 			array(
 				'name'     => 'block_title_typography_' . $key,
-				'label'    => esc_html__( 'Title Typography', 'wc-smart-checkout-builder' ),
+				'label'    => esc_html__( 'Typography', 'wc-smart-checkout-builder' ),
 				'selector' => $title_selector,
+			)
+		);
+
+		$this->add_control(
+			'block_title_color_' . $key,
+			array(
+				'label'     => esc_html__( 'Text Color', 'wc-smart-checkout-builder' ),
+				'type'      => Controls_Manager::COLOR,
+				'selectors' => array(
+					$title_selector => 'color: {{VALUE}} !important;',
+				),
+			)
+		);
+
+		$this->add_responsive_control(
+			'block_title_margin_' . $key,
+			array(
+				'label'      => esc_html__( 'Margin', 'wc-smart-checkout-builder' ),
+				'type'       => Controls_Manager::DIMENSIONS,
+				'size_units' => array( 'px', 'em', '%' ),
+				'selectors'  => array(
+					$title_selector => 'margin: {{TOP}}{{UNIT}} {{RIGHT}}{{UNIT}} {{BOTTOM}}{{UNIT}} {{LEFT}}{{UNIT}} !important;',
+				),
+			)
+		);
+
+		$this->add_responsive_control(
+			'block_title_padding_' . $key,
+			array(
+				'label'      => esc_html__( 'Padding', 'wc-smart-checkout-builder' ),
+				'type'       => Controls_Manager::DIMENSIONS,
+				'size_units' => array( 'px', 'em', '%' ),
+				'selectors'  => array(
+					$title_selector => 'padding: {{TOP}}{{UNIT}} {{RIGHT}}{{UNIT}} {{BOTTOM}}{{UNIT}} {{LEFT}}{{UNIT}} !important;',
+				),
 			)
 		);
 
@@ -4534,8 +4718,20 @@ class Elementor_Widget extends Widget_Base {
 			Group_Control_Border::get_type(),
 			array(
 				'name'     => 'block_title_border_' . $key,
-				'label'    => esc_html__( 'Title Border', 'wc-smart-checkout-builder' ),
+				'label'    => esc_html__( 'Border', 'wc-smart-checkout-builder' ),
 				'selector' => $title_selector,
+			)
+		);
+
+		$this->add_responsive_control(
+			'block_title_border_radius_' . $key,
+			array(
+				'label'      => esc_html__( 'Border Radius', 'wc-smart-checkout-builder' ),
+				'type'       => Controls_Manager::DIMENSIONS,
+				'size_units' => array( 'px', '%' ),
+				'selectors'  => array(
+					$title_selector => 'border-radius: {{TOP}}{{UNIT}} {{RIGHT}}{{UNIT}} {{BOTTOM}}{{UNIT}} {{LEFT}}{{UNIT}} !important;',
+				),
 			)
 		);
 	}

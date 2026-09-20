@@ -188,8 +188,9 @@ if ( '1_column' === $checkout_layout ) {
 				}
 				$rendered_bump_editor = true;
 
-				$section_title = ! empty( $settings['order_bump_section_title'] ) ? $settings['order_bump_section_title'] : __( 'ধামাকা অফার! সাথে এটাও যুক্ত করুন', 'wc-smart-checkout-builder' );
-				$action_text   = ! empty( $settings['order_bump_action_text'] ) ? $settings['order_bump_action_text'] : __( 'অর্ডার যুক্ত করুন', 'wc-smart-checkout-builder' );
+				$section_title    = ! empty( $settings['order_bump_section_title'] ) ? $settings['order_bump_section_title'] : __( 'ধামাকা অফার! সাথে এটাও যুক্ত করুন', 'wc-smart-checkout-builder' );
+				$section_subtitle = ! empty( $settings['order_bump_section_subtitle'] ) ? $settings['order_bump_section_subtitle'] : '';
+				$action_text      = ! empty( $settings['order_bump_action_text'] ) ? $settings['order_bump_action_text'] : __( 'অর্ডার যুক্ত করুন', 'wc-smart-checkout-builder' );
 				$layout_desktop = ! empty( $settings['order_bump_layout'] ) ? $settings['order_bump_layout'] : 'list';
 				$layout_tablet  = ! empty( $settings['order_bump_layout_tablet'] ) ? $settings['order_bump_layout_tablet'] : $layout_desktop;
 				$layout_mobile  = ! empty( $settings['order_bump_layout_mobile'] ) ? $settings['order_bump_layout_mobile'] : ( 'grid' === $layout_desktop ? 'list' : $layout_desktop );
@@ -258,6 +259,9 @@ if ( '1_column' === $checkout_layout ) {
 					<div class="wcas-order-bump-container">
 						<?php if ( ! empty( $section_title ) ) : ?>
 							<h4 class="wcsc-order-bump-heading"><?php echo esc_html( $section_title ); ?></h4>
+						<?php endif; ?>
+						<?php if ( ! empty( $section_subtitle ) ) : ?>
+							<div class="wcsc-order-bump-subtitle"><?php echo esc_html( $section_subtitle ); ?></div>
 						<?php endif; ?>
 						<div class="wcsc-order-bump-list">
 							<?php foreach ( $bump_items as $index => $item ) : ?>

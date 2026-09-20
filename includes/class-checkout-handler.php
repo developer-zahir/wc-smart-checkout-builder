@@ -1262,8 +1262,9 @@ class Checkout_Handler {
 		$cols_tablet  = ! empty( $settings['order_bump_columns_tablet'] ) ? $settings['order_bump_columns_tablet'] : $cols_desktop;
 		$cols_mobile  = ! empty( $settings['order_bump_columns_mobile'] ) ? $settings['order_bump_columns_mobile'] : '1';
 
-		$section_title = ! empty( $settings['order_bump_section_title'] ) ? $settings['order_bump_section_title'] : __( 'ধামাকা অফার! সাথে এটাও যুক্ত করুন', 'wc-smart-checkout-builder' );
-		$action_text   = ! empty( $settings['order_bump_action_text'] ) ? $settings['order_bump_action_text'] : __( 'অর্ডার যুক্ত করুন', 'wc-smart-checkout-builder' );
+		$section_title    = ! empty( $settings['order_bump_section_title'] ) ? $settings['order_bump_section_title'] : __( 'ধামাকা অফার! সাথে এটাও যুক্ত করুন', 'wc-smart-checkout-builder' );
+		$section_subtitle = ! empty( $settings['order_bump_section_subtitle'] ) ? $settings['order_bump_section_subtitle'] : '';
+		$action_text      = ! empty( $settings['order_bump_action_text'] ) ? $settings['order_bump_action_text'] : __( 'অর্ডার যুক্ত করুন', 'wc-smart-checkout-builder' );
 
 		// Get cart product IDs
 		$cart_product_ids = array();
@@ -1278,6 +1279,9 @@ class Checkout_Handler {
 			<div class="wcas-order-bump-container">
 				<?php if ( ! empty( $section_title ) ) : ?>
 					<h4 class="wcsc-order-bump-heading"><?php echo esc_html( $section_title ); ?></h4>
+				<?php endif; ?>
+				<?php if ( ! empty( $section_subtitle ) ) : ?>
+					<div class="wcsc-order-bump-subtitle"><?php echo esc_html( $section_subtitle ); ?></div>
 				<?php endif; ?>
 				<div class="wcsc-order-bump-list">
 					<?php

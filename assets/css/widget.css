@@ -1516,6 +1516,15 @@ body.elementor-editor-active .wcsc-mobile-sticky-bar,
 	line-height: 1.4;
 }
 
+.wcas-checkout-wrapper .wcsc-order-bump-subtitle {
+	font-size: 13px;
+	color: #64748b;
+	line-height: 1.4;
+	margin: 0 0 10px 0;
+	display: block;
+	width: 100%;
+}
+
 .wcas-checkout-wrapper .wcsc-order-bump-list {
 	display: grid;
 	grid-template-columns: repeat(1, minmax(0, 1fr));
