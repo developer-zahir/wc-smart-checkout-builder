@@ -1269,7 +1269,8 @@
 /* ==========================================================================
    10. Mobile & Tablet Sticky Floating Order Button (< 1024px)
    ========================================================================== */
-.wcsc-mobile-sticky-bar {
+.wcsc-mobile-sticky-bar,
+.wcsc-floating-btn-wrap {
 	display: none;
 	position: fixed;
 	bottom: 0;
@@ -1283,33 +1284,40 @@
 	margin: 0;
 	border: none;
 	box-sizing: border-box;
-	transition: transform 0.3s cubic-bezier(0.16, 1, 0.3, 1), opacity 0.3s ease;
+	transition: transform 0.35s cubic-bezier(0.16, 1, 0.3, 1), opacity 0.35s ease, visibility 0.35s;
 }
 
 @media (max-width: 1023px) {
-	.wcsc-mobile-sticky-bar {
+	.wcsc-mobile-sticky-bar,
+	.wcsc-floating-btn-wrap {
 		display: block;
 	}
 }
 
 @media (min-width: 1024px) {
-	.wcsc-mobile-sticky-bar {
+	.wcsc-mobile-sticky-bar,
+	.wcsc-floating-btn-wrap {
 		display: none !important;
 	}
 }
 
-.wcsc-mobile-sticky-bar.is-hidden {
+.wcsc-mobile-sticky-bar.is-hidden,
+.wcsc-floating-btn-wrap.is-hidden {
 	transform: translateY(100%);
 	opacity: 0;
+	visibility: hidden;
 	pointer-events: none;
 }
 
 /* In active Elementor editor, allow previewing the floating button cleanly */
 body.elementor-editor-active .wcsc-mobile-sticky-bar,
-.elementor-editor-active .wcsc-mobile-sticky-bar {
+body.elementor-editor-active .wcsc-floating-btn-wrap,
+.elementor-editor-active .wcsc-mobile-sticky-bar,
+.elementor-editor-active .wcsc-floating-btn-wrap {
 	display: block !important;
 	opacity: 1 !important;
 	transform: none !important;
+	visibility: visible !important;
 	pointer-events: auto !important;
 	z-index: 99998 !important;
 }

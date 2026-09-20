@@ -60,6 +60,8 @@ class Plugin {
 		// Admin Menu & Settings
 		add_action( 'admin_menu', array( $this, 'register_admin_menu' ) );
 		add_action( 'admin_init', array( $this, 'register_settings' ) );
+		add_action( 'admin_init', array( $this, 'suppress_third_party_admin_notices' ), 1 );
+		add_filter( 'plugin_action_links_' . WCSC_BASENAME, array( $this, 'add_plugin_action_links' ) );
 
 		// Custom CSS injection
 		add_action( 'wp_head', array( $this, 'print_custom_css' ), 100 );
@@ -277,6 +279,32 @@ class Plugin {
 			'wcsc-settings',
 			array( $this, 'settings_page_html' )
 		);
+	}
+
+	/**
+	 * Suppress third-party admin notice banners on the plugin settings page.
+	 */
+	public function suppress_third_party_admin_notices() {
+		$page = isset( $_GET['page'] ) ? sanitize_key( $_GET['page'] ) : '';
+		if ( 'wcsc-settings' === $page ) {
+			remove_all_actions( 'admin_notices' );
+			remove_all_actions( 'all_admin_notices' );
+			remove_all_actions( 'user_admin_notices' );
+			remove_all_actions( 'network_admin_notices' );
+		}
+	}
+
+	/**
+	 * Add direct 'Settings' link to plugin row on plugins.php.
+	 *
+	 * @param array $links
+	 * @return array
+	 */
+	public function add_plugin_action_links( $links ) {
+		$settings_url  = admin_url( 'edit.php?post_type=wcsc_page&page=wcsc-settings' );
+		$settings_link = '<a href="' . esc_url( $settings_url ) . '">' . esc_html__( 'Settings', 'wc-smart-checkout-builder' ) . '</a>';
+		array_unshift( $links, $settings_link );
+		return $links;
 	}
 
 	/**
@@ -576,7 +604,23 @@ class Plugin {
 					color: #1e40af;
 					line-height: 1.5;
 				}
+				/* Suppress generic WP and third-party notices */
+				.notice:not(.wcsc-notice),
+				.updated:not(.wcsc-notice),
+				.error:not(.wcsc-notice),
+				.is-dismissible:not(.wcsc-notice),
+				div.notice,
+				div.updated,
+				div.error {
+					display: none !important;
+				}
 			</style>
+
+			<?php if ( isset( $_GET['settings-updated'] ) && 'true' === $_GET['settings-updated'] ) : ?>
+				<div class="wcsc-alert-box wcsc-notice" style="background: #ecfdf5; border-left: 4px solid #10b981; color: #065f46; margin: 15px 0 20px 0; font-size: 14px; font-weight: 600;">
+					✓ <?php esc_html_e( 'সেটিংস সফলভাবে সংরক্ষিত হয়েছে।', 'wc-smart-checkout-builder' ); ?>
+				</div>
+			<?php endif; ?>
 
 			<div class="wcsc-dashboard-header">
 				<div class="wcsc-header-left">

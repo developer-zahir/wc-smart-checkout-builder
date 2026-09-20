@@ -253,14 +253,17 @@
 				self.stylePaymentMethods();
 			});
 
-			// Mobile sticky order button click -> scroll smoothly to checkout and immediately hide
-			this.$container.on('click', '.wcsc-mobile-sticky-btn', function (e) {
+			// Mobile sticky floating order button click -> scroll smoothly to checkout and immediately hide
+			this.$container.on('click', '.wcsc-mobile-sticky-btn, .wcsc-floating-btn', function (e) {
 				e.preventDefault();
 				var stickyBar = self.$container.find('.wcsc-mobile-sticky-bar')[0] || document.getElementById('wcsc-mobile-sticky-bar');
 				if (stickyBar) {
 					$(stickyBar).addClass('is-hidden');
 				}
 				var $target = self.$container.find('.wcas-checkout-wrapper');
+				if (!$target.length) {
+					$target = $('.wcas-checkout-wrapper');
+				}
 				if ($target.length) {
 					$('html, body').animate({
 						scrollTop: $target.offset().top - 20
@@ -839,32 +842,61 @@
 				return;
 			}
 
-			// Observe the main checkout form so floating button auto-hides as soon as checkout enters viewport
-			var targetWrapper = self.$container.find('.wcas-checkout-wrapper')[0] || self.$container[0];
+			// Track visibility of main checkout wrapper (.wcas-checkout-wrapper)
+			var targetWrapper = self.$container.find('.wcas-checkout-wrapper')[0] || document.querySelector('.wcas-checkout-wrapper') || self.$container[0];
+			if (!targetWrapper) {
+				return;
+			}
 
-			if (targetWrapper && 'IntersectionObserver' in window) {
+			var updateVisibility = function () {
+				if (window.innerWidth >= 1024) {
+					return;
+				}
+				var rect = targetWrapper.getBoundingClientRect();
+				var windowHeight = window.innerHeight || document.documentElement.clientHeight;
+
+				// When .wcas-checkout-wrapper enters the viewport, hide floating button
+				if (rect.top < windowHeight && rect.bottom > 0) {
+					$(stickyBar).addClass('is-hidden');
+				} else if (rect.top >= windowHeight) {
+					// User is above checkout form on landing page sections -> display floating button
+					$(stickyBar).removeClass('is-hidden');
+				} else {
+					// User scrolled below checkout section -> keep hidden
+					$(stickyBar).addClass('is-hidden');
+				}
+			};
+
+			if ('IntersectionObserver' in window) {
 				var observer = new IntersectionObserver(function (entries) {
 					entries.forEach(function (entry) {
 						if (entry.isIntersecting) {
-							// Main checkout form is in viewport, hide floating button to prevent clutter
+							// Checkout enters viewport -> hide floating button
 							$(stickyBar).addClass('is-hidden');
 						} else {
 							var rect = entry.boundingClientRect;
-							// If checkout is below viewport, user is browsing higher content, show floating button
+							// If checkout is below viewport, user is browsing higher content -> show floating button
 							if (rect.top > 0) {
 								$(stickyBar).removeClass('is-hidden');
 							} else {
-								// User has scrolled below checkout section, keep hidden
+								// User has scrolled below checkout section -> keep hidden
 								$(stickyBar).addClass('is-hidden');
 							}
 						}
 					});
 				}, {
-					threshold: 0.05,
+					threshold: 0.01,
 					rootMargin: '0px 0px 0px 0px'
 				});
 				observer.observe(targetWrapper);
 			}
+
+			// Safety fallback on scroll and resize
+			$(window).on('scroll resize orientationchange', function () {
+				updateVisibility();
+			});
+
+			updateVisibility();
 		},
 
 		syncOrderButtonAnimationColor: function () {

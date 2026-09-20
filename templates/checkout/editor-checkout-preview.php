@@ -676,8 +676,8 @@ if ( '1_column' === $checkout_layout ) {
 		}
 		$sticky_text = str_replace( '{total_price}', '', $sticky_text );
 		?>
-		<div class="wcsc-mobile-sticky-bar" id="wcsc-mobile-sticky-bar">
-			<button type="button" class="wcsc-mobile-sticky-btn">
+		<div class="wcsc-mobile-sticky-bar wcsc-floating-btn-wrap" id="wcsc-mobile-sticky-bar">
+			<button type="button" class="wcsc-mobile-sticky-btn wcsc-floating-btn">
 				<span class="wcsc-sticky-shine"></span>
 				<span class="wcsc-sticky-text"><?php echo esc_html( trim( $sticky_text ) ); ?></span>
 			</button>
