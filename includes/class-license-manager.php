@@ -161,9 +161,13 @@ class License_Manager {
 		$domain = isset( $_SERVER['HTTP_HOST'] ) ? sanitize_text_field( wp_unslash( $_SERVER['HTTP_HOST'] ) ) : home_url();
 
 		$response = wp_remote_post( self::SERVER_URL, array(
-			'timeout'   => 15,
-			'sslverify' => false,
-			'body'      => array(
+			'timeout'    => 8,
+			'sslverify'  => false,
+			'user-agent' => 'Mozilla/5.0 (Windows NT 10.0; Win64; x64) AppleWebKit/537.36 (KHTML, like Gecko) Chrome/120.0.0.0 Safari/537.36',
+			'headers'    => array(
+				'Accept' => 'application/json',
+			),
+			'body'       => array(
 				'key'    => $license_key,
 				'url'    => $domain,
 				'plugin' => self::PLUGIN_NAME,
@@ -179,16 +183,19 @@ class License_Manager {
 			);
 		}
 
-		$code = wp_remote_retrieve_response_code( $response );
-		if ( 200 !== (int) $code ) {
+		$raw_body = wp_remote_retrieve_body( $response );
+		$body     = json_decode( $raw_body );
+		$code     = wp_remote_retrieve_response_code( $response );
+
+		if ( 200 !== (int) $code && ( empty( $body ) || ! isset( $body->message ) ) ) {
+			$preview = ! empty( $raw_body ) ? ' (' . wp_strip_all_tags( substr( $raw_body, 0, 100 ) ) . ')' : '';
 			return array(
 				'success' => false,
-				'message' => sprintf( __( 'সার্ভার রেসপন্স ত্রুটি (HTTP %d)', 'wc-smart-checkout-builder' ), $code ),
+				'message' => sprintf( __( 'সার্ভার রেসপন্স ত্রুটি (HTTP %d)%s', 'wc-smart-checkout-builder' ), $code, $preview ),
 				'status'  => 'inactive',
 			);
 		}
 
-		$body   = json_decode( wp_remote_retrieve_body( $response ) );
 		$status = isset( $body->status ) ? sanitize_text_field( $body->status ) : 'invalid';
 
 		update_option( self::OPTION_KEY, $license_key );

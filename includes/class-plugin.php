@@ -875,7 +875,12 @@ class Plugin {
 			var licenseNonce = '<?php echo esc_js( wp_create_nonce( 'wcsc_license_nonce' ) ); ?>';
 
 			if (activateBtn) {
-				activateBtn.addEventListener('click', function() {
+				activateBtn.addEventListener('click', function(e) {
+					if (e) {
+						e.preventDefault();
+						e.stopPropagation();
+					}
+
 					var key = keyInput.value.trim();
 					if (!key) {
 						alert('<?php echo esc_js( __( 'অনুগ্রহ করে একটি লাইসেন্স কি প্রবেশ করান।', 'wc-smart-checkout-builder' ) ); ?>');
@@ -895,11 +900,25 @@ class Plugin {
 
 					var ajaxUrl = (typeof ajaxurl !== 'undefined') ? ajaxurl : '<?php echo esc_url( admin_url( 'admin-ajax.php' ) ); ?>';
 
+					// 10-second hard timeout controller so the button never stays stuck
+					var controller = (typeof AbortController !== 'undefined') ? new AbortController() : null;
+					var timeoutTimer = setTimeout(function() {
+						if (controller) {
+							controller.abort();
+						}
+					}, 10000);
+
 					fetch(ajaxUrl, {
 						method: 'POST',
-						body: formData
+						body: formData,
+						credentials: 'same-origin',
+						headers: {
+							'X-Requested-With': 'XMLHttpRequest'
+						},
+						signal: controller ? controller.signal : undefined
 					})
 					.then(function(res) {
+						clearTimeout(timeoutTimer);
 						return res.text().then(function(text) {
 							try {
 								return JSON.parse(text);
@@ -930,6 +949,7 @@ class Plugin {
 						}
 					})
 					.catch(function(err) {
+						clearTimeout(timeoutTimer);
 						activateBtn.disabled = false;
 						activateBtn.textContent = origText;
 						msgBox.style.display = 'block';
@@ -937,13 +957,21 @@ class Plugin {
 						msgBox.style.background = '#fef2f2';
 						msgBox.style.borderLeftColor = '#ef4444';
 						msgBox.style.color = '#991b1b';
-						msgBox.innerHTML = '✕ ' + (err.message || 'Error connecting to server.');
+
+						if (err && err.name === 'AbortError') {
+							msgBox.innerHTML = '✕ <strong><?php echo esc_js( __( 'সংযোগের সময় শেষ (Timeout)!', 'wc-smart-checkout-builder' ) ); ?></strong> <?php echo esc_js( __( '১০ সেকেন্ডের মধ্যে লাইসেন্স সার্ভার থেকে কোনো উত্তর আসেনি। সার্ভার ডাউন থাকতে পারে বা ফায়ারওয়ালে রিকোয়েস্ট আটকে আছে।', 'wc-smart-checkout-builder' ) ); ?>';
+						} else {
+							msgBox.innerHTML = '✕ ' + (err.message || 'Error connecting to server.');
+						}
 					});
 				});
 			}
 
 			if (deactivateBtn) {
-				deactivateBtn.addEventListener('click', function() {
+				deactivateBtn.addEventListener('click', function(e) {
+					if (e) {
+						e.preventDefault();
+					}
 					if (!confirm('<?php echo esc_js( __( 'আপনি কি নিশ্চিত যে এই সাইট থেকে লাইসেন্স ডি-অ্যাক্টিভ করতে চান?', 'wc-smart-checkout-builder' ) ); ?>')) {
 						return;
 					}
@@ -953,14 +981,23 @@ class Plugin {
 					formData.append('action', 'wcsc_deactivate_license');
 					formData.append('nonce', licenseNonce);
 
-					fetch(ajaxurl, {
+					var ajaxUrl = (typeof ajaxurl !== 'undefined') ? ajaxurl : '<?php echo esc_url( admin_url( 'admin-ajax.php' ) ); ?>';
+
+					fetch(ajaxUrl, {
 						method: 'POST',
-						body: formData
+						body: formData,
+						credentials: 'same-origin',
+						headers: {
+							'X-Requested-With': 'XMLHttpRequest'
+						}
 					})
 					.then(function(res) { return res.json(); })
 					.then(function() {
 						window.location.hash = '#tab-license';
 						window.location.reload();
+					})
+					.catch(function() {
+						deactivateBtn.disabled = false;
 					});
 				});
 			}
