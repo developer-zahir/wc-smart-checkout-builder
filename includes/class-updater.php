@@ -151,13 +151,23 @@ class Updater {
 
 		$new_version = ltrim( $release->tag_name, 'v' );
 
-		// Determine zip download package
+		// Determine zip download package (strictly wc-smart-checkout-builder.zip)
 		$download_package = ! empty( $release->zipball_url ) ? $release->zipball_url : '';
 		if ( ! empty( $release->assets ) && is_array( $release->assets ) ) {
 			foreach ( $release->assets as $asset ) {
-				if ( ! empty( $asset->browser_download_url ) && substr( $asset->browser_download_url, -4 ) === '.zip' ) {
+				$asset_name = isset( $asset->name ) ? strtolower( $asset->name ) : '';
+				if ( 'wc-smart-checkout-builder.zip' === $asset_name && ! empty( $asset->browser_download_url ) ) {
 					$download_package = $asset->browser_download_url;
 					break;
+				}
+			}
+			if ( ( empty( $download_package ) || $download_package === $release->zipball_url ) ) {
+				foreach ( $release->assets as $asset ) {
+					$asset_name = isset( $asset->name ) ? strtolower( $asset->name ) : '';
+					if ( false !== strpos( $asset_name, 'wc-smart-checkout-builder' ) && substr( $asset_name, -4 ) === '.zip' && ! empty( $asset->browser_download_url ) ) {
+						$download_package = $asset->browser_download_url;
+						break;
+					}
 				}
 			}
 		}
@@ -219,9 +229,19 @@ class Updater {
 		$download_package = $release->zipball_url;
 		if ( ! empty( $release->assets ) && is_array( $release->assets ) ) {
 			foreach ( $release->assets as $asset ) {
-				if ( ! empty( $asset->browser_download_url ) && substr( $asset->browser_download_url, -4 ) === '.zip' ) {
+				$asset_name = isset( $asset->name ) ? strtolower( $asset->name ) : '';
+				if ( 'wc-smart-checkout-builder.zip' === $asset_name && ! empty( $asset->browser_download_url ) ) {
 					$download_package = $asset->browser_download_url;
 					break;
+				}
+			}
+			if ( ( empty( $download_package ) || $download_package === $release->zipball_url ) ) {
+				foreach ( $release->assets as $asset ) {
+					$asset_name = isset( $asset->name ) ? strtolower( $asset->name ) : '';
+					if ( false !== strpos( $asset_name, 'wc-smart-checkout-builder' ) && substr( $asset_name, -4 ) === '.zip' && ! empty( $asset->browser_download_url ) ) {
+						$download_package = $asset->browser_download_url;
+						break;
+					}
 				}
 			}
 		}
