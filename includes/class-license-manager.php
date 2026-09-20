@@ -14,9 +14,9 @@ if ( ! defined( 'ABSPATH' ) ) {
 class License_Manager {
 
 	/**
-	 * Remote license server API endpoint.
+	 * Remote license server API endpoint (Custom API without wp-json).
 	 */
-	const SERVER_URL = 'https://app.developerzahir.com/wp-json/tp-server/v1/check';
+	const SERVER_URL = 'https://app.developerzahir.com/tp-server/v1/check';
 
 	/**
 	 * Product identifier sent to the licensing server.
@@ -45,8 +45,8 @@ class License_Manager {
 		// Routine license status check on init.
 		add_action( 'init', array( __CLASS__, 'check_license_status' ) );
 
-		// REST API Webhook receiver for instant revocation from server.
-		add_action( 'rest_api_init', array( __CLASS__, 'register_webhook_route' ) );
+		// Custom Webhook receiver for instant revocation from server (no wp-json required).
+		add_action( 'init', array( __CLASS__, 'handle_custom_webhook' ) );
 
 		// AJAX endpoints for dashboard license activation / deactivation.
 		add_action( 'wp_ajax_wcsc_activate_license', array( __CLASS__, 'ajax_activate_license' ) );
@@ -271,25 +271,31 @@ class License_Manager {
 	}
 
 	/**
-	 * Register REST API Webhook endpoint: /wp-json/tp-client/v1/update-license
+	 * Custom Webhook endpoint receiver without wp-json.
+	 * Listens to: /tp-client/v1/update-license or ?tp_action=update_license
 	 * Allows the licensing server to instantly signal this client site to purge cache and block access.
 	 */
-	public static function register_webhook_route() {
-		register_rest_route( 'tp-client/v1', '/update-license', array(
-			'methods'             => 'POST',
-			'callback'            => array( __CLASS__, 'webhook_receiver' ),
-			'permission_callback' => '__return_true',
-		) );
-	}
+	public static function handle_custom_webhook() {
+		$request_uri = isset( $_SERVER['REQUEST_URI'] ) ? esc_url_raw( wp_unslash( $_SERVER['REQUEST_URI'] ) ) : '';
+		$is_path_match  = false !== strpos( $request_uri, '/tp-client/v1/update-license' );
+		$is_query_match = ( isset( $_GET['tp_action'] ) && 'update_license' === $_GET['tp_action'] );
 
-	/**
-	 * Handle server webhook request.
-	 *
-	 * @param \WP_REST_Request $request
-	 * @return \WP_REST_Response
-	 */
-	public static function webhook_receiver( $request ) {
-		$received_key = sanitize_text_field( (string) $request->get_param( 'key' ) );
+		if ( ! $is_path_match && ! $is_query_match ) {
+			return;
+		}
+
+		if ( 'POST' !== ( isset( $_SERVER['REQUEST_METHOD'] ) ? $_SERVER['REQUEST_METHOD'] : '' ) ) {
+			return;
+		}
+
+		// Read payload (supports JSON or standard POST form data)
+		$raw_input = file_get_contents( 'php://input' );
+		$data      = json_decode( $raw_input, true );
+		if ( ! is_array( $data ) ) {
+			$data = $_POST;
+		}
+
+		$received_key = isset( $data['key'] ) ? sanitize_text_field( $data['key'] ) : '';
 		$local_key    = self::get_license_key();
 
 		if ( ! empty( $received_key ) && $received_key === $local_key ) {
@@ -297,13 +303,13 @@ class License_Manager {
 			update_option( self::OPTION_STATUS, 'inactive' );
 			self::clear_caches();
 
-			return new \WP_REST_Response( array(
+			wp_send_json( array(
 				'status'  => 'success',
 				'message' => 'Cache Cleared and License Inactivated',
 			), 200 );
 		}
 
-		return new \WP_REST_Response( array(
+		wp_send_json( array(
 			'status'  => 'ignored',
 			'message' => 'Key mismatch or empty',
 		), 200 );
