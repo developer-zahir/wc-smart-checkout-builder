@@ -3383,11 +3383,11 @@ class Elementor_Widget extends Widget_Base {
 			array(
 				'label'      => esc_html__( 'Image Width', 'wc-smart-checkout-builder' ),
 				'type'       => Controls_Manager::SLIDER,
-				'size_units' => array( 'px', '%' ),
+				'size_units' => array( 'px', '%', 'vw' ),
 				'range'      => array(
 					'px' => array(
 						'min' => 20,
-						'max' => 500,
+						'max' => 800,
 					),
 					'%'  => array(
 						'min' => 10,
@@ -3395,8 +3395,29 @@ class Elementor_Widget extends Widget_Base {
 					),
 				),
 				'selectors'  => array(
-					'{{WRAPPER}} .wcsc-order-bump-thumb-wrap' => 'width: {{SIZE}}{{UNIT}} !important; min-width: 0 !important; max-width: none !important;',
-					'{{WRAPPER}} .wcsc-order-bump-thumb'      => 'width: 100% !important;',
+					'{{WRAPPER}} .wcsc-order-bump-thumb-wrap' => 'width: {{SIZE}}{{UNIT}};',
+				),
+			)
+		);
+
+		$this->add_responsive_control(
+			'order_bump_image_max_width',
+			array(
+				'label'      => esc_html__( 'Image Max Width', 'wc-smart-checkout-builder' ),
+				'type'       => Controls_Manager::SLIDER,
+				'size_units' => array( 'px', '%' ),
+				'range'      => array(
+					'px' => array(
+						'min' => 20,
+						'max' => 1200,
+					),
+					'%'  => array(
+						'min' => 10,
+						'max' => 100,
+					),
+				),
+				'selectors'  => array(
+					'{{WRAPPER}} .wcsc-order-bump-thumb-wrap' => 'max-width: {{SIZE}}{{UNIT}};',
 				),
 			)
 		);
@@ -3406,33 +3427,38 @@ class Elementor_Widget extends Widget_Base {
 			array(
 				'label'      => esc_html__( 'Image Height', 'wc-smart-checkout-builder' ),
 				'type'       => Controls_Manager::SLIDER,
-				'size_units' => array( 'px', 'vh' ),
+				'size_units' => array( 'px', 'vh', '%' ),
 				'range'      => array(
 					'px' => array(
 						'min' => 20,
-						'max' => 500,
+						'max' => 800,
+					),
+					'%'  => array(
+						'min' => 10,
+						'max' => 100,
 					),
 				),
 				'selectors'  => array(
-					'{{WRAPPER}} .wcsc-order-bump-thumb-wrap' => 'height: {{SIZE}}{{UNIT}} !important; min-height: 0 !important; max-height: none !important;',
-					'{{WRAPPER}} .wcsc-order-bump-thumb'      => 'height: 100% !important;',
+					'{{WRAPPER}} .wcsc-order-bump-thumb-wrap' => 'height: {{SIZE}}{{UNIT}};',
 				),
 			)
 		);
 
-		$this->add_control(
+		$this->add_responsive_control(
 			'order_bump_image_object_fit',
 			array(
 				'label'     => esc_html__( 'Object Fit', 'wc-smart-checkout-builder' ),
 				'type'      => Controls_Manager::SELECT,
 				'default'   => 'cover',
 				'options'   => array(
-					'cover'   => esc_html__( 'Cover', 'wc-smart-checkout-builder' ),
-					'contain' => esc_html__( 'Contain', 'wc-smart-checkout-builder' ),
-					'fill'    => esc_html__( 'Fill', 'wc-smart-checkout-builder' ),
+					'cover'      => esc_html__( 'Cover', 'wc-smart-checkout-builder' ),
+					'contain'    => esc_html__( 'Contain', 'wc-smart-checkout-builder' ),
+					'fill'       => esc_html__( 'Fill', 'wc-smart-checkout-builder' ),
+					'scale-down' => esc_html__( 'Scale Down', 'wc-smart-checkout-builder' ),
+					'none'       => esc_html__( 'None', 'wc-smart-checkout-builder' ),
 				),
 				'selectors' => array(
-					'{{WRAPPER}} .wcsc-order-bump-thumb' => 'object-fit: {{VALUE}};',
+					'{{WRAPPER}} .wcsc-order-bump-thumb-wrap img, {{WRAPPER}} .wcsc-order-bump-thumb' => 'object-fit: {{VALUE}};',
 				),
 			)
 		);
@@ -3444,8 +3470,8 @@ class Elementor_Widget extends Widget_Base {
 				'type'       => Controls_Manager::DIMENSIONS,
 				'size_units' => array( 'px', '%' ),
 				'selectors'  => array(
-					'{{WRAPPER}} .wcsc-order-bump-thumb-wrap' => 'border-radius: {{TOP}}{{UNIT}} {{RIGHT}}{{UNIT}} {{BOTTOM}}{{UNIT}} {{LEFT}}{{UNIT}} !important;',
-					'{{WRAPPER}} .wcsc-order-bump-thumb'      => 'border-radius: {{TOP}}{{UNIT}} {{RIGHT}}{{UNIT}} {{BOTTOM}}{{UNIT}} {{LEFT}}{{UNIT}} !important;',
+					'{{WRAPPER}} .wcsc-order-bump-thumb-wrap' => 'border-radius: {{TOP}}{{UNIT}} {{RIGHT}}{{UNIT}} {{BOTTOM}}{{UNIT}} {{LEFT}}{{UNIT}};',
+					'{{WRAPPER}} .wcsc-order-bump-thumb-wrap img, {{WRAPPER}} .wcsc-order-bump-thumb' => 'border-radius: {{TOP}}{{UNIT}} {{RIGHT}}{{UNIT}} {{BOTTOM}}{{UNIT}} {{LEFT}}{{UNIT}};',
 				),
 			)
 		);
