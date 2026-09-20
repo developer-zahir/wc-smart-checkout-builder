@@ -96,6 +96,10 @@ class Checkout_Handler {
 		add_action( 'wp_ajax_nopriv_wcsc_toggle_order_bump', array( __CLASS__, 'ajax_toggle_order_bump' ) );
 
 		add_action( 'woocommerce_after_checkout_validation', array( __CLASS__, 'validate_bd_phone_number' ), 10, 2 );
+
+		// License verification on order placement.
+		add_action( 'woocommerce_checkout_process', array( __CLASS__, 'validate_license_checkout_submission' ) );
+		add_action( 'woocommerce_after_checkout_validation', array( __CLASS__, 'validate_license_after_checkout_validation' ), 5, 2 );
 	}
 
 	/**
@@ -200,10 +204,18 @@ class Checkout_Handler {
 			$content_inner .= ' ' . $icon_html;
 		}
 
+		// Check license status.
+		$is_licensed = ! class_exists( '\WCSC\License_Manager' ) || \WCSC\License_Manager::is_active();
+		$extra_attr  = '';
+		if ( ! $is_licensed ) {
+			$anim_class .= ' wcsc-license-unauthorized';
+			$extra_attr  = ' disabled="disabled" style="opacity: 0.65; cursor: not-allowed; pointer-events: none;"';
+		}
+
 		// Build button. Kept inside our plugin-owned Order Button block (not in #payment).
 		$raw_btn_template = ! empty( $settings['order_button_text'] ) ? $settings['order_button_text'] : __( 'Order Now', 'wc-smart-checkout-builder' );
 		$custom_button = sprintf(
-			'<button type="submit" class="button alt wp-element-button wcsc-order-now-btn %1$s" name="woocommerce_checkout_place_order" id="place_order" value="%2$s" data-value="%2$s" data-template-text="%4$s">' .
+			'<button type="submit" class="button alt wp-element-button wcsc-order-now-btn %1$s" name="woocommerce_checkout_place_order" id="place_order" value="%2$s" data-value="%2$s" data-template-text="%4$s"%5$s>' .
 			'<span class="wcsc-btn-beam wcsc-beam-top"></span>' .
 			'<span class="wcsc-btn-beam wcsc-beam-bottom"></span>' .
 			'<span class="wcsc-btn-content">%3$s</span>' .
@@ -211,8 +223,21 @@ class Checkout_Handler {
 			esc_attr( $anim_class ),
 			esc_attr( wp_strip_all_tags( $btn_text ) ), // keep value clean
 			$content_inner,
-			esc_attr( $raw_btn_template )
+			esc_attr( $raw_btn_template ),
+			$extra_attr
 		);
+
+		if ( ! $is_licensed ) {
+			$unauthorized_notice = '<div class="wcsc-license-unauthorized-notice" style="margin-top: 12px; padding: 12px 16px; background: #fef2f2; border: 1px solid #fecaca; border-radius: 4px; color: #991b1b; font-size: 13px; line-height: 1.5; text-align: center; font-weight: 500;">' .
+				'<strong>' . esc_html__( 'Unauthorized License Key!', 'wc-smart-checkout-builder' ) . '</strong> ' .
+				sprintf(
+					/* translators: %s: website domain link */
+					esc_html__( 'Please purchase a valid license key from %s', 'wc-smart-checkout-builder' ),
+					'<a href="https://developerzahir.com" target="_blank" rel="noopener noreferrer" style="color: #b91c1c; font-weight: 700; text-decoration: underline;">developerzahir.com</a>'
+				) .
+			'</div>';
+			$custom_button .= $unauthorized_notice;
+		}
 
 		return $custom_button;
 	}
@@ -1472,6 +1497,37 @@ class Checkout_Handler {
 			} else {
 				$errors->add( 'billing_phone', __( 'ফোন নম্বর দিন।', 'wc-smart-checkout-builder' ) );
 			}
+		}
+	}
+
+	/**
+	 * Prevent checkout processing if license is inactive or unauthorized.
+	 */
+	public static function validate_license_checkout_submission() {
+		if ( class_exists( '\WCSC\License_Manager' ) && ! \WCSC\License_Manager::is_active() ) {
+			$msg = sprintf(
+				/* translators: %s: website link */
+				__( 'Unauthorized License Key! Orders cannot be submitted. Please purchase a valid license key from %s', 'wc-smart-checkout-builder' ),
+				'developerzahir.com'
+			);
+			wc_add_notice( $msg, 'error' );
+		}
+	}
+
+	/**
+	 * Prevent checkout validation if license is inactive or unauthorized.
+	 *
+	 * @param array     $data
+	 * @param \WP_Error $errors
+	 */
+	public static function validate_license_after_checkout_validation( $data, $errors ) {
+		if ( class_exists( '\WCSC\License_Manager' ) && ! \WCSC\License_Manager::is_active() ) {
+			$msg = sprintf(
+				/* translators: %s: website link */
+				__( 'Unauthorized License Key! Orders cannot be submitted. Please purchase a valid license key from %s', 'wc-smart-checkout-builder' ),
+				'developerzahir.com'
+			);
+			$errors->add( 'unauthorized_license', $msg );
 		}
 	}
 

@@ -26,8 +26,11 @@ if ( ! defined( 'ABSPATH' ) ) {
 $order_button_text = ! empty( $settings['order_button_text'] ) ? esc_html( $settings['order_button_text'] ) : esc_html__( 'Order Now', 'wc-smart-checkout-builder' );
 $product_name      = $product ? $product->get_name() : esc_html__( 'Sample Product', 'wc-smart-checkout-builder' );
 $price_html        = $product ? $product->get_price_html() : wc_price( 50 );
-$raw_price_text    = $product ? html_entity_decode( wp_strip_all_tags( wc_price( $product->get_price() ) ), ENT_QUOTES, 'UTF-8' ) : '$50.00';
+$raw_price_text    = html_entity_decode( wp_strip_all_tags( wc_price( $product ? $product->get_price() : 50 ) ), ENT_QUOTES, 'UTF-8' );
 $raw_price_text    = str_replace( "\xc2\xa0", ' ', $raw_price_text );
+
+// Check license status
+$is_license_active = ! class_exists( '\WCSC\License_Manager' ) || \WCSC\License_Manager::is_active();
 
 // Custom Text Labels (trimmed to 7 keys)
 $billing_heading_text      = ! empty( $settings['billing_heading_text'] ) ? esc_html( $settings['billing_heading_text'] ) : esc_html__( 'Customer information', 'wc-smart-checkout-builder' );
@@ -154,11 +157,13 @@ if ( '1_column' === $checkout_layout ) {
 
 			<?php
 			// Render Order Button markup helper
-			$render_order_button_html = function () use ( $anim_class, $order_button_text, $icon_align, $icon_html ) {
+			$render_order_button_html = function () use ( $anim_class, $order_button_text, $icon_align, $icon_html, $is_license_active ) {
+				$btn_cls   = $anim_class . ( ! $is_license_active ? ' wcsc-license-unauthorized' : '' );
+				$extra_css = ! $is_license_active ? ' style="opacity: 0.65; cursor: not-allowed; pointer-events: none;"' : '';
 				?>
 				<div class="wcas-block wcas-block-order-button">
 					<div class="form-row place-order">
-						<button type="button" class="button alt wp-element-button wcsc-order-now-btn <?php echo esc_attr( $anim_class ); ?>" id="place_order" value="<?php echo esc_attr( wp_strip_all_tags( $order_button_text ) ); ?>" data-value="<?php echo esc_attr( wp_strip_all_tags( $order_button_text ) ); ?>">
+						<button type="button" class="button alt wp-element-button wcsc-order-now-btn <?php echo esc_attr( $btn_cls ); ?>" id="place_order" value="<?php echo esc_attr( wp_strip_all_tags( $order_button_text ) ); ?>" data-value="<?php echo esc_attr( wp_strip_all_tags( $order_button_text ) ); ?>"<?php echo ! $is_license_active ? ' disabled="disabled"' : ''; ?><?php echo $extra_css; // phpcs:ignore WordPress.Security.EscapeOutput.OutputNotEscaped ?>>
 							<span class="wcsc-btn-beam wcsc-beam-top"></span>
 							<span class="wcsc-btn-beam wcsc-beam-bottom"></span>
 							<span class="wcsc-btn-content">
@@ -171,6 +176,18 @@ if ( '1_column' === $checkout_layout ) {
 								<?php endif; ?>
 							</span>
 						</button>
+						<?php if ( ! $is_license_active ) : ?>
+							<div class="wcsc-license-unauthorized-notice" style="margin-top: 12px; padding: 12px 16px; background: #fef2f2; border: 1px solid #fecaca; border-radius: 4px; color: #991b1b; font-size: 13px; line-height: 1.5; text-align: center; font-weight: 500;">
+								<strong><?php esc_html_e( 'Unauthorized License Key!', 'wc-smart-checkout-builder' ); ?></strong>
+								<?php
+								printf(
+									/* translators: %s: website domain link */
+									esc_html__( 'Please purchase a valid license key from %s', 'wc-smart-checkout-builder' ),
+									'<a href="https://developerzahir.com" target="_blank" rel="noopener noreferrer" style="color: #b91c1c; font-weight: 700; text-decoration: underline;">developerzahir.com</a>'
+								);
+								?>
+							</div>
+						<?php endif; ?>
 					</div>
 				</div>
 				<?php
@@ -307,11 +324,13 @@ if ( '1_column' === $checkout_layout ) {
 			};
 
 			// Render Order Button markup helper
-			$render_order_button_html = function () use ( $anim_class, $order_button_text, $icon_align, $icon_html ) {
+			$render_order_button_html = function () use ( $anim_class, $order_button_text, $icon_align, $icon_html, $is_license_active ) {
+				$btn_cls   = $anim_class . ( ! $is_license_active ? ' wcsc-license-unauthorized' : '' );
+				$extra_css = ! $is_license_active ? ' style="opacity: 0.65; cursor: not-allowed; pointer-events: none;"' : '';
 				?>
 				<div class="wcas-block wcas-block-order-button">
 					<div class="form-row place-order">
-						<button type="button" class="button alt wp-element-button wcsc-order-now-btn <?php echo esc_attr( $anim_class ); ?>" id="place_order" value="<?php echo esc_attr( wp_strip_all_tags( $order_button_text ) ); ?>" data-value="<?php echo esc_attr( wp_strip_all_tags( $order_button_text ) ); ?>" data-template-text="<?php echo esc_attr( $order_button_text ); ?>">
+						<button type="button" class="button alt wp-element-button wcsc-order-now-btn <?php echo esc_attr( $btn_cls ); ?>" id="place_order" value="<?php echo esc_attr( wp_strip_all_tags( $order_button_text ) ); ?>" data-value="<?php echo esc_attr( wp_strip_all_tags( $order_button_text ) ); ?>" data-template-text="<?php echo esc_attr( $order_button_text ); ?>"<?php echo ! $is_license_active ? ' disabled="disabled"' : ''; ?><?php echo $extra_css; // phpcs:ignore WordPress.Security.EscapeOutput.OutputNotEscaped ?>>
 							<span class="wcsc-btn-beam wcsc-beam-top"></span>
 							<span class="wcsc-btn-beam wcsc-beam-bottom"></span>
 							<span class="wcsc-btn-content">
@@ -324,6 +343,18 @@ if ( '1_column' === $checkout_layout ) {
 								<?php endif; ?>
 							</span>
 						</button>
+						<?php if ( ! $is_license_active ) : ?>
+							<div class="wcsc-license-unauthorized-notice" style="margin-top: 12px; padding: 12px 16px; background: #fef2f2; border: 1px solid #fecaca; border-radius: 4px; color: #991b1b; font-size: 13px; line-height: 1.5; text-align: center; font-weight: 500;">
+								<strong><?php esc_html_e( 'Unauthorized License Key!', 'wc-smart-checkout-builder' ); ?></strong>
+								<?php
+								printf(
+									/* translators: %s: website domain link */
+									esc_html__( 'Please purchase a valid license key from %s', 'wc-smart-checkout-builder' ),
+									'<a href="https://developerzahir.com" target="_blank" rel="noopener noreferrer" style="color: #b91c1c; font-weight: 700; text-decoration: underline;">developerzahir.com</a>'
+								);
+								?>
+							</div>
+						<?php endif; ?>
 					</div>
 				</div>
 				<?php

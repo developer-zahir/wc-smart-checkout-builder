@@ -303,6 +303,21 @@
 			var validateCheckoutForm = function (e) {
 				var $form = self.$container.find('form.checkout');
 				if ($form.length) {
+					// Block submission completely if plugin license is unauthorized
+					if (self.$container.find('.wcsc-license-unauthorized-notice').length || self.$container.find('#place_order.wcsc-license-unauthorized').length) {
+						if (e) {
+							e.preventDefault();
+							e.stopImmediatePropagation();
+						}
+						var $notice = self.$container.find('.wcsc-license-unauthorized-notice');
+						if ($notice.length) {
+							$('html, body').animate({
+								scrollTop: $notice.offset().top - 150
+							}, 300);
+						}
+						return false;
+					}
+
 					var hasInvalid = false;
 					var $firstInvalid = null;
 					var missingFields = [];
@@ -398,6 +413,17 @@
 			};
 
 			this.$container.on('click', '#place_order, .wcsc-order-now-btn', function (e) {
+				if ($(this).hasClass('wcsc-license-unauthorized') || self.$container.find('.wcsc-license-unauthorized-notice').length) {
+					e.preventDefault();
+					e.stopImmediatePropagation();
+					var $notice = self.$container.find('.wcsc-license-unauthorized-notice');
+					if ($notice.length) {
+						$('html, body').animate({
+							scrollTop: $notice.offset().top - 150
+						}, 300);
+					}
+					return false;
+				}
 				if (!validateCheckoutForm(e)) {
 					return false;
 				}

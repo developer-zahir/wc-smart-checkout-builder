@@ -549,7 +549,7 @@ class Plugin {
 					font-size: 14px;
 					flex-wrap: wrap;
 					gap: 4px;
-					max-width: 600px;
+					max-width:fit-content;
 				}
 				.wcsc-url-preview-box input[type="text"] {
 					border: 1px solid #3b82f6;
@@ -764,7 +764,7 @@ class Plugin {
 					<div class="wcsc-tab-pane" id="tab-license">
 						<div class="wcsc-section-card">
 							<h2 class="wcsc-card-heading"><?php esc_html_e( 'License Management & Server Sync', 'wc-smart-checkout-builder' ); ?></h2>
-							<p class="wcsc-card-desc"><?php esc_html_e( 'Enter your license key to activate full access and automatic updates. Connected to app.developerzahir.com licensing server.', 'wc-smart-checkout-builder' ); ?></p>
+							<p class="wcsc-card-desc"><?php esc_html_e( 'Enter your license key to activate full access and automatic updates.', 'wc-smart-checkout-builder' ); ?></p>
 
 							<?php
 							$license_key    = License_Manager::get_license_key();
@@ -775,12 +775,12 @@ class Plugin {
 							<div class="wcsc-form-group" style="max-width: 650px;">
 								<label for="wcsc_license_key" class="wcsc-form-label"><?php esc_html_e( 'License Key', 'wc-smart-checkout-builder' ); ?></label>
 								<div style="display: flex; gap: 10px; align-items: center; flex-wrap: wrap;">
-									<input type="text" name="wcsc_license_key" id="wcsc_license_key" value="<?php echo esc_attr( $license_key ); ?>" class="regular-text" style="flex: 1; min-width: 250px; padding: 10px 14px; border: 1px solid #cbd5e1; border-radius: 0; font-family: monospace; font-size: 15px;" placeholder="TP-XXXX-XXXX-XXXX-XXXX" />
-									<button type="button" id="wcsc-activate-license-btn" class="button button-primary wcsc-save-btn" style="padding: 10px 20px !important; height: auto;">
+									<input type="text" name="wcsc_license_key" id="wcsc_license_key" value="<?php echo esc_attr( $license_key ); ?>" class="regular-text" style="flex: 1; min-width: 250px; height: 38px; line-height: 36px; padding: 0 12px; border: 1px solid #cbd5e1; border-radius: 4px; font-family: monospace; font-size: 14px; box-sizing: border-box;" placeholder="TP-XXXX-XXXX-XXXX-XXXX" />
+									<button type="button" id="wcsc-activate-license-btn" class="button button-primary" style="height: 38px; line-height: 36px; padding: 0 16px; border-radius: 4px; font-size: 13px; font-weight: 600; cursor: pointer; display: inline-flex; align-items: center; justify-content: center; box-sizing: border-box;">
 										<?php echo $is_active ? esc_html__( 'Re-verify License', 'wc-smart-checkout-builder' ) : esc_html__( 'Activate License', 'wc-smart-checkout-builder' ); ?>
 									</button>
 									<?php if ( ! empty( $license_key ) ) : ?>
-										<button type="button" id="wcsc-deactivate-license-btn" class="button wcsc-button-secondary" style="padding: 10px 16px; height: auto;">
+										<button type="button" id="wcsc-deactivate-license-btn" class="button" style="height: 38px; line-height: 36px; padding: 0 14px; border: 1px solid #cbd5e1; border-radius: 4px; font-size: 13px; font-weight: 500; color: #475569; background: #f8fafc; cursor: pointer; display: inline-flex; align-items: center; justify-content: center; box-sizing: border-box;">
 											<?php esc_html_e( 'Deactivate', 'wc-smart-checkout-builder' ); ?>
 										</button>
 									<?php endif; ?>
@@ -788,36 +788,21 @@ class Plugin {
 								<div id="wcsc-license-ajax-msg" style="margin-top: 14px; display: none;"></div>
 							</div>
 
-							<div style="margin-top: 25px; padding: 22px; background: #f8fafc; border: 1px solid #e2e8f0; border-radius: 0; max-width: 650px;">
-								<div style="display: flex; justify-content: space-between; align-items: center; margin-bottom: 14px;">
+							<div style="margin-top: 25px; padding: 18px 22px; background: #f8fafc; border: 1px solid #e2e8f0; border-radius: 6px; max-width: 650px;">
+								<div style="display: flex; justify-content: space-between; align-items: center; margin-bottom: 12px;">
 									<span style="font-weight: 600; font-size: 14px; color: #475569;"><?php esc_html_e( 'License Status:', 'wc-smart-checkout-builder' ); ?></span>
 									<?php if ( $is_active ) : ?>
-										<span id="wcsc-status-pill" style="background: #10b981; color: #ffffff; padding: 5px 14px; font-size: 12px; font-weight: 700; border-radius: 20px; letter-spacing: 0.5px;">✓ <?php esc_html_e( 'ACTIVE & VERIFIED', 'wc-smart-checkout-builder' ); ?></span>
+										<span id="wcsc-status-pill" style="background: #10b981; color: #ffffff; padding: 4px 12px; font-size: 12px; font-weight: 700; border-radius: 20px; letter-spacing: 0.5px;">✓ <?php esc_html_e( 'ACTIVE & VERIFIED', 'wc-smart-checkout-builder' ); ?></span>
 									<?php elseif ( 'unregistered' === $license_status ) : ?>
-										<span id="wcsc-status-pill" style="background: #f59e0b; color: #ffffff; padding: 5px 14px; font-size: 12px; font-weight: 700; border-radius: 20px; letter-spacing: 0.5px;">⚠ <?php esc_html_e( 'UNREGISTERED', 'wc-smart-checkout-builder' ); ?></span>
+										<span id="wcsc-status-pill" style="background: #f59e0b; color: #ffffff; padding: 4px 12px; font-size: 12px; font-weight: 700; border-radius: 20px; letter-spacing: 0.5px;">⚠ <?php esc_html_e( 'UNREGISTERED', 'wc-smart-checkout-builder' ); ?></span>
 									<?php else : ?>
-										<span id="wcsc-status-pill" style="background: #ef4444; color: #ffffff; padding: 5px 14px; font-size: 12px; font-weight: 700; border-radius: 20px; letter-spacing: 0.5px;">✕ <?php esc_html_e( 'INACTIVE / BLOCKED', 'wc-smart-checkout-builder' ); ?></span>
+										<span id="wcsc-status-pill" style="background: #ef4444; color: #ffffff; padding: 4px 12px; font-size: 12px; font-weight: 700; border-radius: 20px; letter-spacing: 0.5px;">✕ <?php esc_html_e( 'INACTIVE / BLOCKED', 'wc-smart-checkout-builder' ); ?></span>
 									<?php endif; ?>
 								</div>
 
-								<div style="display: flex; justify-content: space-between; align-items: center; font-size: 13px; color: #64748b; padding: 8px 0; border-top: 1px solid #e2e8f0;">
+								<div style="display: flex; justify-content: space-between; align-items: center; font-size: 13px; color: #64748b; padding-top: 12px; border-top: 1px solid #e2e8f0;">
 									<span><?php esc_html_e( 'Product:', 'wc-smart-checkout-builder' ); ?></span>
 									<span style="font-weight: 600; color: #1e293b;">WC Smart Checkout Builder</span>
-								</div>
-
-								<div style="display: flex; justify-content: space-between; align-items: center; font-size: 13px; color: #64748b; padding: 8px 0; border-top: 1px solid #e2e8f0;">
-									<span><?php esc_html_e( 'Licensing Server:', 'wc-smart-checkout-builder' ); ?></span>
-									<span style="font-family: monospace; color: #2563eb;">app.developerzahir.com</span>
-								</div>
-
-								<div style="display: flex; justify-content: space-between; align-items: center; font-size: 13px; color: #64748b; padding: 8px 0; border-top: 1px solid #e2e8f0;">
-									<span><?php esc_html_e( 'Cache & Fallback Protection:', 'wc-smart-checkout-builder' ); ?></span>
-									<span><?php esc_html_e( '6 Hours (Graceful Fallback)', 'wc-smart-checkout-builder' ); ?></span>
-								</div>
-
-								<div style="display: flex; justify-content: space-between; align-items: center; font-size: 13px; color: #64748b; padding: 8px 0; border-top: 1px solid #e2e8f0;">
-									<span><?php esc_html_e( 'Webhook Instant Revocation:', 'wc-smart-checkout-builder' ); ?></span>
-									<span style="color: #10b981; font-weight: 600;">✓ <?php esc_html_e( 'Listening (Auto Purge Caches)', 'wc-smart-checkout-builder' ); ?></span>
 								</div>
 							</div>
 						</div>
