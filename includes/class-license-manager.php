@@ -48,12 +48,30 @@ class License_Manager {
 		// Custom Webhook receiver for instant revocation from server (no wp-json required).
 		add_action( 'init', array( __CLASS__, 'handle_custom_webhook' ) );
 
-		// AJAX endpoints for dashboard license activation / deactivation.
+		// AJAX endpoints for dashboard license activation / deactivation / connection test.
 		add_action( 'wp_ajax_wcsc_activate_license', array( __CLASS__, 'ajax_activate_license' ) );
 		add_action( 'wp_ajax_wcsc_deactivate_license', array( __CLASS__, 'ajax_deactivate_license' ) );
+		add_action( 'wp_ajax_wcsc_test_license_connection', array( __CLASS__, 'ajax_test_license_connection' ) );
 
 		// Admin notice if license is inactive or blocked.
 		add_action( 'admin_notices', array( __CLASS__, 'render_admin_notice' ) );
+	}
+
+	/**
+	 * Get normalized site domain for licensing.
+	 *
+	 * @return string
+	 */
+	public static function get_site_domain() {
+		$host = wp_parse_url( home_url(), PHP_URL_HOST );
+		if ( empty( $host ) && isset( $_SERVER['HTTP_HOST'] ) ) {
+			$host = sanitize_text_field( wp_unslash( $_SERVER['HTTP_HOST'] ) );
+		}
+		$host = strtolower( trim( (string) $host ) );
+		$host = preg_replace( '#^https?://#i', '', $host );
+		$host = preg_replace( '#/.*$#', '', $host );
+		$host = preg_replace( '#:\d+$#', '', $host );
+		return trim( $host );
 	}
 
 	/**
@@ -109,12 +127,16 @@ class License_Manager {
 		$status     = get_transient( $trans_name );
 
 		if ( false === $status ) {
-			$domain = isset( $_SERVER['HTTP_HOST'] ) ? sanitize_text_field( wp_unslash( $_SERVER['HTTP_HOST'] ) ) : home_url();
+			$domain = self::get_site_domain();
 
 			$response = wp_remote_post( self::SERVER_URL, array(
-				'timeout'   => 10,
-				'sslverify' => false,
-				'body'      => array(
+				'timeout'    => 8,
+				'sslverify'  => false,
+				'user-agent' => 'Mozilla/5.0 (Windows NT 10.0; Win64; x64) AppleWebKit/537.36 (KHTML, like Gecko) Chrome/120.0.0.0 Safari/537.36',
+				'headers'    => array(
+					'Accept' => 'application/json',
+				),
+				'body'       => array(
 					'key'    => $license_key,
 					'url'    => $domain,
 					'plugin' => self::PLUGIN_NAME,
@@ -127,7 +149,7 @@ class License_Manager {
 				$status = get_option( self::OPTION_STATUS, 'active' );
 			} else {
 				$body   = json_decode( wp_remote_retrieve_body( $response ) );
-				$status = isset( $body->status ) ? sanitize_text_field( $body->status ) : 'inactive';
+				$status = ( isset( $body->status ) && is_string( $body->status ) ) ? sanitize_text_field( $body->status ) : 'inactive';
 				update_option( self::OPTION_STATUS, $status );
 			}
 
@@ -158,7 +180,7 @@ class License_Manager {
 			);
 		}
 
-		$domain = isset( $_SERVER['HTTP_HOST'] ) ? sanitize_text_field( wp_unslash( $_SERVER['HTTP_HOST'] ) ) : home_url();
+		$domain = self::get_site_domain();
 
 		$response = wp_remote_post( self::SERVER_URL, array(
 			'timeout'    => 8,
@@ -176,10 +198,22 @@ class License_Manager {
 		) );
 
 		if ( is_wp_error( $response ) ) {
+			$err_msg = sprintf(
+				__( 'লাইসেন্স সার্ভারে সংযোগ ব্যর্থ: %s। (হোস্টিং cURL বা আউটবাউন্ড কানেকশন ব্লক থাকতে পারে)', 'wc-smart-checkout-builder' ),
+				$response->get_error_message()
+			);
+			update_option( 'wcsc_last_license_error', $err_msg );
+			update_option( 'wcsc_last_license_error_time', current_time( 'mysql' ) );
+
 			return array(
 				'success' => false,
-				'message' => sprintf( __( 'লাইসেন্স সার্ভারে সংযোগ ব্যর্থ: %s', 'wc-smart-checkout-builder' ), $response->get_error_message() ),
+				'message' => $err_msg,
 				'status'  => 'inactive',
+				'debug'   => array(
+					'error_code' => $response->get_error_code(),
+					'endpoint'   => self::SERVER_URL,
+					'domain'     => $domain,
+				),
 			);
 		}
 
@@ -187,12 +221,24 @@ class License_Manager {
 		$body     = json_decode( $raw_body );
 		$code     = wp_remote_retrieve_response_code( $response );
 
-		if ( 200 !== (int) $code && ( empty( $body ) || ! isset( $body->message ) ) ) {
-			$preview = ! empty( $raw_body ) ? ' (' . wp_strip_all_tags( substr( $raw_body, 0, 100 ) ) . ')' : '';
+		if ( empty( $body ) || ! is_object( $body ) ) {
+			$preview = ! empty( $raw_body ) ? ' (' . wp_strip_all_tags( substr( $raw_body, 0, 160 ) ) . ')' : '';
+			$err_msg = sprintf(
+				__( 'সার্ভার থেকে সঠিক JSON রেসপন্স পাওয়া যায়নি (HTTP %d)%s। ক্লাউডফ্লেয়ার বা ডব্লিউএএফ ফায়ারওয়াল রিকোয়েস্ট আটকে থাকতে পারে।', 'wc-smart-checkout-builder' ),
+				$code,
+				$preview
+			);
+			update_option( 'wcsc_last_license_error', $err_msg );
+			update_option( 'wcsc_last_license_error_time', current_time( 'mysql' ) );
+
 			return array(
 				'success' => false,
-				'message' => sprintf( __( 'সার্ভার রেসপন্স ত্রুটি (HTTP %d)%s', 'wc-smart-checkout-builder' ), $code, $preview ),
+				'message' => $err_msg,
 				'status'  => 'inactive',
+				'debug'   => array(
+					'http_code' => $code,
+					'raw_body'  => $raw_body,
+				),
 			);
 		}
 
@@ -205,7 +251,10 @@ class License_Manager {
 		set_transient( $trans_name, $status, self::CACHE_TTL );
 
 		if ( 'active' === $status ) {
+			delete_option( 'wcsc_last_license_error' );
+			delete_option( 'wcsc_last_license_error_time' );
 			self::clear_caches();
+
 			return array(
 				'success' => true,
 				'message' => __( 'অভিনন্দন! আপনার লাইসেন্স সফলভাবে অ্যাক্টিভ হয়েছে।', 'wc-smart-checkout-builder' ),
@@ -217,6 +266,9 @@ class License_Manager {
 		$server_msg = ( isset( $body->message ) && ! empty( $body->message ) )
 			? sanitize_text_field( $body->message )
 			: __( 'লাইসেন্স কি-টি অবৈধ অথবা সার্ভার থেকে ব্লক করা হয়েছে। অনুগ্রহ করে অ্যাডমিনের সাথে যোগাযোগ করুন।', 'wc-smart-checkout-builder' );
+
+		update_option( 'wcsc_last_license_error', $server_msg );
+		update_option( 'wcsc_last_license_error_time', current_time( 'mysql' ) );
 
 		return array(
 			'success' => false,
@@ -238,6 +290,8 @@ class License_Manager {
 
 		delete_option( self::OPTION_KEY );
 		update_option( self::OPTION_STATUS, 'inactive' );
+		delete_option( 'wcsc_last_license_error' );
+		delete_option( 'wcsc_last_license_error_time' );
 		self::clear_caches();
 
 		return array(
@@ -251,20 +305,28 @@ class License_Manager {
 	 * AJAX handler for license activation.
 	 */
 	public static function ajax_activate_license() {
-		if ( ob_get_length() ) {
-			ob_clean();
+		while ( ob_get_level() > 0 ) {
+			ob_end_clean();
 		}
 
-		check_ajax_referer( 'wcsc_license_nonce', 'nonce' );
+		if ( ! check_ajax_referer( 'wcsc_license_nonce', 'nonce', false ) ) {
+			wp_send_json_error( array(
+				'message' => __( 'নিরাপত্তা টোকেন (Security Nonce) মেয়াদোত্তীর্ণ বা অবৈধ হয়েছে। অনুগ্রহ করে পেজটি রিফ্রেশ (Refresh) করে আবার চেষ্টা করুন।', 'wc-smart-checkout-builder' ),
+				'status'  => 'invalid_nonce',
+			) );
+		}
 
 		if ( ! current_user_can( 'manage_options' ) ) {
-			wp_send_json_error( array( 'message' => __( 'অনুমতি নেই।', 'wc-smart-checkout-builder' ) ) );
+			wp_send_json_error( array(
+				'message' => __( 'আপনার এই অ্যাকশনটি সম্পন্ন করার পর্যাপ্ত অনুমতি (Permission) নেই।', 'wc-smart-checkout-builder' ),
+				'status'  => 'forbidden',
+			) );
 		}
 
 		$key    = isset( $_POST['license_key'] ) ? sanitize_text_field( wp_unslash( $_POST['license_key'] ) ) : '';
 		$result = self::activate_license( $key );
 
-		if ( $result['success'] ) {
+		if ( ! empty( $result['success'] ) ) {
 			wp_send_json_success( $result );
 		} else {
 			wp_send_json_error( $result );
@@ -275,18 +337,88 @@ class License_Manager {
 	 * AJAX handler for license deactivation.
 	 */
 	public static function ajax_deactivate_license() {
-		if ( ob_get_length() ) {
-			ob_clean();
+		while ( ob_get_level() > 0 ) {
+			ob_end_clean();
 		}
 
-		check_ajax_referer( 'wcsc_license_nonce', 'nonce' );
+		if ( ! check_ajax_referer( 'wcsc_license_nonce', 'nonce', false ) ) {
+			wp_send_json_error( array(
+				'message' => __( 'নিরাপত্তা টোকেন (Security Nonce) মেয়াদোত্তীর্ণ হয়েছে।', 'wc-smart-checkout-builder' ),
+				'status'  => 'invalid_nonce',
+			) );
+		}
 
 		if ( ! current_user_can( 'manage_options' ) ) {
-			wp_send_json_error( array( 'message' => __( 'অনুমতি নেই।', 'wc-smart-checkout-builder' ) ) );
+			wp_send_json_error( array(
+				'message' => __( 'অনুমতি নেই।', 'wc-smart-checkout-builder' ),
+				'status'  => 'forbidden',
+			) );
 		}
 
 		$result = self::deactivate_license();
 		wp_send_json_success( $result );
+	}
+
+	/**
+	 * AJAX handler for live license server connection test.
+	 */
+	public static function ajax_test_license_connection() {
+		while ( ob_get_level() > 0 ) {
+			ob_end_clean();
+		}
+
+		if ( ! check_ajax_referer( 'wcsc_license_nonce', 'nonce', false ) ) {
+			wp_send_json_error( array(
+				'message' => __( 'নিরাপত্তা টোকেন (Security Nonce) মেয়াদোত্তীর্ণ হয়েছে। পেজটি রিফ্রেশ করুন।', 'wc-smart-checkout-builder' ),
+			) );
+		}
+
+		if ( ! current_user_can( 'manage_options' ) ) {
+			wp_send_json_error( array(
+				'message' => __( 'অনুমতি নেই।', 'wc-smart-checkout-builder' ),
+			) );
+		}
+
+		$domain     = self::get_site_domain();
+		$start_time = microtime( true );
+
+		$response = wp_remote_post( self::SERVER_URL, array(
+			'timeout'    => 10,
+			'sslverify'  => false,
+			'user-agent' => 'Mozilla/5.0 (Windows NT 10.0; Win64; x64) AppleWebKit/537.36 (KHTML, like Gecko) Chrome/120.0.0.0 Safari/537.36',
+			'headers'    => array(
+				'Accept' => 'application/json',
+			),
+			'body'       => array(
+				'key'    => 'TP-PING-TEST',
+				'url'    => $domain,
+				'plugin' => self::PLUGIN_NAME,
+				'action' => 'check',
+			),
+		) );
+
+		$latency = round( ( microtime( true ) - $start_time ) * 1000 );
+
+		if ( is_wp_error( $response ) ) {
+			wp_send_json_error( array(
+				'message'    => sprintf( __( 'সার্ভারে সংযোগ ব্যর্থ: %s', 'wc-smart-checkout-builder' ), $response->get_error_message() ),
+				'latency_ms' => $latency,
+				'domain'     => $domain,
+				'endpoint'   => self::SERVER_URL,
+			) );
+		}
+
+		$code     = (int) wp_remote_retrieve_response_code( $response );
+		$raw_body = wp_remote_retrieve_body( $response );
+
+		wp_send_json_success( array(
+			'message'    => sprintf( __( 'সার্ভার সংযোগ সফল (HTTP %d, রেসপন্স সময়: %d ms)', 'wc-smart-checkout-builder' ), $code, $latency ),
+			'http_code'  => $code,
+			'latency_ms' => $latency,
+			'domain'     => $domain,
+			'endpoint'   => self::SERVER_URL,
+			'raw_sample' => wp_strip_all_tags( substr( $raw_body, 0, 120 ) ),
+		) );
 	}
 
 	/**
