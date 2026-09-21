@@ -919,7 +919,7 @@ class Plugin {
 					var origText = activateBtn.textContent;
 					activateBtn.disabled = true;
 
-					var countdown = 15;
+					var countdown = 25;
 					activateBtn.textContent = '<?php echo esc_js( __( 'অ্যাক্টিভেট হচ্ছে...', 'wc-smart-checkout-builder' ) ); ?> (' + countdown + 's)';
 					var countdownTimer = setInterval(function() {
 						countdown--;
@@ -935,13 +935,13 @@ class Plugin {
 					formData.append('license_key', key);
 					formData.append('nonce', licenseNonce);
 
-					// 18-second hard timeout controller so the button never stays stuck
+					// 28-second timeout controller to guarantee PHP cURL diagnostic returns
 					var controller = (typeof AbortController !== 'undefined') ? new AbortController() : null;
 					var hardTimeout = setTimeout(function() {
 						if (controller) {
 							controller.abort();
 						}
-					}, 18000);
+					}, 28000);
 
 					fetch(ajaxUrl, {
 						method: 'POST',
@@ -1001,7 +1001,7 @@ class Plugin {
 								var d = res.data.debug;
 								debugHtml = '<div style="margin-top: 10px; padding: 10px; background: rgba(0,0,0,0.05); border-radius: 4px; font-size: 11px; font-family: monospace; line-height: 1.6; text-align: left;">' +
 									'<strong>Diagnostic Breakdown:</strong><br>' +
-									(d.http_code ? '• HTTP Status: ' + d.http_code + '<br>' : '') +
+									(d.http_code !== undefined ? '• HTTP Status: ' + d.http_code + '<br>' : '') +
 									(d.client_domain ? '• Client Domain: ' + d.client_domain + '<br>' : '') +
 									(d.server_status ? '• Server Status: ' + d.server_status + '<br>' : '') +
 									(d.server_message ? '• Server Message: ' + d.server_message + '<br>' : '') +
@@ -1023,7 +1023,7 @@ class Plugin {
 						msgBox.style.color = '#991b1b';
 
 						if (err && err.name === 'AbortError') {
-							msgBox.innerHTML = '✕ <strong><?php echo esc_js( __( 'সংযোগের সময় শেষ (Timeout)!', 'wc-smart-checkout-builder' ) ); ?></strong><br><?php echo esc_js( __( '১৮ সেকেন্ডের মধ্যে লাইসেন্স সার্ভার থেকে কোনো উত্তর আসেনি। হোস্টিং থেকে আউটগোয়িং কানেকশন ব্লক থাকতে পারে বা সার্ভার ফায়ারওয়ালে রিকোয়েস্ট আটকে আছে। নিচের "সার্ভার সংযোগ টেস্ট করুন" বাটনে ক্লিক করে কানেকশন যাচাই করুন।', 'wc-smart-checkout-builder' ) ); ?>';
+							msgBox.innerHTML = '✕ <strong><?php echo esc_js( __( 'সংযোগের সময় শেষ (Timeout)!', 'wc-smart-checkout-builder' ) ); ?></strong><br><?php echo esc_js( __( 'লাইসেন্স সার্ভার থেকে উত্তর পেতে বেশি সময় লাগছে। হোস্টিং থেকে আউটগোয়িং কানেকশন ব্লক থাকতে পারে বা সার্ভার ফায়ারওয়ালে রিকোয়েস্ট আটকে আছে। নিচের "সার্ভার সংযোগ টেস্ট করুন" বাটনে ক্লিক করে কানেকশন যাচাই করুন।', 'wc-smart-checkout-builder' ) ); ?>';
 						} else {
 							msgBox.innerHTML = '✕ <strong>' + (err.message || 'Error connecting to server.') + '</strong>';
 						}
@@ -1098,7 +1098,15 @@ class Plugin {
 							'X-Requested-With': 'XMLHttpRequest'
 						}
 					})
-					.then(function(res) { return res.json(); })
+					.then(function(res) {
+						return res.text().then(function(text) {
+							try {
+								return JSON.parse(text);
+							} catch (e) {
+								throw new Error(text ? text.substring(0, 180) : ('HTTP ' + res.status));
+							}
+						});
+					})
 					.then(function(res) {
 						testConnBtn.disabled = false;
 						testConnBtn.textContent = origTestText;

@@ -19,12 +19,6 @@ class License_Manager {
 	const SERVER_URL = 'https://app.developerzahir.com/tp-server/v1/check';
 
 	/**
-	 * Fallback endpoint using query parameters for servers with
-	 * plain permalinks where the path-based route returns 404.
-	 */
-	const SERVER_URL_FALLBACK = 'https://app.developerzahir.com/?tp_action=check_license';
-
-	/**
 	 * Product identifier sent to the licensing server.
 	 */
 	const PLUGIN_NAME = 'WC Smart Checkout Builder';
@@ -139,6 +133,41 @@ class License_Manager {
 	}
 
 	/**
+	 * Send an HTTP POST request to the licensing server with IPv4 resolution
+	 * enforcement and no-redirect policy to prevent hanging on slow IPv6 DNS
+	 * or redirecting to static frontend pages.
+	 *
+	 * @param array $payload
+	 * @param int   $timeout
+	 * @return array|\WP_Error
+	 */
+	public static function send_request( $payload, $timeout = 12 ) {
+		$curl_callback = function( $handle ) {
+			if ( defined( 'CURLOPT_IPRESOLVE' ) && defined( 'CURL_IPRESOLVE_V4' ) ) {
+				@curl_setopt( $handle, CURLOPT_IPRESOLVE, CURL_IPRESOLVE_V4 );
+			}
+		};
+
+		add_action( 'http_api_curl', $curl_callback, 10, 1 );
+
+		$response = wp_remote_post( self::SERVER_URL, array(
+			'timeout'     => $timeout,
+			'redirection' => 0,
+			'sslverify'   => false,
+			'user-agent'  => 'Mozilla/5.0 (Windows NT 10.0; Win64; x64) AppleWebKit/537.36 (KHTML, like Gecko) Chrome/120.0.0.0 Safari/537.36',
+			'headers'     => array(
+				'Accept'       => 'application/json',
+				'Content-Type' => 'application/json; charset=utf-8',
+			),
+			'body'        => wp_json_encode( $payload ),
+		) );
+
+		remove_action( 'http_api_curl', $curl_callback, 10 );
+
+		return $response;
+	}
+
+	/**
 	 * Routine verification check.
 	 * Runs on 24-hour transient cache; falls back to last known status if server is unreachable.
 	 */
@@ -165,36 +194,7 @@ class License_Manager {
 				'action' => 'check',
 			);
 
-			$response = wp_remote_post( self::SERVER_URL, array(
-				'timeout'    => 10,
-				'sslverify'  => false,
-				'user-agent' => 'Mozilla/5.0 (Windows NT 10.0; Win64; x64) AppleWebKit/537.36 (KHTML, like Gecko) Chrome/120.0.0.0 Safari/537.36',
-				'headers'    => array(
-					'Accept'       => 'application/json',
-					'Content-Type' => 'application/json; charset=utf-8',
-				),
-				'body'       => wp_json_encode( $payload ),
-			) );
-
-			if ( is_wp_error( $response ) || 200 !== (int) wp_remote_retrieve_response_code( $response ) ) {
-				$fallback = wp_remote_post( self::SERVER_URL_FALLBACK, array(
-					'timeout'    => 10,
-					'sslverify'  => false,
-					'user-agent' => 'Mozilla/5.0 (Windows NT 10.0; Win64; x64) AppleWebKit/537.36 (KHTML, like Gecko) Chrome/120.0.0.0 Safari/537.36',
-					'headers'    => array(
-						'Accept'       => 'application/json',
-						'Content-Type' => 'application/json; charset=utf-8',
-					),
-					'body'       => wp_json_encode( $payload ),
-				) );
-
-				if ( ! is_wp_error( $fallback ) && 200 === (int) wp_remote_retrieve_response_code( $fallback ) ) {
-					$fallback_body = json_decode( wp_remote_retrieve_body( $fallback ) );
-					if ( is_object( $fallback_body ) && ! empty( $fallback_body->status ) ) {
-						$response = $fallback;
-					}
-				}
-			}
+			$response = self::send_request( $payload, 10 );
 
 			if ( is_wp_error( $response ) || 200 !== (int) wp_remote_retrieve_response_code( $response ) ) {
 				// Server unreachable or down: fallback gracefully to last known status so the site never breaks.
@@ -302,37 +302,7 @@ class License_Manager {
 			'action' => 'activate',
 		);
 
-		$response = wp_remote_post( self::SERVER_URL, array(
-			'timeout'    => 15,
-			'sslverify'  => false,
-			'user-agent' => 'Mozilla/5.0 (Windows NT 10.0; Win64; x64) AppleWebKit/537.36 (KHTML, like Gecko) Chrome/120.0.0.0 Safari/537.36',
-			'headers'    => array(
-				'Accept'       => 'application/json',
-				'Content-Type' => 'application/json; charset=utf-8',
-			),
-			'body'       => wp_json_encode( $payload ),
-		) );
-
-		// Fallback for servers with Plain Permalinks
-		if ( is_wp_error( $response ) || 200 !== (int) wp_remote_retrieve_response_code( $response ) ) {
-			$fallback = wp_remote_post( self::SERVER_URL_FALLBACK, array(
-				'timeout'    => 15,
-				'sslverify'  => false,
-				'user-agent' => 'Mozilla/5.0 (Windows NT 10.0; Win64; x64) AppleWebKit/537.36 (KHTML, like Gecko) Chrome/120.0.0.0 Safari/537.36',
-				'headers'    => array(
-					'Accept'       => 'application/json',
-					'Content-Type' => 'application/json; charset=utf-8',
-				),
-				'body'       => wp_json_encode( $payload ),
-			) );
-
-			if ( ! is_wp_error( $fallback ) && 200 === (int) wp_remote_retrieve_response_code( $fallback ) ) {
-				$fallback_body = json_decode( wp_remote_retrieve_body( $fallback ) );
-				if ( is_object( $fallback_body ) && ! empty( $fallback_body->status ) ) {
-					$response = $fallback;
-				}
-			}
-		}
+		$response = self::send_request( $payload, 15 );
 
 		if ( is_wp_error( $response ) ) {
 			$err_msg = sprintf(
@@ -539,21 +509,12 @@ class License_Manager {
 		$ping_key   = ! empty( $passed_key ) ? $passed_key : 'TP-PING-TEST';
 		$action     = ! empty( $passed_key ) ? 'check' : 'ping';
 
-		$response = wp_remote_post( self::SERVER_URL, array(
-			'timeout'    => 15,
-			'sslverify'  => false,
-			'user-agent' => 'Mozilla/5.0 (Windows NT 10.0; Win64; x64) AppleWebKit/537.36 (KHTML, like Gecko) Chrome/120.0.0.0 Safari/537.36',
-			'headers'    => array(
-				'Accept'       => 'application/json',
-				'Content-Type' => 'application/json; charset=utf-8',
-			),
-			'body'       => wp_json_encode( array(
-				'key'    => $ping_key,
-				'url'    => $domain,
-				'plugin' => self::PLUGIN_NAME,
-				'action' => $action,
-			) ),
-		) );
+		$response = self::send_request( array(
+			'key'    => $ping_key,
+			'url'    => $domain,
+			'plugin' => self::PLUGIN_NAME,
+			'action' => $action,
+		), 15 );
 
 		$latency = round( ( microtime( true ) - $start_time ) * 1000 );
 
