@@ -179,8 +179,8 @@ class License_Manager {
 	 * Runs on 24-hour transient cache; falls back to last known status if server is unreachable.
 	 */
 	public static function check_license_status() {
-		// Skip routine verification on AJAX requests
-		if ( defined( 'DOING_AJAX' ) && DOING_AJAX ) {
+		// Skip routine verification on AJAX requests or inside wp-admin dashboard
+		if ( ( defined( 'DOING_AJAX' ) && DOING_AJAX ) || is_admin() ) {
 			return;
 		}
 
