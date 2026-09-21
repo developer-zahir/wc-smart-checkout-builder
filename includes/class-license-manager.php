@@ -71,12 +71,15 @@ class License_Manager {
 	 * @return string
 	 */
 	public static function normalize_domain( $domain ) {
-		$domain = strtolower( trim( (string) $domain ) );
-		$domain = preg_replace( '#^https?://#i', '', $domain );
-		$domain = preg_replace( '#^[^@]+@#', '', $domain );
-		$domain = preg_replace( '#[/?#].*$#', '', $domain );
-		$domain = preg_replace( '#:\d+$#', '', $domain );
-		$domain = preg_replace( '#^www\.#i', '', $domain );
+		if ( empty( $domain ) || ! is_string( $domain ) ) {
+			return '';
+		}
+		$domain = strtolower( trim( $domain ) );
+		$domain = preg_replace( '~^https?://~i', '', $domain );
+		$domain = preg_replace( '~^[^@]+@~', '', $domain );
+		$domain = preg_replace( '~[/?#].*$~', '', $domain );
+		$domain = preg_replace( '~:\d+$~', '', $domain );
+		$domain = preg_replace( '~^www\.~i', '', $domain );
 		return trim( $domain, "/ \t\n\r\0\x0B." );
 	}
 
@@ -86,11 +89,15 @@ class License_Manager {
 	 * @return string
 	 */
 	public static function get_site_domain() {
-		$host = wp_parse_url( home_url(), PHP_URL_HOST );
+		$raw_url = home_url();
+		$host    = wp_parse_url( $raw_url, PHP_URL_HOST );
 		if ( empty( $host ) && isset( $_SERVER['HTTP_HOST'] ) ) {
 			$host = sanitize_text_field( wp_unslash( $_SERVER['HTTP_HOST'] ) );
 		}
-		return self::normalize_domain( $host );
+		if ( empty( $host ) && isset( $_SERVER['SERVER_NAME'] ) ) {
+			$host = sanitize_text_field( wp_unslash( $_SERVER['SERVER_NAME'] ) );
+		}
+		return self::normalize_domain( ! empty( $host ) ? $host : $raw_url );
 	}
 
 	/**
