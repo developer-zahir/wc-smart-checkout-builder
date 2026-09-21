@@ -998,7 +998,15 @@ class Plugin {
 							var errMsg = (res && res.data && res.data.message) ? res.data.message : '<?php echo esc_js( __( 'অ্যাক্টিভেশন ব্যর্থ হয়েছে।', 'wc-smart-checkout-builder' ) ); ?>';
 							var debugHtml = '';
 							if (res && res.data && res.data.debug) {
-								debugHtml = '<div style="margin-top: 8px; font-size: 11px; opacity: 0.85; font-family: monospace;">' + JSON.stringify(res.data.debug) + '</div>';
+								var d = res.data.debug;
+								debugHtml = '<div style="margin-top: 10px; padding: 10px; background: rgba(0,0,0,0.05); border-radius: 4px; font-size: 11px; font-family: monospace; line-height: 1.6; text-align: left;">' +
+									'<strong>Diagnostic Breakdown:</strong><br>' +
+									(d.http_code ? '• HTTP Status: ' + d.http_code + '<br>' : '') +
+									(d.client_domain ? '• Client Domain: ' + d.client_domain + '<br>' : '') +
+									(d.server_status ? '• Server Status: ' + d.server_status + '<br>' : '') +
+									(d.server_message ? '• Server Message: ' + d.server_message + '<br>' : '') +
+									(d.raw_response ? '• Raw Response: ' + d.raw_response + '<br>' : '') +
+									'</div>';
 							}
 							msgBox.innerHTML = '✕ ' + errMsg + debugHtml;
 						}

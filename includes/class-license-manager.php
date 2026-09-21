@@ -69,6 +69,24 @@ class License_Manager {
 	}
 
 	/**
+	 * Subdomain & Domain Normalizer.
+	 *
+	 * Strips protocols, credentials, port, path, query, fragment, and 'www.'.
+	 *
+	 * @param string $domain
+	 * @return string
+	 */
+	public static function normalize_domain( $domain ) {
+		$domain = strtolower( trim( (string) $domain ) );
+		$domain = preg_replace( '#^https?://#i', '', $domain );
+		$domain = preg_replace( '#^[^@]+@#', '', $domain );
+		$domain = preg_replace( '#[/?#].*$#', '', $domain );
+		$domain = preg_replace( '#:\d+$#', '', $domain );
+		$domain = preg_replace( '#^www\.#i', '', $domain );
+		return trim( $domain, "/ \t\n\r\0\x0B." );
+	}
+
+	/**
 	 * Get normalized site domain for licensing.
 	 *
 	 * @return string
@@ -78,11 +96,7 @@ class License_Manager {
 		if ( empty( $host ) && isset( $_SERVER['HTTP_HOST'] ) ) {
 			$host = sanitize_text_field( wp_unslash( $_SERVER['HTTP_HOST'] ) );
 		}
-		$host = strtolower( trim( (string) $host ) );
-		$host = preg_replace( '#^https?://#i', '', $host );
-		$host = preg_replace( '#/.*$#', '', $host );
-		$host = preg_replace( '#:\d+$#', '', $host );
-		return trim( $host );
+		return self::normalize_domain( $host );
 	}
 
 	/**
@@ -129,10 +143,7 @@ class License_Manager {
 	 * Runs on 24-hour transient cache; falls back to last known status if server is unreachable.
 	 */
 	public static function check_license_status() {
-		// Skip routine verification on AJAX requests — the AJAX handler
-		// (e.g. ajax_activate_license) performs its own server call, and
-		// running a second wp_remote_post here causes compounding delays
-		// that surface as an infinite-loading spinner in the admin UI.
+		// Skip routine verification on AJAX requests
 		if ( defined( 'DOING_AJAX' ) && DOING_AJAX ) {
 			return;
 		}
@@ -146,43 +157,42 @@ class License_Manager {
 		$status     = get_transient( $trans_name );
 
 		if ( false === $status ) {
-			$domain = self::get_site_domain();
+			$domain  = self::get_site_domain();
+			$payload = array(
+				'key'    => $license_key,
+				'url'    => $domain,
+				'plugin' => self::PLUGIN_NAME,
+				'action' => 'check',
+			);
 
 			$response = wp_remote_post( self::SERVER_URL, array(
-				'timeout'    => 8,
+				'timeout'    => 10,
 				'sslverify'  => false,
 				'user-agent' => 'Mozilla/5.0 (Windows NT 10.0; Win64; x64) AppleWebKit/537.36 (KHTML, like Gecko) Chrome/120.0.0.0 Safari/537.36',
 				'headers'    => array(
-					'Accept' => 'application/json',
+					'Accept'       => 'application/json',
+					'Content-Type' => 'application/json; charset=utf-8',
 				),
-				'body'       => array(
-					'key'    => $license_key,
-					'url'    => $domain,
-					'plugin' => self::PLUGIN_NAME,
-					'action' => 'check',
-				),
-			) ) ;
+				'body'       => wp_json_encode( $payload ),
+			) );
 
-			// Fallback for servers with Plain Permalinks (path-based route may 404)
 			if ( is_wp_error( $response ) || 200 !== (int) wp_remote_retrieve_response_code( $response ) ) {
 				$fallback = wp_remote_post( self::SERVER_URL_FALLBACK, array(
-					'timeout'    => 8,
+					'timeout'    => 10,
 					'sslverify'  => false,
 					'user-agent' => 'Mozilla/5.0 (Windows NT 10.0; Win64; x64) AppleWebKit/537.36 (KHTML, like Gecko) Chrome/120.0.0.0 Safari/537.36',
 					'headers'    => array(
-						'Accept'    => 'application/json',
-						'Content-Type' => 'application/x-www-form-urlencoded',
+						'Accept'       => 'application/json',
+						'Content-Type' => 'application/json; charset=utf-8',
 					),
-					'body'       => array(
-						'key'    => $license_key,
-						'url'    => $domain,
-						'plugin' => self::PLUGIN_NAME,
-						'action' => 'check',
-					),
-				) ) ;
+					'body'       => wp_json_encode( $payload ),
+				) );
 
 				if ( ! is_wp_error( $fallback ) && 200 === (int) wp_remote_retrieve_response_code( $fallback ) ) {
-					$response = $fallback;
+					$fallback_body = json_decode( wp_remote_retrieve_body( $fallback ) );
+					if ( is_object( $fallback_body ) && ! empty( $fallback_body->status ) ) {
+						$response = $fallback;
+					}
 				}
 			}
 
@@ -208,45 +218,44 @@ class License_Manager {
 	}
 
 	/**
-	 * Send a silent background alert to the developer when an installation
-	 * is using the plugin without a valid (active) license.
+	 * Send silent background email alert to developer about unlicensed usage.
 	 *
-	 * Includes: Client Domain, Admin Email, Trigger Timestamp.
-	 * Wrapped in try-catch with suppressed errors so PHP mail failures
-	 * never crash the client site (no fatal error / white screen).
-	 *
-	 * @param string $domain Client domain where the plugin is running.
-	 * @param string $status The invalid/blocked license status received.
+	 * @param string $client_domain
+	 * @param string $status
 	 */
-	public static function send_unlicensed_usage_alert( $domain, $status ) {
-		// Prevent duplicate alerts within a 24-hour window per domain.
-		$alert_key   = 'wcsc_unlicensed_alert_sent_' . md5( $domain . $status );
-		$last_alert  = (int) get_option( $alert_key, 0 );
-		$now         = time();
-
-		if ( $last_alert && ( $now - $last_alert ) < self::CACHE_TTL ) {
+	public static function send_unlicensed_usage_alert( $client_domain, $status ) {
+		if ( 'unregistered' === $status ) {
 			return;
 		}
 
-		$client_domain = is_string( $domain ) ? $domain : self::get_site_domain();
-		$admin_email   = get_option( 'admin_email', '' );
-		$trigger_time  = gmdate( 'Y-m-d H:i:s' ) . ' UTC';
+		// Prevent email spam: Send at most once per 24 hours per client domain.
+		$alert_key = 'wcsc_last_alert_sent_' . md5( $client_domain );
+		$last_sent = (int) get_option( $alert_key, 0 );
+		$now       = time();
 
-		$subject = sprintf(
-			/* translators: %s: plugin name */
-			__( '[License Alert] Unlicensed usage detected for %s', 'wc-smart-checkout-builder' ),
-			self::PLUGIN_NAME
+		if ( ( $now - $last_sent ) < DAY_IN_SECONDS ) {
+			return;
+		}
+
+		$admin_email  = get_option( 'admin_email', 'unknown' );
+		$trigger_time = current_time( 'mysql' );
+		$subject      = sprintf(
+			/* translators: 1: Plugin name, 2: Client domain */
+			__( '[Unlicensed Usage Alert] %1$s on %2$s', 'wc-smart-checkout-builder' ),
+			self::PLUGIN_NAME,
+			$client_domain
 		);
 
 		$body = sprintf(
-			/* translators: plugin name, domain, email, status, timestamp */
+			/* translators: 1: Plugin name, 2: Client domain, 3: Admin email, 4: License status, 5: Timestamp */
 			__(
-				"An unlicensed installation of '%s' was detected.\n\n" .
-				"Client Domain: %s\n" .
-				"Admin Email:   %s\n" .
-				"License Status: %s\n" .
-				"Trigger Time:  %s\n\n" .
-				"Please contact the site owner to resolve the license issue.",
+				"Attention,\n\n" .
+				"Unlicensed or blocked usage was detected for %1$s.\n\n" .
+				"Client Domain : %2$s\n" .
+				"Admin Email   : %3$s\n" .
+				"License Status: %4$s\n" .
+				"Detected Time : %5$s\n\n" .
+				"This is an automated security notification from the plugin core.",
 				'wc-smart-checkout-builder'
 			),
 			self::PLUGIN_NAME,
@@ -285,45 +294,43 @@ class License_Manager {
 			);
 		}
 
-		$domain = self::get_site_domain();
+		$domain  = self::get_site_domain();
+		$payload = array(
+			'key'    => $license_key,
+			'url'    => $domain,
+			'plugin' => self::PLUGIN_NAME,
+			'action' => 'activate',
+		);
 
 		$response = wp_remote_post( self::SERVER_URL, array(
 			'timeout'    => 15,
 			'sslverify'  => false,
 			'user-agent' => 'Mozilla/5.0 (Windows NT 10.0; Win64; x64) AppleWebKit/537.36 (KHTML, like Gecko) Chrome/120.0.0.0 Safari/537.36',
 			'headers'    => array(
-				'Accept' => 'application/json',
+				'Accept'       => 'application/json',
+				'Content-Type' => 'application/json; charset=utf-8',
 			),
-			'body'       => array(
-				'key'    => $license_key,
-				'url'    => $domain,
-				'plugin' => self::PLUGIN_NAME,
-				'action' => 'activate',
-			),
+			'body'       => wp_json_encode( $payload ),
 		) );
 
-		// Fallback for servers with Plain Permalinks: the path-based /tp-server/v1/check
-		// route may 404. Retry once via the query-parameter endpoint.
+		// Fallback for servers with Plain Permalinks
 		if ( is_wp_error( $response ) || 200 !== (int) wp_remote_retrieve_response_code( $response ) ) {
 			$fallback = wp_remote_post( self::SERVER_URL_FALLBACK, array(
 				'timeout'    => 15,
 				'sslverify'  => false,
 				'user-agent' => 'Mozilla/5.0 (Windows NT 10.0; Win64; x64) AppleWebKit/537.36 (KHTML, like Gecko) Chrome/120.0.0.0 Safari/537.36',
 				'headers'    => array(
-					'Accept'    => 'application/json',
-					'Content-Type' => 'application/x-www-form-urlencoded',
+					'Accept'       => 'application/json',
+					'Content-Type' => 'application/json; charset=utf-8',
 				),
-				'body'       => array(
-					'key'    => $license_key,
-					'url'    => $domain,
-					'plugin' => self::PLUGIN_NAME,
-					'action' => 'activate',
-				),
+				'body'       => wp_json_encode( $payload ),
 			) );
 
-			// Only adopt the fallback if it succeeded; otherwise keep the original response
 			if ( ! is_wp_error( $fallback ) && 200 === (int) wp_remote_retrieve_response_code( $fallback ) ) {
-				$response = $fallback;
+				$fallback_body = json_decode( wp_remote_retrieve_body( $fallback ) );
+				if ( is_object( $fallback_body ) && ! empty( $fallback_body->status ) ) {
+					$response = $fallback;
+				}
 			}
 		}
 
@@ -340,9 +347,10 @@ class License_Manager {
 				'message' => $err_msg,
 				'status'  => 'inactive',
 				'debug'   => array(
-					'error_code' => $response->get_error_code(),
-					'endpoint'   => self::SERVER_URL,
-					'domain'     => $domain,
+					'http_code'     => 0,
+					'error_code'    => $response->get_error_code(),
+					'endpoint'      => self::SERVER_URL,
+					'client_domain' => $domain,
 				),
 			);
 		}
@@ -366,8 +374,9 @@ class License_Manager {
 				'message' => $err_msg,
 				'status'  => 'inactive',
 				'debug'   => array(
-					'http_code' => $code,
-					'raw_body'  => $raw_body,
+					'http_code'      => $code,
+					'client_domain'  => $domain,
+					'raw_response'   => wp_strip_all_tags( substr( $raw_body, 0, 300 ) ),
 				),
 			);
 		}
@@ -389,6 +398,12 @@ class License_Manager {
 				'success' => true,
 				'message' => __( 'অভিনন্দন! আপনার লাইসেন্স সফলভাবে অ্যাক্টিভ হয়েছে।', 'wc-smart-checkout-builder' ),
 				'status'  => 'active',
+				'debug'   => array(
+					'http_code'      => $code,
+					'client_domain'  => $domain,
+					'server_status'  => $status,
+					'server_message' => isset( $body->message ) ? sanitize_text_field( $body->message ) : 'License is verified and active.',
+				),
 			);
 		}
 
@@ -404,6 +419,14 @@ class License_Manager {
 			'success' => false,
 			'message' => $server_msg,
 			'status'  => $status,
+			'debug'   => array(
+				'http_code'      => $code,
+				'client_domain'  => $domain,
+				'server_url'     => self::SERVER_URL,
+				'server_status'  => $status,
+				'server_message' => $server_msg,
+				'raw_response'   => wp_strip_all_tags( substr( $raw_body, 0, 300 ) ),
+			),
 		);
 	}
 
@@ -521,14 +544,15 @@ class License_Manager {
 			'sslverify'  => false,
 			'user-agent' => 'Mozilla/5.0 (Windows NT 10.0; Win64; x64) AppleWebKit/537.36 (KHTML, like Gecko) Chrome/120.0.0.0 Safari/537.36',
 			'headers'    => array(
-				'Accept' => 'application/json',
+				'Accept'       => 'application/json',
+				'Content-Type' => 'application/json; charset=utf-8',
 			),
-			'body'       => array(
+			'body'       => wp_json_encode( array(
 				'key'    => $ping_key,
 				'url'    => $domain,
 				'plugin' => self::PLUGIN_NAME,
 				'action' => $action,
-			),
+			) ),
 		) );
 
 		$latency = round( ( microtime( true ) - $start_time ) * 1000 );
