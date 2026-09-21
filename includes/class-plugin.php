@@ -661,7 +661,7 @@ class Plugin {
 				</button>
 				<button type="button" class="wcsc-tab-btn" data-tab="tab-license">
 					<span class="dashicons dashicons-admin-network"></span>
-					<?php esc_html_e( 'License Activation', 'wc-smart-checkout-builder' ); ?>
+					<?php esc_html_e( 'License Management', 'wc-smart-checkout-builder' ); ?>
 				</button>
 			</div>
 
@@ -749,30 +749,15 @@ class Plugin {
 					<!-- Tab 4: License & Activation -->
 					<div class="wcsc-tab-pane" id="tab-license">
 						<div class="wcsc-section-card">
-							<h2 class="wcsc-card-heading"><?php esc_html_e( 'License Management & Server Sync', 'wc-smart-checkout-builder' ); ?></h2>
+							<h2 class="wcsc-card-heading"><?php esc_html_e( 'License Management', 'wc-smart-checkout-builder' ); ?></h2>
 							<p class="wcsc-card-desc"><?php esc_html_e( 'Enter your license key to activate full access and automatic updates.', 'wc-smart-checkout-builder' ); ?></p>
 
 							<?php
-							$license_key     = License_Manager::get_license_key();
-							$license_status  = License_Manager::get_license_status();
-							$is_active       = 'active' === $license_status;
-							$last_error      = get_option( 'wcsc_last_license_error' );
-							$last_error_time = get_option( 'wcsc_last_license_error_time' );
-							$site_domain     = License_Manager::get_site_domain();
+							$license_key    = License_Manager::get_license_key();
+							$license_status = License_Manager::get_license_status();
+							$is_active      = 'active' === $license_status;
+							$site_domain    = License_Manager::get_site_domain();
 							?>
-
-							<?php if ( ! $is_active && ! empty( $last_error ) ) : ?>
-								<div class="wcsc-alert-box" style="background: #fef2f2; border-left: 4px solid #ef4444; color: #991b1b; margin-bottom: 22px; max-width: 650px;">
-									<div style="font-weight: 700; margin-bottom: 4px; display: flex; align-items: center; gap: 6px;">
-										<span class="dashicons dashicons-warning" style="font-size: 18px; width: 18px; height: 18px;"></span>
-										<?php esc_html_e( 'সর্বশেষ অ্যাক্টিভেশন ত্রুটি (Last Activation Error):', 'wc-smart-checkout-builder' ); ?>
-									</div>
-									<div style="font-size: 13px; line-height: 1.5;"><?php echo esc_html( $last_error ); ?></div>
-									<?php if ( ! empty( $last_error_time ) ) : ?>
-										<div style="font-size: 11px; margin-top: 6px; opacity: 0.75;"><?php echo esc_html( sprintf( __( 'রেকর্ড সময়: %s', 'wc-smart-checkout-builder' ), $last_error_time ) ); ?></div>
-									<?php endif; ?>
-								</div>
-							<?php endif; ?>
 
 							<div class="wcsc-form-group" style="max-width: 650px;">
 								<label for="wcsc_license_key" class="wcsc-form-label"><?php esc_html_e( 'License Key', 'wc-smart-checkout-builder' ); ?></label>
@@ -798,7 +783,7 @@ class Plugin {
 									<?php elseif ( 'unregistered' === $license_status ) : ?>
 										<span id="wcsc-status-pill" style="background: #f59e0b; color: #ffffff; padding: 4px 12px; font-size: 12px; font-weight: 700; border-radius: 20px; letter-spacing: 0.5px;">⚠ <?php esc_html_e( 'UNREGISTERED', 'wc-smart-checkout-builder' ); ?></span>
 									<?php else : ?>
-										<span id="wcsc-status-pill" style="background: #ef4444; color: #ffffff; padding: 4px 12px; font-size: 12px; font-weight: 700; border-radius: 20px; letter-spacing: 0.5px;">✕ <?php esc_html_e( 'INACTIVE / BLOCKED', 'wc-smart-checkout-builder' ); ?></span>
+										<span id="wcsc-status-pill" style="background: #ef4444; color: #ffffff; padding: 4px 12px; font-size: 12px; font-weight: 700; border-radius: 20px; letter-spacing: 0.5px;">✕ <?php esc_html_e( 'INACTIVE', 'wc-smart-checkout-builder' ); ?></span>
 									<?php endif; ?>
 								</div>
 
@@ -806,24 +791,11 @@ class Plugin {
 									<span><?php esc_html_e( 'Product:', 'wc-smart-checkout-builder' ); ?></span>
 									<span style="font-weight: 600; color: #1e293b;">WC Smart Checkout Builder</span>
 								</div>
-							</div>
 
-							<!-- Diagnostic & Server Connectivity Box -->
-							<div style="margin-top: 20px; padding: 18px 22px; background: #ffffff; border: 1px dashed #cbd5e1; border-radius: 6px; max-width: 650px;">
-								<div style="display: flex; justify-content: space-between; align-items: center; margin-bottom: 10px; flex-wrap: wrap; gap: 8px;">
-									<div style="font-weight: 700; font-size: 13px; color: #334155;">
-										<span class="dashicons dashicons-networking" style="font-size: 17px; width: 17px; height: 17px; vertical-align: text-top; margin-right: 4px; color: #64748b;"></span>
-										<?php esc_html_e( 'সার্ভার সংযোগ ডায়াগনস্টিকস (Server Diagnostic)', 'wc-smart-checkout-builder' ); ?>
-									</div>
-									<button type="button" id="wcsc-test-connection-btn" class="button" style="height: 30px; line-height: 28px; font-size: 12px; padding: 0 12px; border-radius: 4px;">
-										<?php esc_html_e( 'সার্ভার সংযোগ টেস্ট করুন', 'wc-smart-checkout-builder' ); ?>
-									</button>
+								<div style="display: flex; justify-content: space-between; align-items: center; font-size: 13px; color: #64748b; padding-top: 12px; border-top: 1px solid #e2e8f0; margin-top: 12px;">
+									<span><?php esc_html_e( 'Registered Domain:', 'wc-smart-checkout-builder' ); ?></span>
+									<span style="font-weight: 600; color: #1e293b; font-family: monospace;"><?php echo esc_html( $site_domain ); ?></span>
 								</div>
-								<div style="font-size: 12px; color: #64748b; line-height: 1.6;">
-									<div><strong>আপনার সাইটের ডোমেইন:</strong> <code style="color: #0f172a;"><?php echo esc_html( $site_domain ); ?></code> (সার্ভারে এই ডোমেইনে লাইসেন্স রেজিস্টার থাকতে হবে)</div>
-									<div><strong>লাইসেন্স সার্ভার এন্ডপয়েন্ট:</strong> <code style="color: #0f172a;"><?php echo esc_html( License_Manager::SERVER_URL ); ?></code></div>
-								</div>
-								<div id="wcsc-test-connection-msg" style="margin-top: 12px; display: none;"></div>
 							</div>
 						</div>
 					</div>
@@ -969,19 +941,7 @@ class Plugin {
 							msgBox.style.borderLeftColor = '#ef4444';
 							msgBox.style.color = '#991b1b';
 							var errMsg = (res && res.data && res.data.message) ? res.data.message : '<?php echo esc_js( __( 'অ্যাক্টিভেশন ব্যর্থ হয়েছে।', 'wc-smart-checkout-builder' ) ); ?>';
-							var debugHtml = '';
-							if (res && res.data && res.data.debug) {
-								var d = res.data.debug;
-								debugHtml = '<div style="margin-top: 10px; padding: 10px; background: rgba(0,0,0,0.05); border-radius: 4px; font-size: 11px; font-family: monospace; line-height: 1.6; text-align: left;">' +
-									'<strong>Diagnostic Breakdown:</strong><br>' +
-									(d.http_code !== undefined ? '• HTTP Status: ' + d.http_code + '<br>' : '') +
-									(d.client_domain ? '• Client Domain: ' + d.client_domain + '<br>' : '') +
-									(d.server_status ? '• Server Status: ' + d.server_status + '<br>' : '') +
-									(d.server_message ? '• Server Message: ' + d.server_message + '<br>' : '') +
-									(d.raw_response ? '• Raw Response: ' + d.raw_response + '<br>' : '') +
-									'</div>';
-							}
-							msgBox.innerHTML = '✕ ' + errMsg + debugHtml;
+							msgBox.innerHTML = '✕ ' + errMsg;
 						}
 					})
 					.catch(function(err) {
@@ -992,7 +952,7 @@ class Plugin {
 						msgBox.style.background = '#fef2f2';
 						msgBox.style.borderLeftColor = '#ef4444';
 						msgBox.style.color = '#991b1b';
-						msgBox.innerHTML = '✕ <strong>' + (err.message || 'Error connecting to server.') + '</strong>';
+						msgBox.innerHTML = '✕ ' + (err.message || 'Error connecting to server.');
 					});
 				});
 			}
@@ -1026,87 +986,6 @@ class Plugin {
 					})
 					.catch(function() {
 						deactivateBtn.disabled = false;
-					});
-				});
-			}
-
-			// Diagnostic connection test button
-			var testConnBtn = document.getElementById('wcsc-test-connection-btn');
-			var testConnMsg = document.getElementById('wcsc-test-connection-msg');
-			if (testConnBtn && testConnMsg) {
-				testConnBtn.addEventListener('click', function(e) {
-					if (e) {
-						e.preventDefault();
-					}
-					var origTestText = testConnBtn.textContent;
-					var currentKey = keyInput ? keyInput.value.trim() : '';
-					testConnBtn.disabled = true;
-					testConnBtn.textContent = '<?php echo esc_js( __( 'যাচাই করা হচ্ছে...', 'wc-smart-checkout-builder' ) ); ?>';
-					testConnMsg.style.display = 'block';
-					testConnMsg.className = 'wcsc-alert-box';
-					testConnMsg.style.background = '#f1f5f9';
-					testConnMsg.style.borderLeftColor = '#64748b';
-					testConnMsg.style.color = '#334155';
-					testConnMsg.innerHTML = currentKey ? '<?php echo esc_js( __( 'লাইসেন্স কি এবং সার্ভার সংযোগ যাচাই করা হচ্ছে, অপেক্ষা করুন...', 'wc-smart-checkout-builder' ) ); ?>' : '<?php echo esc_js( __( 'লাইসেন্স সার্ভারে পিং পাঠানো হচ্ছে, অপেক্ষা করুন...', 'wc-smart-checkout-builder' ) ); ?>';
-
-					var formData = new FormData();
-					formData.append('action', 'wcsc_test_license_connection');
-					formData.append('nonce', licenseNonce);
-					if (currentKey) {
-						formData.append('license_key', currentKey);
-					}
-
-					fetch(ajaxUrl, {
-						method: 'POST',
-						body: formData,
-						credentials: 'same-origin',
-						headers: {
-							'X-Requested-With': 'XMLHttpRequest'
-						}
-					})
-					.then(function(res) {
-						return res.text().then(function(text) {
-							try {
-								return JSON.parse(text);
-							} catch (e) {
-								throw new Error(text ? text.substring(0, 180) : ('HTTP ' + res.status));
-							}
-						});
-					})
-					.then(function(res) {
-						testConnBtn.disabled = false;
-						testConnBtn.textContent = origTestText;
-						if (res && res.success) {
-							testConnMsg.style.background = '#ecfdf5';
-							testConnMsg.style.borderLeftColor = '#10b981';
-							testConnMsg.style.color = '#065f46';
-							testConnMsg.innerHTML = '✓ <strong>' + res.data.message + '</strong><br>' +
-								'<small style="font-family: monospace; font-size: 11px;">সার্ভার রেসপন্স প্রিভিউ: ' + (res.data.raw_sample || 'OK') + '</small>';
-
-							if (res.data && res.data.is_active) {
-								if (statusPill) {
-									statusPill.style.background = '#10b981';
-									statusPill.innerHTML = '✓ <?php echo esc_js( __( 'ACTIVE & VERIFIED', 'wc-smart-checkout-builder' ) ); ?>';
-								}
-								setTimeout(function() {
-									window.location.hash = '#tab-license';
-									window.location.reload();
-								}, 1200);
-							}
-						} else {
-							testConnMsg.style.background = '#fef2f2';
-							testConnMsg.style.borderLeftColor = '#ef4444';
-							testConnMsg.style.color = '#991b1b';
-							testConnMsg.innerHTML = '✕ <strong>' + (res.data && res.data.message ? res.data.message : '<?php echo esc_js( __( 'সার্ভারে সংযোগ ব্যর্থ হয়েছে।', 'wc-smart-checkout-builder' ) ); ?>') + '</strong>';
-						}
-					})
-					.catch(function(err) {
-						testConnBtn.disabled = false;
-						testConnBtn.textContent = origTestText;
-						testConnMsg.style.background = '#fef2f2';
-						testConnMsg.style.borderLeftColor = '#ef4444';
-						testConnMsg.style.color = '#991b1b';
-						testConnMsg.innerHTML = '✕ <strong><?php echo esc_js( __( 'ত্রুটি:', 'wc-smart-checkout-builder' ) ); ?></strong> ' + (err.message || 'Error');
 					});
 				});
 			}
