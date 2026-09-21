@@ -53,10 +53,9 @@ class License_Manager {
 		// Custom Webhook receiver for instant revocation from server (no wp-json required).
 		add_action( 'init', array( __CLASS__, 'handle_custom_webhook' ) );
 
-		// AJAX endpoints for dashboard license activation / deactivation / connection test.
+		// AJAX endpoints for dashboard license activation / deactivation.
 		add_action( 'wp_ajax_wcsc_activate_license', array( __CLASS__, 'ajax_activate_license' ) );
 		add_action( 'wp_ajax_wcsc_deactivate_license', array( __CLASS__, 'ajax_deactivate_license' ) );
-		add_action( 'wp_ajax_wcsc_test_license_connection', array( __CLASS__, 'ajax_test_license_connection' ) );
 
 		// Admin notice if license is inactive or blocked.
 		add_action( 'admin_notices', array( __CLASS__, 'render_admin_notice' ) );
@@ -454,89 +453,6 @@ class License_Manager {
 
 		$result = self::deactivate_license();
 		wp_send_json_success( $result );
-	}
-
-	/**
-	 * AJAX handler for live license server connection test.
-	 */
-	public static function ajax_test_license_connection() {
-		while ( ob_get_level() > 0 ) {
-			ob_end_clean();
-		}
-
-		if ( ! check_ajax_referer( 'wcsc_license_nonce', 'nonce', false ) ) {
-			wp_send_json_error( array(
-				'message' => __( 'নিরাপত্তা টোকেন (Security Nonce) মেয়াদোত্তীর্ণ হয়েছে। পেজটি রিফ্রেশ করুন।', 'wc-smart-checkout-builder' ),
-			) );
-		}
-
-		if ( ! current_user_can( 'manage_options' ) ) {
-			wp_send_json_error( array(
-				'message' => __( 'অনুমতি নেই।', 'wc-smart-checkout-builder' ),
-			) );
-		}
-
-		$domain     = self::get_site_domain();
-		$start_time = microtime( true );
-
-		$passed_key = isset( $_POST['license_key'] ) ? sanitize_text_field( wp_unslash( $_POST['license_key'] ) ) : '';
-		$ping_key   = ! empty( $passed_key ) ? $passed_key : 'TP-PING-TEST';
-		$action     = ! empty( $passed_key ) ? 'check' : 'ping';
-
-		$response = self::send_request( array(
-			'key'    => $ping_key,
-			'url'    => $domain,
-			'plugin' => self::PLUGIN_NAME,
-			'action' => $action,
-		), 15 );
-
-		$latency = round( ( microtime( true ) - $start_time ) * 1000 );
-
-		if ( is_wp_error( $response ) ) {
-			wp_send_json_error( array(
-				'message'    => sprintf( __( 'সার্ভারে সংযোগ ব্যর্থ: %s', 'wc-smart-checkout-builder' ), $response->get_error_message() ),
-				'latency_ms' => $latency,
-				'domain'     => $domain,
-				'endpoint'   => self::SERVER_URL,
-			) );
-		}
-
-		$code     = (int) wp_remote_retrieve_response_code( $response );
-		$raw_body = wp_remote_retrieve_body( $response );
-		$body     = json_decode( $raw_body );
-
-		$status     = ( isset( $body->status ) ) ? sanitize_text_field( $body->status ) : '';
-		$server_msg = ( isset( $body->message ) ) ? sanitize_text_field( $body->message ) : '';
-
-		if ( 'active' === $status ) {
-			if ( ! empty( $passed_key ) && 'TP-PING-TEST' !== $passed_key ) {
-				update_option( self::OPTION_KEY, $passed_key );
-				update_option( self::OPTION_STATUS, 'active' );
-				delete_option( 'wcsc_last_license_error' );
-				delete_option( 'wcsc_last_license_error_time' );
-				$trans_name = 'tp_license_status_' . md5( $passed_key );
-				set_transient( $trans_name, 'active', self::CACHE_TTL );
-				self::clear_caches();
-			}
-			$diag_msg = sprintf( __( 'সার্ভার সংযোগ সফল (রেসপন্স সময়: %d ms)। লাইসেন্স কি সক্রিয় ও ডাটাবেসে সেভ হয়েছে!', 'wc-smart-checkout-builder' ), $latency );
-		} elseif ( 'online' === $status ) {
-			$diag_msg = sprintf( __( 'সার্ভার সংযোগ সফল ও সচল (রেসপন্স সময়: %d ms)। লাইসেন্স সার্ভার লাইভ আছে।', 'wc-smart-checkout-builder' ), $latency );
-		} elseif ( ! empty( $server_msg ) ) {
-			$diag_msg = sprintf( __( 'সার্ভার সংযোগ সফল (রেসপন্স সময়: %d ms)। সার্ভার ফিডব্যাক: %s', 'wc-smart-checkout-builder' ), $latency, $server_msg );
-		} else {
-			$diag_msg = sprintf( __( 'সার্ভার সংযোগ সফল (HTTP %d, রেসপন্স সময়: %d ms)', 'wc-smart-checkout-builder' ), $code, $latency );
-		}
-
-		wp_send_json_success( array(
-			'message'    => $diag_msg,
-			'status'     => $status,
-			'is_active'  => ( 'active' === $status && ! empty( $passed_key ) && 'TP-PING-TEST' !== $passed_key ),
-			'http_code'  => $code,
-			'latency_ms' => $latency,
-			'domain'     => $domain,
-			'endpoint'   => self::SERVER_URL,
-			'raw_sample' => wp_strip_all_tags( substr( $raw_body, 0, 120 ) ),
-		) );
 	}
 
 	/**
