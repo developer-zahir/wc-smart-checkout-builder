@@ -250,7 +250,23 @@ class Plugin {
 	 * Enqueue assets on frontend when needed.
 	 */
 	public function enqueue_frontend_assets() {
-		wp_enqueue_style( 'wcsc-widget-style' );
+		if ( ! class_exists( '\Elementor\Plugin' ) ) {
+			return;
+		}
+
+		$post_id = get_the_ID();
+		if ( ! $post_id ) {
+			return;
+		}
+
+		$document = \Elementor\Plugin::$instance->documents->get( $post_id );
+		if ( ! $document ) {
+			return;
+		}
+
+		if ( $document->has_widget( 'wcsc_product_checkout' ) || $document->has_widget( 'wcsc_thank_you' ) ) {
+			wp_enqueue_style( 'wcsc-widget-style' );
+		}
 	}
 
 	/**

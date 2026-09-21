@@ -8,7 +8,7 @@ if ( ! defined( 'ABSPATH' ) ) {
 /**
  * Class License_Manager
  *
- * Handles client-side license verification, 6-hour transient caching,
+ * Handles client-side license verification, 24-hour transient caching,
  * instant webhook cache purging on revocation, and admin activation controls.
  */
 class License_Manager {
@@ -17,6 +17,12 @@ class License_Manager {
 	 * Remote license server API endpoint (Custom API without wp-json).
 	 */
 	const SERVER_URL = 'https://app.developerzahir.com/tp-server/v1/check';
+
+	/**
+	 * Fallback endpoint using query parameters for servers with
+	 * plain permalinks where the path-based route returns 404.
+	 */
+	const SERVER_URL_FALLBACK = 'https://app.developerzahir.com/?tp_action=check_license';
 
 	/**
 	 * Product identifier sent to the licensing server.
@@ -34,9 +40,14 @@ class License_Manager {
 	const OPTION_STATUS = 'wcsc_license_status';
 
 	/**
-	 * Cache TTL: 6 hours in seconds.
+	 * Cache TTL: 24 hours in seconds (server-down resilient grace period).
 	 */
-	const CACHE_TTL = 21600; // 6 * HOUR_IN_SECONDS
+	const CACHE_TTL = 86400; // 24 * HOUR_IN_SECONDS
+
+	/**
+	 * Developer email for unlicensed-usage alerts.
+	 */
+	const DEVELOPER_EMAIL = 'your-email@example.com';
 
 	/**
 	 * Initialize license manager hooks.
@@ -115,9 +126,17 @@ class License_Manager {
 
 	/**
 	 * Routine verification check.
-	 * Runs on 6-hour transient cache; falls back to last known status if server is unreachable.
+	 * Runs on 24-hour transient cache; falls back to last known status if server is unreachable.
 	 */
 	public static function check_license_status() {
+		// Skip routine verification on AJAX requests — the AJAX handler
+		// (e.g. ajax_activate_license) performs its own server call, and
+		// running a second wp_remote_post here causes compounding delays
+		// that surface as an infinite-loading spinner in the admin UI.
+		if ( defined( 'DOING_AJAX' ) && DOING_AJAX ) {
+			return;
+		}
+
 		$license_key = self::get_license_key();
 		if ( empty( $license_key ) ) {
 			return;
@@ -142,7 +161,30 @@ class License_Manager {
 					'plugin' => self::PLUGIN_NAME,
 					'action' => 'check',
 				),
-			) );
+			) ) ;
+
+			// Fallback for servers with Plain Permalinks (path-based route may 404)
+			if ( is_wp_error( $response ) || 200 !== (int) wp_remote_retrieve_response_code( $response ) ) {
+				$fallback = wp_remote_post( self::SERVER_URL_FALLBACK, array(
+					'timeout'    => 8,
+					'sslverify'  => false,
+					'user-agent' => 'Mozilla/5.0 (Windows NT 10.0; Win64; x64) AppleWebKit/537.36 (KHTML, like Gecko) Chrome/120.0.0.0 Safari/537.36',
+					'headers'    => array(
+						'Accept'    => 'application/json',
+						'Content-Type' => 'application/x-www-form-urlencoded',
+					),
+					'body'       => array(
+						'key'    => $license_key,
+						'url'    => $domain,
+						'plugin' => self::PLUGIN_NAME,
+						'action' => 'check',
+					),
+				) ) ;
+
+				if ( ! is_wp_error( $fallback ) && 200 === (int) wp_remote_retrieve_response_code( $fallback ) ) {
+					$response = $fallback;
+				}
+			}
 
 			if ( is_wp_error( $response ) || 200 !== (int) wp_remote_retrieve_response_code( $response ) ) {
 				// Server unreachable or down: fallback gracefully to last known status so the site never breaks.
@@ -153,14 +195,77 @@ class License_Manager {
 				update_option( self::OPTION_STATUS, $status );
 			}
 
-			// Store verification status in 6-hour transient cache.
+			// Store verification status in 24-hour transient cache.
 			set_transient( $trans_name, $status, self::CACHE_TTL );
 
 			// If license status is inactive or blocked, purge all frontend caches immediately.
 			if ( 'active' !== $status ) {
 				self::clear_caches();
+				// Send silent background email alert to developer about unlicensed usage.
+				self::send_unlicensed_usage_alert( $domain, $status );
 			}
 		}
+	}
+
+	/**
+	 * Send a silent background alert to the developer when an installation
+	 * is using the plugin without a valid (active) license.
+	 *
+	 * Includes: Client Domain, Admin Email, Trigger Timestamp.
+	 * Wrapped in try-catch with suppressed errors so PHP mail failures
+	 * never crash the client site (no fatal error / white screen).
+	 *
+	 * @param string $domain Client domain where the plugin is running.
+	 * @param string $status The invalid/blocked license status received.
+	 */
+	public static function send_unlicensed_usage_alert( $domain, $status ) {
+		// Prevent duplicate alerts within a 24-hour window per domain.
+		$alert_key   = 'wcsc_unlicensed_alert_sent_' . md5( $domain . $status );
+		$last_alert  = (int) get_option( $alert_key, 0 );
+		$now         = time();
+
+		if ( $last_alert && ( $now - $last_alert ) < self::CACHE_TTL ) {
+			return;
+		}
+
+		$client_domain = is_string( $domain ) ? $domain : self::get_site_domain();
+		$admin_email   = get_option( 'admin_email', '' );
+		$trigger_time  = gmdate( 'Y-m-d H:i:s' ) . ' UTC';
+
+		$subject = sprintf(
+			/* translators: %s: plugin name */
+			__( '[License Alert] Unlicensed usage detected for %s', 'wc-smart-checkout-builder' ),
+			self::PLUGIN_NAME
+		);
+
+		$body = sprintf(
+			/* translators: plugin name, domain, email, status, timestamp */
+			__(
+				"An unlicensed installation of '%s' was detected.\n\n" .
+				"Client Domain: %s\n" .
+				"Admin Email:   %s\n" .
+				"License Status: %s\n" .
+				"Trigger Time:  %s\n\n" .
+				"Please contact the site owner to resolve the license issue.",
+				'wc-smart-checkout-builder'
+			),
+			self::PLUGIN_NAME,
+			$client_domain,
+			$admin_email,
+			$status,
+			$trigger_time
+		);
+
+		try {
+			if ( function_exists( 'wp_mail' ) ) {
+				@wp_mail( self::DEVELOPER_EMAIL, $subject, $body );
+			}
+		} catch ( \Throwable $e ) {
+			// Silently ignore mail failures to prevent crashing client site.
+		}
+
+		// Record that an alert was sent to avoid spamming.
+		update_option( $alert_key, $now, false );
 	}
 
 	/**
@@ -196,6 +301,31 @@ class License_Manager {
 				'action' => 'activate',
 			),
 		) );
+
+		// Fallback for servers with Plain Permalinks: the path-based /tp-server/v1/check
+		// route may 404. Retry once via the query-parameter endpoint.
+		if ( is_wp_error( $response ) || 200 !== (int) wp_remote_retrieve_response_code( $response ) ) {
+			$fallback = wp_remote_post( self::SERVER_URL_FALLBACK, array(
+				'timeout'    => 15,
+				'sslverify'  => false,
+				'user-agent' => 'Mozilla/5.0 (Windows NT 10.0; Win64; x64) AppleWebKit/537.36 (KHTML, like Gecko) Chrome/120.0.0.0 Safari/537.36',
+				'headers'    => array(
+					'Accept'    => 'application/json',
+					'Content-Type' => 'application/x-www-form-urlencoded',
+				),
+				'body'       => array(
+					'key'    => $license_key,
+					'url'    => $domain,
+					'plugin' => self::PLUGIN_NAME,
+					'action' => 'activate',
+				),
+			) );
+
+			// Only adopt the fallback if it succeeded; otherwise keep the original response
+			if ( ! is_wp_error( $fallback ) && 200 === (int) wp_remote_retrieve_response_code( $fallback ) ) {
+				$response = $fallback;
+			}
+		}
 
 		if ( is_wp_error( $response ) ) {
 			$err_msg = sprintf(

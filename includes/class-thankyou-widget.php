@@ -350,14 +350,7 @@ class ThankYou_Widget extends Widget_Base {
 			.wcsc-ty-address-col h3 { margin: 0 0 10px 0; font-size: 1.05rem; font-weight: 600; color: #1a202c; }
 			.wcsc-ty-address-col address { font-style: normal; line-height: 1.5; color: #4a5568; font-size: 0.925rem; }
 
-			/* Suppress default WooCommerce Thank You duplicate content */
-			.woocommerce-order-received .woocommerce > .woocommerce-thankyou-order-received:not(.wcsc-ty-success-title),
-			.woocommerce-order-received .woocommerce > .woocommerce-order-overview,
-			.woocommerce-order-received .woocommerce > .woocommerce-order-details,
-			.woocommerce-order-received .woocommerce > .woocommerce-customer-details,
-			.woocommerce-order-received .woocommerce > p:first-child:not(.wcsc-thank-you-wrapper *),
-			.woocommerce-order-received .woocommerce-order-details,
-			.woocommerce-order-received .woocommerce-customer-details,
+			/* Suppress default WooCommerce Thank You duplicate content (scoped to widget context) */
 			.elementor-widget-wcsc_thank_you ~ .woocommerce-order-details,
 			.elementor-widget-wcsc_thank_you ~ .woocommerce-customer-details,
 			.elementor-widget-wcsc_thank_you ~ .woocommerce-order-overview,

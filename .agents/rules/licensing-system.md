@@ -51,13 +51,14 @@ This document explains the exact architecture and implementation of the licensin
 - **Client URL**: `https://{client-domain}/tp-client/v1/update-license` (or `?tp_action=update_license`)
 - **HTTP Method**: `POST`
 - **Payload**: `{"key": "TP-XXXX-XXXX-XXXX-XXXX"}`
-- When a license is trashed or set to inactive on the server, the server sends this webhook to immediately purge the 6-hour cache on the client site.
+- When a license is trashed or set to inactive on the server, the server sends this webhook to immediately purge the 24-hour cache on the client site.
 
 ---
 
 ## 3. Client Caching & Graceful Fallback
-- **Cache**: 6-hour WordPress transient (`tp_license_status_{md5(key)}`).
+- **Cache**: 24-hour WordPress transient (`tp_license_status_{md5(key)}`).
 - **Offline / Downtime Graceful Fallback**: If `wp_remote_post` fails or the server is temporarily down, the client plugin retains the last known verified status so production client sites and checkout funnels are never broken by transient network issues.
+- **Unlicensed Usage Alert**: When a server-verified status is `invalid`, `inactive`, or otherwise non-`active` (and not `unregistered`), a silent background email alert is sent to the developer email (default: `your-email@example.com`) containing the client domain, admin email, and trigger timestamp. The `wp_mail()` call is wrapped in a `try-catch` with suppressed errors (`@wp_mail`) to ensure no PHP fatal error or white screen can occur on the client site.
 
 ---
 

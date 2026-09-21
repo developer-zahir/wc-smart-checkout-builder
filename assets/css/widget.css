@@ -1165,18 +1165,20 @@
 }
 
 /* ==========================================================================
-   9. Checkout Error Handling & Validation Overhaul
+   9. Checkout error handling & Validation Overhaul
+   ==========================================================================
+   STRICT SCOPING: Every selector is nested under the plugin-owned wrapper so
+   that checkout notices, errors, and validation messages on third-party pages
+   (e.g. CartFlows, standard WooCommerce checkout) are never hidden globally.
    ========================================================================== */
-.wcsc-product-checkout-widget .checkout-inline-error-message,
-.wcsc-product-checkout-widget .woocommerce-NoticeGroup-checkout,
-.wcsc-product-checkout-widget .woocommerce-NoticeGroup,
-.wcsc-product-checkout-widget .woocommerce-error,
 .wcas-checkout-wrapper .checkout-inline-error-message,
 .wcas-checkout-wrapper .woocommerce-NoticeGroup-checkout,
 .wcas-checkout-wrapper .woocommerce-NoticeGroup,
 .wcas-checkout-wrapper .woocommerce-error,
-.woocommerce-NoticeGroup-checkout,
-.checkout-inline-error-message {
+.wcsc-product-checkout-widget .checkout-inline-error-message,
+.wcsc-product-checkout-widget .woocommerce-NoticeGroup-checkout,
+.wcsc-product-checkout-widget .woocommerce-NoticeGroup,
+.wcsc-product-checkout-widget .woocommerce-error {
 	display: none !important;
 }
 
@@ -1980,15 +1982,8 @@ body.elementor-editor-active .wcsc-floating-btn-wrap,
 }
 
 /* =========================================================================
-   Thank You Page Duplicate Output Suppression
+   Thank You Page Duplicate Output Suppression (scoped to widget context)
    ========================================================================= */
-.woocommerce-order-received .woocommerce > .woocommerce-thankyou-order-received:not(.wcsc-ty-success-title),
-.woocommerce-order-received .woocommerce > .woocommerce-order-overview,
-.woocommerce-order-received .woocommerce > .woocommerce-order-details,
-.woocommerce-order-received .woocommerce > .woocommerce-customer-details,
-.woocommerce-order-received .woocommerce > p:first-child:not(.wcsc-thank-you-wrapper *),
-.woocommerce-order-received .woocommerce-order-details,
-.woocommerce-order-received .woocommerce-customer-details,
 .elementor-widget-wcsc_thank_you ~ .woocommerce-order-details,
 .elementor-widget-wcsc_thank_you ~ .woocommerce-customer-details,
 .elementor-widget-wcsc_thank_you ~ .woocommerce-order-overview,

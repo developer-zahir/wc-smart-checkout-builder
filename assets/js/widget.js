@@ -125,8 +125,9 @@
 				self.debouncedSync();
 			});
 
-			// Listen to WooCommerce checkout updates
+			// Listen to WooCommerce checkout updates (guarded: only when our wrapper is present)
 			$(document.body).on('updated_checkout', function (event, data) {
+				if (!self.$container.find('.wcas-checkout-wrapper').length && !$('.wcas-checkout-wrapper').length) return;
 				self.hideLoading();
 				self.applyCustomTexts();
 				self.styleShippingMethods();
@@ -135,8 +136,8 @@
 				// Synchronously sync Order Now button price
 				self.syncOrderButtonPrice();
 
-				// Suppress any WooCommerce error notices injected during AJAX
-				$('.woocommerce-NoticeGroup-checkout, .woocommerce-NoticeGroup, .woocommerce-error, .checkout-inline-error-message').hide().remove();
+				// Suppress any WooCommerce error notices injected during AJAX (scoped)
+				$('.wcsc-product-checkout-widget .woocommerce-NoticeGroup-checkout, .wcsc-product-checkout-widget .woocommerce-NoticeGroup, .wcsc-product-checkout-widget .woocommerce-error, .wcsc-product-checkout-widget .checkout-inline-error-message, .wcas-checkout-wrapper .woocommerce-NoticeGroup-checkout, .wcas-checkout-wrapper .woocommerce-NoticeGroup, .wcas-checkout-wrapper .woocommerce-error, .wcas-checkout-wrapper .checkout-inline-error-message').hide().remove();
 
 				// Ensure Order Review item thumbnail matches current selected variation ONLY for main product (first item)
 				if (self.currentVariationId && self.variations.length) {
@@ -157,8 +158,9 @@
 				self.$container.find('.wcas-block-payment #place_order, .wcas-block-payment .place-order').remove();
 			});
 
-			// Catch WooCommerce AJAX updates for shipping/totals recalculation
+			// Catch WooCommerce AJAX updates for shipping/totals recalculation (guarded)
 			$(document).ajaxComplete(function (event, xhr, settings) {
+				if (!$('.wcas-checkout-wrapper').length) return;
 				if (settings && ((settings.data && typeof settings.data === 'string' && settings.data.indexOf('update_order_review') !== -1) || (settings.url && settings.url.indexOf('update_order_review') !== -1))) {
 					setTimeout(function () {
 						self.syncOrderButtonPrice();
@@ -167,19 +169,22 @@
 			});
 
 			$(document.body).on('checkout_error', function () {
+				if (!$('.wcas-checkout-wrapper').length) return;
 				self.hideLoading();
 				self.styleShippingMethods();
-				$('.woocommerce-NoticeGroup-checkout, .woocommerce-NoticeGroup, .woocommerce-error, .checkout-inline-error-message').hide().remove();
+				$('.wcsc-product-checkout-widget .woocommerce-NoticeGroup-checkout, .wcsc-product-checkout-widget .woocommerce-NoticeGroup, .wcsc-product-checkout-widget .woocommerce-error, .wcsc-product-checkout-widget .checkout-inline-error-message, .wcas-checkout-wrapper .woocommerce-NoticeGroup-checkout, .wcas-checkout-wrapper .woocommerce-NoticeGroup, .wcas-checkout-wrapper .woocommerce-error, .wcas-checkout-wrapper .checkout-inline-error-message').hide().remove();
 			});
 
-			// Listen for WooCommerce variation events
+			// Listen for WooCommerce variation events (guarded: only when our wrapper is present)
 			$(document.body).on('found_variation', function (event, variation) {
+				if (!$('.wcas-checkout-wrapper').length) return;
 				if (variation) {
 					self.debouncedSync();
 				}
 			});
 
 			$(document.body).on('reset_data', function () {
+				if (!$('.wcas-checkout-wrapper').length) return;
 				self.debouncedSync();
 			});
 
@@ -697,8 +702,11 @@
 			if (customPrice) {
 				decodedTotal = this.decodeHtmlEntities(customPrice);
 			} else {
-				// Extract the updated grand total from WooCommerce order review table
-				var $totalElement = $('.order-total .amount, tr.order-total .woocommerce-Price-amount, .woocommerce-checkout-review-order-table tr.order-total .woocommerce-Price-amount').last();
+				// Extract the updated grand total from WooCommerce order review table (scoped to our container)
+				var $totalElement = this.$container.find('.order-total .amount, tr.order-total .woocommerce-Price-amount, .wcsc-ty-totals td, .woocommerce-checkout-review-order-table tr.order-total .woocommerce-Price-amount, .woocommerce-checkout-review-order-table .order-total .woocommerce-Price-amount').last();
+				if (!$totalElement.length) {
+					$totalElement = this.$container.find('.wcas-checkout-wrapper .order-total .amount, .wcas-checkout-wrapper tr.order-total .woocommerce-Price-amount').last();
+				}
 				if ($totalElement.length) {
 					var rawHtml = $totalElement.html();
 					decodedTotal = this.decodeHtmlEntities(rawHtml);
@@ -712,8 +720,8 @@
 			// Clean non-breaking spaces and tags
 			decodedTotal = decodedTotal.replace(/\u00a0/g, ' ').replace(/<[^>]*>/g, '').trim();
 
-			// Update all order buttons synchronously
-			var $buttons = $(document).find('#place_order, .wcsc-order-now-btn, .wcas-block-order-button button');
+			// Update all order buttons synchronously (scoped to our container only)
+			var $buttons = this.$container.find('#place_order, .wcsc-order-now-btn, .wcas-block-order-button button');
 			$buttons.each(function () {
 				var $button = $(this);
 				var templateText = $button.attr('data-template-text') || $button.data('template-text');
@@ -746,7 +754,7 @@
 				$button.find('.wcsc-btn-price').text(decodedTotal);
 			});
 
-			$(document).find('.wcsc-btn-price').text(decodedTotal);
+			this.$container.find('.wcsc-btn-price').text(decodedTotal);
 		},
 
 		updateButtonPrice: function (priceText) {
