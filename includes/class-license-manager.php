@@ -306,7 +306,7 @@ class License_Manager {
 			'key'    => $license_key,
 			'url'    => $domain,
 			'plugin' => self::PLUGIN_NAME,
-			'action' => 'activate',
+			'action' => 'check',
 		);
 
 		$response = self::send_request( $payload, 15 );
@@ -542,7 +542,16 @@ class License_Manager {
 		$server_msg = ( isset( $body->message ) ) ? sanitize_text_field( $body->message ) : '';
 
 		if ( 'active' === $status ) {
-			$diag_msg = sprintf( __( 'সার্ভার সংযোগ সফল (রেসপন্স সময়: %d ms)। লাইসেন্স কি সক্রিয় ও বৈধ!', 'wc-smart-checkout-builder' ), $latency );
+			if ( ! empty( $passed_key ) && 'TP-PING-TEST' !== $passed_key ) {
+				update_option( self::OPTION_KEY, $passed_key );
+				update_option( self::OPTION_STATUS, 'active' );
+				delete_option( 'wcsc_last_license_error' );
+				delete_option( 'wcsc_last_license_error_time' );
+				$trans_name = 'tp_license_status_' . md5( $passed_key );
+				set_transient( $trans_name, 'active', self::CACHE_TTL );
+				self::clear_caches();
+			}
+			$diag_msg = sprintf( __( 'সার্ভার সংযোগ সফল (রেসপন্স সময়: %d ms)। লাইসেন্স কি সক্রিয় ও ডাটাবেসে সেভ হয়েছে!', 'wc-smart-checkout-builder' ), $latency );
 		} elseif ( 'online' === $status ) {
 			$diag_msg = sprintf( __( 'সার্ভার সংযোগ সফল ও সচল (রেসপন্স সময়: %d ms)। লাইসেন্স সার্ভার লাইভ আছে।', 'wc-smart-checkout-builder' ), $latency );
 		} elseif ( ! empty( $server_msg ) ) {
@@ -553,6 +562,8 @@ class License_Manager {
 
 		wp_send_json_success( array(
 			'message'    => $diag_msg,
+			'status'     => $status,
+			'is_active'  => ( 'active' === $status && ! empty( $passed_key ) && 'TP-PING-TEST' !== $passed_key ),
 			'http_code'  => $code,
 			'latency_ms' => $latency,
 			'domain'     => $domain,

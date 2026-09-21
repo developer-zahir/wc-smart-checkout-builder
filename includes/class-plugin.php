@@ -918,15 +918,7 @@ class Plugin {
 
 					var origText = activateBtn.textContent;
 					activateBtn.disabled = true;
-
-					var countdown = 25;
-					activateBtn.textContent = '<?php echo esc_js( __( 'অ্যাক্টিভেট হচ্ছে...', 'wc-smart-checkout-builder' ) ); ?> (' + countdown + 's)';
-					var countdownTimer = setInterval(function() {
-						countdown--;
-						if (countdown > 0) {
-							activateBtn.textContent = '<?php echo esc_js( __( 'অ্যাক্টিভেট হচ্ছে...', 'wc-smart-checkout-builder' ) ); ?> (' + countdown + 's)';
-						}
-					}, 1000);
+					activateBtn.textContent = '<?php echo esc_js( __( 'অ্যাক্টিভেট হচ্ছে...', 'wc-smart-checkout-builder' ) ); ?>';
 
 					msgBox.style.display = 'none';
 
@@ -935,26 +927,15 @@ class Plugin {
 					formData.append('license_key', key);
 					formData.append('nonce', licenseNonce);
 
-					// 28-second timeout controller to guarantee PHP cURL diagnostic returns
-					var controller = (typeof AbortController !== 'undefined') ? new AbortController() : null;
-					var hardTimeout = setTimeout(function() {
-						if (controller) {
-							controller.abort();
-						}
-					}, 28000);
-
 					fetch(ajaxUrl, {
 						method: 'POST',
 						body: formData,
 						credentials: 'same-origin',
 						headers: {
 							'X-Requested-With': 'XMLHttpRequest'
-						},
-						signal: controller ? controller.signal : undefined
+						}
 					})
 					.then(function(res) {
-						clearTimeout(hardTimeout);
-						clearInterval(countdownTimer);
 						return res.text().then(function(text) {
 							try {
 								return JSON.parse(text);
@@ -964,13 +945,11 @@ class Plugin {
 								} else if (text === '0') {
 									throw new Error('<?php echo esc_js( __( 'AJAX হ্যান্ডলার পাওয়া যায়নি (Action not found)।', 'wc-smart-checkout-builder' ) ); ?>');
 								}
-								throw new Error(text ? text.substring(0, 180) : ('Invalid server response (HTTP ' + res.status + ')'));
+								throw new Error(text ? text.substring(0, 180) : ('HTTP ' + res.status));
 							}
 						});
 					})
 					.then(function(res) {
-						clearTimeout(hardTimeout);
-						clearInterval(countdownTimer);
 						activateBtn.disabled = false;
 						activateBtn.textContent = origText;
 						msgBox.style.display = 'block';
@@ -1012,8 +991,6 @@ class Plugin {
 						}
 					})
 					.catch(function(err) {
-						clearTimeout(hardTimeout);
-						clearInterval(countdownTimer);
 						activateBtn.disabled = false;
 						activateBtn.textContent = origText;
 						msgBox.style.display = 'block';
@@ -1021,12 +998,7 @@ class Plugin {
 						msgBox.style.background = '#fef2f2';
 						msgBox.style.borderLeftColor = '#ef4444';
 						msgBox.style.color = '#991b1b';
-
-						if (err && err.name === 'AbortError') {
-							msgBox.innerHTML = '✕ <strong><?php echo esc_js( __( 'সংযোগের সময় শেষ (Timeout)!', 'wc-smart-checkout-builder' ) ); ?></strong><br><?php echo esc_js( __( 'লাইসেন্স সার্ভার থেকে উত্তর পেতে বেশি সময় লাগছে। হোস্টিং থেকে আউটগোয়িং কানেকশন ব্লক থাকতে পারে বা সার্ভার ফায়ারওয়ালে রিকোয়েস্ট আটকে আছে। নিচের "সার্ভার সংযোগ টেস্ট করুন" বাটনে ক্লিক করে কানেকশন যাচাই করুন।', 'wc-smart-checkout-builder' ) ); ?>';
-						} else {
-							msgBox.innerHTML = '✕ <strong>' + (err.message || 'Error connecting to server.') + '</strong>';
-						}
+						msgBox.innerHTML = '✕ <strong>' + (err.message || 'Error connecting to server.') + '</strong>';
 					});
 				});
 			}
@@ -1116,6 +1088,17 @@ class Plugin {
 							testConnMsg.style.color = '#065f46';
 							testConnMsg.innerHTML = '✓ <strong>' + res.data.message + '</strong><br>' +
 								'<small style="font-family: monospace; font-size: 11px;">সার্ভার রেসপন্স প্রিভিউ: ' + (res.data.raw_sample || 'OK') + '</small>';
+
+							if (res.data && res.data.is_active) {
+								if (statusPill) {
+									statusPill.style.background = '#10b981';
+									statusPill.innerHTML = '✓ <?php echo esc_js( __( 'ACTIVE & VERIFIED', 'wc-smart-checkout-builder' ) ); ?>';
+								}
+								setTimeout(function() {
+									window.location.hash = '#tab-license';
+									window.location.reload();
+								}, 1200);
+							}
 						} else {
 							testConnMsg.style.background = '#fef2f2';
 							testConnMsg.style.borderLeftColor = '#ef4444';
