@@ -83,7 +83,6 @@ class Updater {
 			}
 		}
 
-		$url = sprintf( 'https://api.github.com/repos/%s/releases/latest', $this->repository );
 		$args = array(
 			'timeout' => 10,
 			'headers' => array(
@@ -92,21 +91,23 @@ class Updater {
 			),
 		);
 
+		$release_data = false;
+
+		// 1. Fetch latest formal release
+		$url      = sprintf( 'https://api.github.com/repos/%s/releases/latest', $this->repository );
 		$response = wp_remote_get( $url, $args );
 
-		// 1. If release found
 		if ( ! is_wp_error( $response ) && 200 === wp_remote_retrieve_response_code( $response ) ) {
 			$body = wp_remote_retrieve_body( $response );
 			$data = json_decode( $body );
 
 			if ( ! empty( $data ) && is_object( $data ) && ! empty( $data->tag_name ) ) {
-				set_site_transient( $this->cache_key, $data, HOUR_IN_SECONDS );
-				return $data;
+				$release_data = $data;
 			}
 		}
 
-		// 2. Fallback: Query tags endpoint if no formal release is drafted
-		$tags_url = sprintf( 'https://api.github.com/repos/%s/tags', $this->repository );
+		// 2. Fetch tags to ensure we never miss a newer git tag even if formal release was not published
+		$tags_url      = sprintf( 'https://api.github.com/repos/%s/tags', $this->repository );
 		$tags_response = wp_remote_get( $tags_url, $args );
 
 		if ( ! is_wp_error( $tags_response ) && 200 === wp_remote_retrieve_response_code( $tags_response ) ) {
@@ -115,15 +116,29 @@ class Updater {
 
 			if ( ! empty( $tags_data ) && is_array( $tags_data ) && ! empty( $tags_data[0]->name ) ) {
 				$latest_tag = $tags_data[0];
-				$data = (object) array(
-					'tag_name'    => $latest_tag->name,
-					'zipball_url' => $latest_tag->zipball_url,
-					'assets'      => array(),
-					'body'        => sprintf( 'Update to version %s.', ltrim( $latest_tag->name, 'v' ) ),
-				);
-				set_site_transient( $this->cache_key, $data, HOUR_IN_SECONDS );
-				return $data;
+				$tag_ver    = ltrim( $latest_tag->name, 'v' );
+				$rel_ver    = $release_data ? ltrim( $release_data->tag_name, 'v' ) : '0.0.0';
+
+				if ( version_compare( $tag_ver, $rel_ver, '>' ) || ! $release_data ) {
+					$tag_asset_url = sprintf( 'https://github.com/%s/raw/%s/wc-smart-checkout-builder.zip', $this->repository, $latest_tag->name );
+					$release_data  = (object) array(
+						'tag_name'    => $latest_tag->name,
+						'zipball_url' => $latest_tag->zipball_url,
+						'assets'      => array(
+							(object) array(
+								'name'                 => 'wc-smart-checkout-builder.zip',
+								'browser_download_url' => $tag_asset_url,
+							),
+						),
+						'body'        => sprintf( 'Update to version %s.', $tag_ver ),
+					);
+				}
 			}
+		}
+
+		if ( $release_data ) {
+			set_site_transient( $this->cache_key, $release_data, HOUR_IN_SECONDS );
+			return $release_data;
 		}
 
 		return false;
