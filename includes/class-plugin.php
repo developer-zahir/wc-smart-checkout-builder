@@ -318,22 +318,16 @@ class Plugin {
 	}
 
 	/**
-	 * Sanitize and auto-verify license key on settings save.
+	 * Sanitize license key input string.
+	 *
+	 * Note: Never invoke remote API calls or activate_license() inside a
+	 * sanitize callback, as update_option() triggers sanitize_callback recursively.
 	 *
 	 * @param string $key
 	 * @return string
 	 */
 	public function sanitize_license_key( $key ) {
-		$key     = sanitize_text_field( trim( $key ) );
-		$old_key = License_Manager::get_license_key();
-
-		if ( ! empty( $key ) && ( $key !== $old_key || 'active' !== License_Manager::get_license_status() ) ) {
-			License_Manager::activate_license( $key );
-		} elseif ( empty( $key ) && ! empty( $old_key ) ) {
-			License_Manager::deactivate_license();
-		}
-
-		return $key;
+		return sanitize_text_field( trim( (string) $key ) );
 	}
 
 	/**
