@@ -32,6 +32,10 @@ class ThankYou_Widget extends Widget_Base {
 	public function get_categories() { return array( 'wcsc-category', 'woocommerce-elements' ); }
 	public function get_keywords() { return array( 'woocommerce', 'thank you', 'order', 'details', 'checkout' ); }
 
+	public function get_style_depends() {
+		return array( 'wcsc-widget-style' );
+	}
+
 	protected function register_controls() {
 		$this->start_controls_section( 'section_content_general', [
 			'label' => esc_html__( 'General / Success Message', 'wc-smart-checkout-builder' ),

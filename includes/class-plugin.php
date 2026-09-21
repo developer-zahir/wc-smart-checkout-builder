@@ -47,7 +47,6 @@ class Plugin {
 		// Register Scripts & Styles.
 		add_action( 'wp_enqueue_scripts', array( $this, 'register_assets' ) );
 		add_action( 'elementor/editor/before_enqueue_scripts', array( $this, 'enqueue_editor_assets' ) );
-		add_action( 'elementor/frontend/after_enqueue_styles', array( $this, 'enqueue_frontend_assets' ) );
 
 		// AJAX search products endpoint for Elementor controls.
 		add_action( 'wp_ajax_wcsc_search_products', array( $this, 'ajax_search_products' ) );
@@ -244,29 +243,6 @@ class Plugin {
 			WCSC_VERSION,
 			true
 		);
-	}
-
-	/**
-	 * Enqueue assets on frontend when needed.
-	 */
-	public function enqueue_frontend_assets() {
-		if ( ! class_exists( '\Elementor\Plugin' ) ) {
-			return;
-		}
-
-		$post_id = get_the_ID();
-		if ( ! $post_id ) {
-			return;
-		}
-
-		$document = \Elementor\Plugin::$instance->documents->get( $post_id );
-		if ( ! $document ) {
-			return;
-		}
-
-		if ( $document->has_widget( 'wcsc_product_checkout' ) || $document->has_widget( 'wcsc_thank_you' ) ) {
-			wp_enqueue_style( 'wcsc-widget-style' );
-		}
 	}
 
 	/**
