@@ -4,3 +4,6 @@
 Thumbs.db
 requirement.txt
 
+# License Server — Server-side reference code, never committed to public repo
+server/
+

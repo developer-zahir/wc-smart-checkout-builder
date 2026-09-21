@@ -8,6 +8,7 @@
  * Author URI:        https://developerzahir.com
  * Text Domain:       wc-smart-checkout-builder
  * Domain Path:       /languages
+ * GitHub Plugin URI: https://github.com/developer-zahir/wc-smart-checkout-builder
  * Requires at least: 5.8
  * Requires PHP:      7.4
  * WC requires at least: 5.0
