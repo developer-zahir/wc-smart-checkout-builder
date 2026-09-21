@@ -14,16 +14,6 @@ class ThankYou_Widget extends Widget_Base {
 
 	public function __construct( $data = array(), $args = null ) {
 		parent::__construct( $data, $args );
-		add_action( 'template_redirect', array( __CLASS__, 'suppress_default_thankyou_details' ), 5 );
-	}
-
-	/**
-	 * Suppress default WooCommerce thank you page template output.
-	 */
-	public static function suppress_default_thankyou_details() {
-		if ( function_exists( 'is_order_received_page' ) && is_order_received_page() ) {
-			remove_action( 'woocommerce_thankyou', 'woocommerce_order_details_table', 10 );
-		}
 	}
 
 	public function get_name() { return 'wcsc_thank_you'; }

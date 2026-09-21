@@ -128,12 +128,49 @@ class Checkout_Handler {
 	}
 
 	/**
+	 * Check if current execution context is within the WC Smart Checkout widget.
+	 *
+	 * Returns true ONLY when:
+	 * 1. An active widget render cycle is currently executing in PHP (`self::$active_widget_settings` is set).
+	 * 2. An AJAX request (such as `update_order_review` or `checkout`) contains our widget's signature `wcsc_is_smart_checkout`.
+	 *
+	 * Returns false for standard WooCommerce checkouts, CartFlows steps, and third-party checkout plugins.
+	 *
+	 * @return bool
+	 */
+	public static function is_widget_checkout_context() {
+		// Active widget rendering in progress
+		if ( ! empty( self::$active_widget_settings ) ) {
+			return true;
+		}
+
+		// AJAX checkout / update_order_review containing our form hidden field
+		if ( isset( $_POST['post_data'] ) ) {
+			$post_data = (string) $_POST['post_data'];
+			if ( strpos( $post_data, 'wcsc_is_smart_checkout' ) !== false ) {
+				return true;
+			}
+		}
+
+		// Direct POST field
+		if ( isset( $_POST['wcsc_is_smart_checkout'] ) && ( 'yes' === $_POST['wcsc_is_smart_checkout'] || '1' === (string) $_POST['wcsc_is_smart_checkout'] ) ) {
+			return true;
+		}
+
+		return false;
+	}
+
+	/**
 	 * Filter the WooCommerce checkout place order button text.
 	 *
 	 * @param string $button_text
 	 * @return string
 	 */
 	public static function filter_order_button_text( $button_text ) {
+		if ( ! self::is_widget_checkout_context() ) {
+			return $button_text;
+		}
+
 		if ( ! empty( self::$active_widget_settings['order_button_text'] ) ) {
 			return sanitize_text_field( self::$active_widget_settings['order_button_text'] );
 		}
@@ -147,13 +184,13 @@ class Checkout_Handler {
 	 * @return string
 	 */
 	public static function filter_order_button_html( $button_html ) {
-		if ( empty( self::$active_widget_settings ) ) {
+		// If not inside our widget context, leave the default order button completely untouched.
+		if ( ! self::is_widget_checkout_context() ) {
 			return $button_html;
 		}
 
-		// Prevent duplicate order button from being rendered inside #payment by WooCommerce core or AJAX.
-		// Only output button markup when our own dedicated .wcas-block-order-button is actively rendering.
-		if ( ! self::$is_rendering_plugin_order_button ) {
+		// Inside our widget, only render button markup when our own dedicated .wcas-block-order-button is actively rendering.
+		if ( ! self::$is_rendering_plugin_order_button || empty( self::$active_widget_settings ) ) {
 			return '';
 		}
 
@@ -255,7 +292,7 @@ class Checkout_Handler {
 	 * @return string
 	 */
 	public static function filter_checkout_gettext( $translated_text, $text, $domain ) {
-		if ( empty( self::$active_widget_settings ) ) {
+		if ( ! self::is_widget_checkout_context() || empty( self::$active_widget_settings ) ) {
 			return $translated_text;
 		}
 
@@ -297,25 +334,18 @@ class Checkout_Handler {
 			return $item_name;
 		}
 
-		$show_image = false;
-		$is_wcsc    = false;
-
-		if ( ! empty( self::$active_widget_settings ) ) {
-			$is_wcsc    = true;
-			$show_image = ( ! isset( self::$active_widget_settings['show_cart_item_image'] ) || 'yes' === self::$active_widget_settings['show_cart_item_image'] );
-		} elseif ( function_exists( 'WC' ) && WC()->session && 'yes' === WC()->session->get( 'wcsc_is_smart_checkout' ) ) {
-			$is_wcsc    = true;
-			$show_image = ( 'no' !== WC()->session->get( 'wcsc_show_cart_item_image' ) );
-		} elseif ( isset( $_POST['post_data'] ) ) {
-			parse_str( sanitize_text_field( wp_unslash( $_POST['post_data'] ) ), $post_vars );
-			if ( ! empty( $post_vars['wcsc_is_smart_checkout'] ) || isset( $post_vars['wcsc_show_cart_item_image'] ) ) {
-				$is_wcsc    = true;
-				$show_image = ( ! isset( $post_vars['wcsc_show_cart_item_image'] ) || 'yes' === $post_vars['wcsc_show_cart_item_image'] );
-			}
+		if ( ! self::is_widget_checkout_context() ) {
+			return $item_name;
 		}
 
-		if ( ! $is_wcsc ) {
-			return $item_name;
+		$show_image = true;
+		if ( ! empty( self::$active_widget_settings ) ) {
+			$show_image = ( ! isset( self::$active_widget_settings['show_cart_item_image'] ) || 'yes' === self::$active_widget_settings['show_cart_item_image'] );
+		} elseif ( isset( $_POST['post_data'] ) ) {
+			parse_str( sanitize_text_field( wp_unslash( $_POST['post_data'] ) ), $post_vars );
+			if ( isset( $post_vars['wcsc_show_cart_item_image'] ) && 'no' === $post_vars['wcsc_show_cart_item_image'] ) {
+				$show_image = false;
+			}
 		}
 
 		$qty      = isset( $cart_item['quantity'] ) ? absint( $cart_item['quantity'] ) : 1;
@@ -343,10 +373,10 @@ class Checkout_Handler {
 	 * @return string
 	 */
 	public static function filter_cart_item_quantity( $quantity_html, $cart_item, $cart_item_key ) {
-		if ( ! empty( self::$active_widget_settings ) || ( function_exists( 'WC' ) && WC()->session && 'yes' === WC()->session->get( 'wcsc_is_smart_checkout' ) ) || ( isset( $_POST['post_data'] ) && strpos( $_POST['post_data'], 'wcsc_is_smart_checkout' ) !== false ) ) {
-			return '';
+		if ( ! self::is_widget_checkout_context() ) {
+			return $quantity_html;
 		}
-		return $quantity_html;
+		return '';
 	}
 
 	/**
@@ -366,18 +396,14 @@ class Checkout_Handler {
 		self::$review_order_html      = null;
 		self::$order_bump_rendered    = false;
 
-		if ( function_exists( 'WC' ) && WC()->session ) {
-			$show_img_val = ( ! isset( $settings['show_cart_item_image'] ) || 'yes' === $settings['show_cart_item_image'] ) ? 'yes' : 'no';
-			WC()->session->set( 'wcsc_show_cart_item_image', $show_img_val );
-			WC()->session->set( 'wcsc_is_smart_checkout', 'yes' );
-		}
-
 		if ( self::is_editor_environment() ) {
 			// In Elementor live editor or save builder: render safe preview template.
 			$template_path = WCSC_PATH . 'templates/checkout/editor-checkout-preview.php';
 			if ( file_exists( $template_path ) ) {
 				include $template_path;
 			}
+			self::$active_widget_settings = null;
+			self::$active_product         = null;
 			return;
 		}
 
@@ -556,6 +582,8 @@ class Checkout_Handler {
 			?>
 		</form>
 		<?php
+		self::$active_widget_settings = null;
+		self::$active_product         = null;
 	}
 
 	/**
@@ -1131,13 +1159,19 @@ class Checkout_Handler {
 	 * @return array
 	 */
 	public static function filter_update_order_review_fragments( $fragments ) {
+		// STRICT CONTEXT GUARD: If this update_order_review AJAX call is NOT from our widget,
+		// DO NOT touch any fragments! Leave standard WooCommerce and CartFlows checkouts untouched.
+		if ( ! self::is_widget_checkout_context() ) {
+			return $fragments;
+		}
+
 		// Update the order review table with real WooCommerce calculations & shipping charge row
 		$fragments['.woocommerce-checkout-review-order-table'] = self::render_order_review_table_html();
 
 		// Update the selectable shipping methods in the dedicated Shipping block
 		$fragments['.wcas-shipping-methods-wrapper'] = '<div class="wcas-shipping-methods-wrapper">' . self::render_shipping_methods_html() . '</div>';
 
-		// Strip place-order button and container from payment gateway fragment if present
+		// Strip place-order button and container from payment gateway fragment ONLY inside our widget context
 		if ( isset( $fragments['.woocommerce-checkout-payment'] ) ) {
 			$fragments['.woocommerce-checkout-payment'] = (string) preg_replace(
 				'/<div[^>]*\sclass="[^"]*place-order[^"]*"[^>]*>.*?<\/div>\s*/is',
@@ -1504,6 +1538,10 @@ class Checkout_Handler {
 	 * Prevent checkout processing if license is inactive or unauthorized.
 	 */
 	public static function validate_license_checkout_submission() {
+		if ( ! self::is_widget_checkout_context() ) {
+			return;
+		}
+
 		if ( class_exists( '\WCSC\License_Manager' ) && ! \WCSC\License_Manager::is_active() ) {
 			$msg = sprintf(
 				/* translators: %s: website link */
@@ -1521,6 +1559,10 @@ class Checkout_Handler {
 	 * @param \WP_Error $errors
 	 */
 	public static function validate_license_after_checkout_validation( $data, $errors ) {
+		if ( ! self::is_widget_checkout_context() ) {
+			return;
+		}
+
 		if ( class_exists( '\WCSC\License_Manager' ) && ! \WCSC\License_Manager::is_active() ) {
 			$msg = sprintf(
 				/* translators: %s: website link */
