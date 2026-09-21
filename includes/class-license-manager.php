@@ -141,14 +141,16 @@ class License_Manager {
 
 	/**
 	 * Send an HTTP POST request to the licensing server with IPv4 resolution
-	 * enforcement and no-redirect policy to prevent hanging on slow IPv6 DNS
-	 * or redirecting to static frontend pages.
+	 * enforcement, no-redirect policy, and verbose error logging.
 	 *
 	 * @param array $payload
 	 * @param int   $timeout
 	 * @return array|\WP_Error
 	 */
-	public static function send_request( $payload, $timeout = 12 ) {
+	public static function send_request( $payload, $timeout = 25 ) {
+		error_log( '[WCSC License Client] Requesting Endpoint: ' . self::SERVER_URL );
+		error_log( '[WCSC License Client] Payload: ' . wp_json_encode( $payload ) );
+
 		$curl_callback = function( $handle ) {
 			if ( defined( 'CURLOPT_IPRESOLVE' ) && defined( 'CURL_IPRESOLVE_V4' ) ) {
 				@curl_setopt( $handle, CURLOPT_IPRESOLVE, CURL_IPRESOLVE_V4 );
@@ -170,6 +172,20 @@ class License_Manager {
 		) );
 
 		remove_action( 'http_api_curl', $curl_callback, 10 );
+
+		if ( is_wp_error( $response ) ) {
+			error_log( '[WCSC License Client] HTTP Connection Error: ' . $response->get_error_message() );
+		} else {
+			$code = wp_remote_retrieve_response_code( $response );
+			$body = wp_remote_retrieve_body( $response );
+			error_log( '[WCSC License Client] Response HTTP Code: ' . $code );
+			error_log( '[WCSC License Client] Response Body Preview: ' . substr( $body, 0, 500 ) );
+
+			$decoded = json_decode( $body );
+			if ( json_last_error() !== JSON_ERROR_NONE ) {
+				error_log( '[WCSC License Client] JSON Decode Error: ' . json_last_error_msg() );
+			}
+		}
 
 		return $response;
 	}
@@ -294,6 +310,7 @@ class License_Manager {
 	public static function activate_license( $license_key ) {
 		$license_key = sanitize_text_field( trim( $license_key ) );
 		if ( empty( $license_key ) ) {
+			error_log( '[WCSC License Client] activate_license failed: Empty License Key' );
 			return array(
 				'success' => false,
 				'message' => __( 'অনুগ্রহ করে একটি বৈধ লাইসেন্স কি প্রবেশ করান।', 'wc-smart-checkout-builder' ),
@@ -309,7 +326,9 @@ class License_Manager {
 			'action' => 'check',
 		);
 
-		$response = self::send_request( $payload, 15 );
+		error_log( '[WCSC License Client] activate_license calling send_request for Key: "' . $license_key . '", Domain: "' . $domain . '"' );
+
+		$response = self::send_request( $payload, 25 );
 
 		if ( is_wp_error( $response ) ) {
 			$err_msg = sprintf(
@@ -318,6 +337,8 @@ class License_Manager {
 			);
 			update_option( 'wcsc_last_license_error', $err_msg );
 			update_option( 'wcsc_last_license_error_time', current_time( 'mysql' ) );
+
+			error_log( '[WCSC License Client] activate_license send_request WP_Error: ' . $err_msg );
 
 			return array(
 				'success' => false,
@@ -346,6 +367,8 @@ class License_Manager {
 			update_option( 'wcsc_last_license_error', $err_msg );
 			update_option( 'wcsc_last_license_error_time', current_time( 'mysql' ) );
 
+			error_log( '[WCSC License Client] activate_license invalid JSON response (HTTP ' . $code . '): ' . substr( (string) $raw_body, 0, 300 ) );
+
 			return array(
 				'success' => false,
 				'message' => $err_msg,
@@ -353,12 +376,14 @@ class License_Manager {
 				'debug'   => array(
 					'http_code'      => $code,
 					'client_domain'  => $domain,
-					'raw_response'   => wp_strip_all_tags( substr( $raw_body, 0, 300 ) ),
+					'raw_response'   => wp_strip_all_tags( substr( (string) $raw_body, 0, 300 ) ),
 				),
 			);
 		}
 
 		$status = isset( $body->status ) ? sanitize_text_field( $body->status ) : 'invalid';
+
+		error_log( '[WCSC License Client] activate_license server status: "' . $status . '", HTTP Code: ' . $code );
 
 		update_option( self::OPTION_KEY, $license_key );
 		update_option( self::OPTION_STATUS, $status );
@@ -370,6 +395,8 @@ class License_Manager {
 			delete_option( 'wcsc_last_license_error' );
 			delete_option( 'wcsc_last_license_error_time' );
 			self::clear_caches();
+
+			error_log( '[WCSC License Client] activate_license SUCCESS: License active and persisted to database' );
 
 			return array(
 				'success' => true,
@@ -392,6 +419,8 @@ class License_Manager {
 		update_option( 'wcsc_last_license_error', $server_msg );
 		update_option( 'wcsc_last_license_error_time', current_time( 'mysql' ) );
 
+		error_log( '[WCSC License Client] activate_license inactive server message: ' . $server_msg );
+
 		return array(
 			'success' => false,
 			'message' => $server_msg,
@@ -402,7 +431,7 @@ class License_Manager {
 				'server_url'     => self::SERVER_URL,
 				'server_status'  => $status,
 				'server_message' => $server_msg,
-				'raw_response'   => wp_strip_all_tags( substr( $raw_body, 0, 300 ) ),
+				'raw_response'   => wp_strip_all_tags( substr( (string) $raw_body, 0, 300 ) ),
 			),
 		);
 	}
@@ -424,6 +453,8 @@ class License_Manager {
 		delete_option( 'wcsc_last_license_error_time' );
 		self::clear_caches();
 
+		error_log( '[WCSC License Client] License deactivated locally' );
+
 		return array(
 			'success' => true,
 			'message' => __( 'লাইসেন্স সফলভাবে ডি-অ্যাক্টিভ করা হয়েছে।', 'wc-smart-checkout-builder' ),
@@ -439,7 +470,10 @@ class License_Manager {
 			ob_end_clean();
 		}
 
+		error_log( '[WCSC License Client] ajax_activate_license received POST: ' . wp_json_encode( $_POST ) );
+
 		if ( ! check_ajax_referer( 'wcsc_license_nonce', 'nonce', false ) ) {
+			error_log( '[WCSC License Client] ajax_activate_license failed: Nonce check failed' );
 			wp_send_json_error( array(
 				'message' => __( 'নিরাপত্তা টোকেন (Security Nonce) মেয়াদোত্তীর্ণ বা অবৈধ হয়েছে। অনুগ্রহ করে পেজটি রিফ্রেশ (Refresh) করে আবার চেষ্টা করুন।', 'wc-smart-checkout-builder' ),
 				'status'  => 'invalid_nonce',
@@ -447,6 +481,7 @@ class License_Manager {
 		}
 
 		if ( ! current_user_can( 'manage_options' ) ) {
+			error_log( '[WCSC License Client] ajax_activate_license failed: Permission denied' );
 			wp_send_json_error( array(
 				'message' => __( 'আপনার এই অ্যাকশনটি সম্পন্ন করার পর্যাপ্ত অনুমতি (Permission) নেই।', 'wc-smart-checkout-builder' ),
 				'status'  => 'forbidden',
@@ -455,6 +490,8 @@ class License_Manager {
 
 		$key    = isset( $_POST['license_key'] ) ? sanitize_text_field( wp_unslash( $_POST['license_key'] ) ) : '';
 		$result = self::activate_license( $key );
+
+		error_log( '[WCSC License Client] ajax_activate_license final result: ' . wp_json_encode( $result ) );
 
 		if ( ! empty( $result['success'] ) ) {
 			wp_send_json_success( $result );
