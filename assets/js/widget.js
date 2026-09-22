@@ -136,9 +136,6 @@
 				// Synchronously sync Order Now button price
 				self.syncOrderButtonPrice();
 
-				// Suppress any WooCommerce error notices injected during AJAX (scoped)
-				$('.wcsc-product-checkout-widget .woocommerce-NoticeGroup-checkout, .wcsc-product-checkout-widget .woocommerce-NoticeGroup, .wcsc-product-checkout-widget .woocommerce-error, .wcsc-product-checkout-widget .checkout-inline-error-message, .wcas-checkout-wrapper .woocommerce-NoticeGroup-checkout, .wcas-checkout-wrapper .woocommerce-NoticeGroup, .wcas-checkout-wrapper .woocommerce-error, .wcas-checkout-wrapper .checkout-inline-error-message').hide().remove();
-
 				// Ensure Order Review item thumbnail matches current selected variation ONLY for main product (first item)
 				if (self.currentVariationId && self.variations.length) {
 					for (var i = 0; i < self.variations.length; i++) {
@@ -169,10 +166,9 @@
 			});
 
 			$(document.body).on('checkout_error', function () {
-				if (!$('.wcas-checkout-wrapper').length) return;
+				if (!self.$container.find('.wcas-checkout-wrapper').length && !$('.wcas-checkout-wrapper').length) return;
 				self.hideLoading();
 				self.styleShippingMethods();
-				$('.wcsc-product-checkout-widget .woocommerce-NoticeGroup-checkout, .wcsc-product-checkout-widget .woocommerce-NoticeGroup, .wcsc-product-checkout-widget .woocommerce-error, .wcsc-product-checkout-widget .checkout-inline-error-message, .wcas-checkout-wrapper .woocommerce-NoticeGroup-checkout, .wcas-checkout-wrapper .woocommerce-NoticeGroup, .wcas-checkout-wrapper .woocommerce-error, .wcas-checkout-wrapper .checkout-inline-error-message').hide().remove();
 			});
 
 			// Listen for WooCommerce variation events (guarded: only when our wrapper is present)

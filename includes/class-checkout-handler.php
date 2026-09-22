@@ -472,11 +472,13 @@ class Checkout_Handler {
 					<div class="wcsc-spinner"></div>
 				</div>
 
-				<?php
-				if ( function_exists( 'wc_print_notices' ) ) {
-					wc_print_notices();
-				}
-				?>
+				<div class="woocommerce-NoticeGroup woocommerce-NoticeGroup-checkout">
+					<?php
+					if ( function_exists( 'wc_print_notices' ) ) {
+						wc_print_notices();
+					}
+					?>
+				</div>
 
 				<?php if ( '1_column' === $layout ) : ?>
 					<div class="wcas-checkout-column wcas-checkout-column-single">

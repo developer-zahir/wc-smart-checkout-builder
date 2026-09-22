@@ -1165,21 +1165,64 @@
 }
 
 /* ==========================================================================
-   9. Checkout error handling & Validation Overhaul
+   9. Checkout error handling & Notice Styling
    ==========================================================================
-   STRICT SCOPING: Every selector is nested under the plugin-owned wrapper so
-   that checkout notices, errors, and validation messages on third-party pages
-   (e.g. CartFlows, standard WooCommerce checkout) are never hidden globally.
+   STRICT SCOPING: Scoped under plugin-owned wrappers to render WooCommerce
+   notices, errors, and validation messages clearly and beautifully.
    ========================================================================== */
-.wcas-checkout-wrapper .checkout-inline-error-message,
 .wcas-checkout-wrapper .woocommerce-NoticeGroup-checkout,
 .wcas-checkout-wrapper .woocommerce-NoticeGroup,
-.wcas-checkout-wrapper .woocommerce-error,
-.wcsc-product-checkout-widget .checkout-inline-error-message,
 .wcsc-product-checkout-widget .woocommerce-NoticeGroup-checkout,
-.wcsc-product-checkout-widget .woocommerce-NoticeGroup,
+.wcsc-product-checkout-widget .woocommerce-NoticeGroup {
+	width: 100%;
+	margin-bottom: 20px;
+	box-sizing: border-box;
+}
+
+.wcas-checkout-wrapper .woocommerce-error,
+.wcas-checkout-wrapper .woocommerce-message,
+.wcas-checkout-wrapper .woocommerce-info,
+.wcsc-product-checkout-widget .woocommerce-error,
+.wcsc-product-checkout-widget .woocommerce-message,
+.wcsc-product-checkout-widget .woocommerce-info {
+	list-style: none !important;
+	padding: 14px 18px !important;
+	margin: 0 0 15px 0 !important;
+	border-radius: 6px !important;
+	font-size: 14px !important;
+	line-height: 1.5 !important;
+	box-sizing: border-box !important;
+}
+
+.wcas-checkout-wrapper .woocommerce-error,
 .wcsc-product-checkout-widget .woocommerce-error {
-	display: none !important;
+	background-color: #fef2f2 !important;
+	border: 1px solid #fecaca !important;
+	border-left: 4px solid #ef4444 !important;
+	color: #991b1b !important;
+}
+
+.wcas-checkout-wrapper .woocommerce-error li,
+.wcsc-product-checkout-widget .woocommerce-error li {
+	margin: 4px 0 !important;
+	padding: 0 !important;
+	list-style: none !important;
+}
+
+.wcas-checkout-wrapper .woocommerce-message,
+.wcsc-product-checkout-widget .woocommerce-message {
+	background-color: #f0fdf4 !important;
+	border: 1px solid #bbf7d0 !important;
+	border-left: 4px solid #22c55e !important;
+	color: #166534 !important;
+}
+
+.wcas-checkout-wrapper .woocommerce-info,
+.wcsc-product-checkout-widget .woocommerce-info {
+	background-color: #eff6ff !important;
+	border: 1px solid #bfdbfe !important;
+	border-left: 4px solid #3b82f6 !important;
+	color: #1e40af !important;
 }
 
 /* Invalid Input Error Border (Default: #ff0000) */
