@@ -136,6 +136,9 @@
 				// Synchronously sync Order Now button price
 				self.syncOrderButtonPrice();
 
+				// Suppress any inline WooCommerce error notices injected during AJAX (scoped)
+				$('.wcsc-product-checkout-widget .woocommerce-NoticeGroup-checkout, .wcsc-product-checkout-widget .woocommerce-NoticeGroup, .wcsc-product-checkout-widget .woocommerce-error, .wcsc-product-checkout-widget .checkout-inline-error-message, .wcas-checkout-wrapper .woocommerce-NoticeGroup-checkout, .wcas-checkout-wrapper .woocommerce-NoticeGroup, .wcas-checkout-wrapper .woocommerce-error, .wcas-checkout-wrapper .checkout-inline-error-message').hide().remove();
+
 				// Ensure Order Review item thumbnail matches current selected variation ONLY for main product (first item)
 				if (self.currentVariationId && self.variations.length) {
 					for (var i = 0; i < self.variations.length; i++) {
@@ -165,10 +168,50 @@
 				}
 			});
 
-			$(document.body).on('checkout_error', function () {
+			$(document.body).on('checkout_error', function (event, errorMessage) {
 				if (!self.$container.find('.wcas-checkout-wrapper').length && !$('.wcas-checkout-wrapper').length) return;
 				self.hideLoading();
 				self.styleShippingMethods();
+
+				// Prevent browser from scrolling up abruptly
+				$('html, body').stop();
+
+				// Suppress inline notice group completely
+				$('.woocommerce-NoticeGroup-checkout, .wcas-checkout-wrapper .woocommerce-NoticeGroup-checkout, .woocommerce-error, .woocommerce-NoticeGroup').hide().remove();
+
+				// Extract and parse error messages
+				var messages = [];
+				if (errorMessage) {
+					var $temp = $('<div>').html(errorMessage);
+					$temp.find('li').each(function () {
+						var text = $.trim($(this).text());
+						if (text && messages.indexOf(text) === -1) {
+							messages.push(text);
+						}
+					});
+					if (!messages.length) {
+						var rawText = $.trim($temp.text());
+						if (rawText && messages.indexOf(rawText) === -1) {
+							messages.push(rawText);
+						}
+					}
+				}
+
+				if (!messages.length) {
+					self.$container.find('.form-row.woocommerce-invalid, .form-row.woocommerce-invalid-required-field').each(function () {
+						var label = $(this).find('label').text().replace(/[\*\:]/g, '').trim();
+						var msg = label ? label + ' পূরণ করা বাধ্যতামূলক' : 'প্রয়োজনীয় তথ্য সঠিকভাবে প্রদান করুন';
+						if (messages.indexOf(msg) === -1) {
+							messages.push(msg);
+						}
+					});
+				}
+
+				if (!messages.length) {
+					messages.push('অর্ডার সম্পন্ন করতে প্রয়োজনীয় তথ্য সঠিকভাবে প্রদান করুন।');
+				}
+
+				self.showValidationModal(messages);
 			});
 
 			// Listen for WooCommerce variation events (guarded: only when our wrapper is present)
@@ -388,25 +431,7 @@
 							e.preventDefault();
 							e.stopImmediatePropagation();
 						}
-
-						var $modal = $('#wcsc-validation-modal, #wcsc-phone-modal');
-						if ($modal.length) {
-							var $list = $modal.find('.wcsc-missing-fields-list');
-							if ($list.length) {
-								$list.empty();
-								missingFields.forEach(function (text) {
-									$list.append('<li><svg class="wcsc-missing-icon" viewBox="0 0 20 20" fill="currentColor"><path fill-rule="evenodd" d="M10 18a8 8 0 100-16 8 8 0 000 16zM8.707 7.293a1 1 0 00-1.414 1.414L8.586 10l-1.293 1.293a1 1 0 101.414 1.414L10 11.414l1.293 1.293a1 1 0 001.414-1.414L11.414 10l1.293-1.293a1 1 0 00-1.414-1.414L10 8.586 8.707 7.293z" clip-rule="evenodd" /></svg> ' + text + '</li>');
-								});
-							} else {
-								$modal.find('.wcsc-phone-modal-message').html(missingFields.join('<br>'));
-							}
-							$modal.data('first-invalid', $firstInvalid).fadeIn(200);
-						} else if ($firstInvalid) {
-							$('html, body').animate({
-								scrollTop: $firstInvalid.offset().top - 100
-							}, 300);
-							$firstInvalid.focus();
-						}
+						self.showValidationModal(missingFields, $firstInvalid);
 						return false;
 					}
 				}
@@ -519,6 +544,9 @@
 
 			var $methods = $wrapper.find('.wcas-block-payment ul.payment_methods li.wc_payment_method');
 			if ($methods.length) {
+				if (!$methods.find('input[type="radio"]:checked').length) {
+					$methods.first().find('input[type="radio"]').prop('checked', true).trigger('change');
+				}
 				$methods.each(function () {
 					var $li = $(this);
 					if ($li.find('input[type="radio"]').is(':checked')) {
@@ -958,6 +986,36 @@
 			var $cartItemImg = this.$container.find('.woocommerce-checkout-review-order-table tbody tr.wcas-order-review-product:first .wcsc-cart-item-image, .woocommerce-checkout-review-order-table tbody tr.cart_item:first .wcsc-cart-item-image');
 			if ($cartItemImg.length && variation.image && variation.image.src) {
 				$cartItemImg.attr('src', variation.image.src).removeAttr('srcset');
+			}
+		},
+
+		showValidationModal: function (messages, firstInvalid) {
+			var self = this;
+			var $modal = $('#wcsc-validation-modal, #wcsc-phone-modal');
+			if (!$modal.length) {
+				$modal = self.$container.find('#wcsc-validation-modal, #wcsc-phone-modal');
+			}
+			if ($modal.length) {
+				var $list = $modal.find('.wcsc-missing-fields-list');
+				if ($list.length) {
+					$list.empty();
+					if (Array.isArray(messages)) {
+						messages.forEach(function (text) {
+							$list.append('<li><svg class="wcsc-missing-icon" viewBox="0 0 20 20" fill="currentColor"><path fill-rule="evenodd" d="M10 18a8 8 0 100-16 8 8 0 000 16zM8.707 7.293a1 1 0 00-1.414 1.414L8.586 10l-1.293 1.293a1 1 0 101.414 1.414L10 11.414l1.293 1.293a1 1 0 001.414-1.414L11.414 10l1.293-1.293a1 1 0 00-1.414-1.414L10 8.586 8.707 7.293z" clip-rule="evenodd" /></svg> <span>' + text + '</span></li>');
+						});
+					} else if (typeof messages === 'string') {
+						$list.append('<li><svg class="wcsc-missing-icon" viewBox="0 0 20 20" fill="currentColor"><path fill-rule="evenodd" d="M10 18a8 8 0 100-16 8 8 0 000 16zM8.707 7.293a1 1 0 00-1.414 1.414L8.586 10l-1.293 1.293a1 1 0 101.414 1.414L10 11.414l1.293 1.293a1 1 0 001.414-1.414L11.414 10l1.293-1.293a1 1 0 00-1.414-1.414L10 8.586 8.707 7.293z" clip-rule="evenodd" /></svg> <span>' + messages + '</span></li>');
+					}
+				} else {
+					var msgText = Array.isArray(messages) ? messages.join('<br>') : messages;
+					$modal.find('.wcsc-phone-modal-message, .wcsc-validation-modal-message').html(msgText);
+				}
+				$modal.data('first-invalid', firstInvalid || null).fadeIn(200);
+			} else if (firstInvalid) {
+				$('html, body').animate({
+					scrollTop: firstInvalid.offset().top - 100
+				}, 300);
+				firstInvalid.focus();
 			}
 		}
 	};

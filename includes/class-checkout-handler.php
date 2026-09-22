@@ -472,29 +472,13 @@ class Checkout_Handler {
 					<div class="wcsc-spinner"></div>
 				</div>
 
-				<div class="woocommerce-NoticeGroup woocommerce-NoticeGroup-checkout">
-					<?php
-					if ( function_exists( 'wc_print_notices' ) ) {
-						wc_print_notices();
-					}
-					?>
-				</div>
-
 				<?php if ( '1_column' === $layout ) : ?>
 					<div class="wcas-checkout-column wcas-checkout-column-single">
 						<?php
-						if ( ! empty( $blocks_enabled['checkout_form'] ) ) {
-							self::render_checkout_form_block();
-						}
-						if ( ! empty( $blocks_enabled['shipping'] ) ) {
-							self::render_shipping_block();
-						}
-						if ( ! empty( $blocks_enabled['order_review'] ) ) {
-							self::render_order_review_block();
-						}
-						if ( ! empty( $blocks_enabled['payment'] ) ) {
-							self::render_payment_block();
-						}
+						self::render_checkout_form_block( ! empty( $blocks_enabled['checkout_form'] ) );
+						self::render_shipping_block( ! empty( $blocks_enabled['shipping'] ) );
+						self::render_order_review_block( ! empty( $blocks_enabled['order_review'] ) );
+						self::render_payment_block( ! empty( $blocks_enabled['payment'] ) );
 						self::render_order_button_block();
 						?>
 					</div>
@@ -507,17 +491,17 @@ class Checkout_Handler {
 					?>
 					<div class="wcas-checkout-column wcas-checkout-column-left">
 						<?php
-						if ( 'col_1' === $customer_info_col && ! empty( $blocks_enabled['checkout_form'] ) ) {
-							self::render_checkout_form_block();
+						if ( 'col_1' === $customer_info_col ) {
+							self::render_checkout_form_block( ! empty( $blocks_enabled['checkout_form'] ) );
 						}
-						if ( 'col_1' === $shipping_block_col && ! empty( $blocks_enabled['shipping'] ) ) {
-							self::render_shipping_block();
+						if ( 'col_1' === $shipping_block_col ) {
+							self::render_shipping_block( ! empty( $blocks_enabled['shipping'] ) );
 						}
-						if ( 'col_1' === $order_review_col && ! empty( $blocks_enabled['order_review'] ) ) {
-							self::render_order_review_block();
+						if ( 'col_1' === $order_review_col ) {
+							self::render_order_review_block( ! empty( $blocks_enabled['order_review'] ) );
 						}
-						if ( 'col_1' === $payment_block_col && ! empty( $blocks_enabled['payment'] ) ) {
-							self::render_payment_block();
+						if ( 'col_1' === $payment_block_col ) {
+							self::render_payment_block( ! empty( $blocks_enabled['payment'] ) );
 						}
 						if ( 'left_column' === $order_button_pos ) {
 							self::render_order_button_block();
@@ -527,17 +511,17 @@ class Checkout_Handler {
 
 					<div class="wcas-checkout-column wcas-checkout-column-right">
 						<?php
-						if ( 'col_2' === $customer_info_col && ! empty( $blocks_enabled['checkout_form'] ) ) {
-							self::render_checkout_form_block();
+						if ( 'col_2' === $customer_info_col ) {
+							self::render_checkout_form_block( ! empty( $blocks_enabled['checkout_form'] ) );
 						}
-						if ( 'col_2' === $shipping_block_col && ! empty( $blocks_enabled['shipping'] ) ) {
-							self::render_shipping_block();
+						if ( 'col_2' === $shipping_block_col ) {
+							self::render_shipping_block( ! empty( $blocks_enabled['shipping'] ) );
 						}
-						if ( 'col_2' === $order_review_col && ! empty( $blocks_enabled['order_review'] ) ) {
-							self::render_order_review_block();
+						if ( 'col_2' === $order_review_col ) {
+							self::render_order_review_block( ! empty( $blocks_enabled['order_review'] ) );
 						}
-						if ( 'col_2' === $payment_block_col && ! empty( $blocks_enabled['payment'] ) ) {
-							self::render_payment_block();
+						if ( 'col_2' === $payment_block_col ) {
+							self::render_payment_block( ! empty( $blocks_enabled['payment'] ) );
 						}
 						if ( 'right_column' === $order_button_pos ) {
 							self::render_order_button_block();
@@ -627,11 +611,15 @@ class Checkout_Handler {
 
 	/**
 	 * Block 1 — Checkout Form (native billing + shipping fields).
+	 *
+	 * @param bool $is_visible
 	 */
-	private static function render_checkout_form_block() {
+	private static function render_checkout_form_block( $is_visible = true ) {
 		self::render_order_bump_block();
+		$class = $is_visible ? 'wcas-block wcas-block-checkout-form' : 'wcas-block wcas-block-checkout-form wcas-layout-hidden';
+		$style = $is_visible ? '' : ' style="display: none !important;"';
 		?>
-		<div class="wcas-block wcas-block-checkout-form">
+		<div class="<?php echo esc_attr( $class ); ?>"<?php echo $style; // phpcs:ignore WordPress.Security.EscapeOutput.OutputNotEscaped ?>>
 			<h3 class="wcsc-section-title wcas-block-title"><?php echo esc_html( self::get_billing_label() ); ?></h3>
 			<?php
 			// Native WooCommerce customer details (billing + shipping fields).
@@ -887,8 +875,10 @@ class Checkout_Handler {
 	 * Rendered as an independent plugin-owned block (.wcas-block-shipping).
 	 * This block contains ONLY the method/rate selection UI — never the
 	 * shipping cost (which is displayed inside the Order Review block).
+	 *
+	 * @param bool $is_visible
 	 */
-	private static function render_shipping_block() {
+	private static function render_shipping_block( $is_visible = true ) {
 		if ( ! function_exists( 'WC' ) || ! WC()->cart || ! WC()->cart->needs_shipping() ) {
 			return;
 		}
@@ -899,8 +889,11 @@ class Checkout_Handler {
 		if ( empty( $methods_html ) ) {
 			return;
 		}
+
+		$class = $is_visible ? 'wcas-block wcas-block-shipping' : 'wcas-block wcas-block-shipping wcas-layout-hidden';
+		$style = $is_visible ? '' : ' style="display: none !important;"';
 		?>
-		<div class="wcas-block wcas-block-shipping">
+		<div class="<?php echo esc_attr( $class ); ?>"<?php echo $style; // phpcs:ignore WordPress.Security.EscapeOutput.OutputNotEscaped ?>>
 			<h3 class="wcsc-section-title wcas-block-title wcsc-shipping-heading"><?php echo esc_html( $heading ); ?></h3>
 			<div class="wcas-shipping-methods-wrapper">
 				<?php echo $methods_html; // phpcs:ignore WordPress.Security.EscapeOutput.OutputNotEscaped ?>
@@ -1034,13 +1027,18 @@ class Checkout_Handler {
 	 * The shipping charge (.wcas-order-review-shipping) is displayed inside this
 	 * Order Review table as an individual row using real WooCommerce calculations.
 	 * The shipping method selection interface NEVER appears here.
+	 *
+	 * @param bool $is_visible
 	 */
-	private static function render_order_review_block() {
+	private static function render_order_review_block( $is_visible = true ) {
 		$heading = ! empty( self::$active_widget_settings['order_review_heading_text'] )
 			? sanitize_text_field( self::$active_widget_settings['order_review_heading_text'] )
 			: esc_html__( 'Your order', 'wc-smart-checkout-builder' );
+
+		$class = $is_visible ? 'wcas-block wcas-block-order-review' : 'wcas-block wcas-block-order-review wcas-layout-hidden';
+		$style = $is_visible ? '' : ' style="display: none !important;"';
 		?>
-		<div class="wcas-block wcas-block-order-review">
+		<div class="<?php echo esc_attr( $class ); ?>"<?php echo $style; // phpcs:ignore WordPress.Security.EscapeOutput.OutputNotEscaped ?>>
 			<h3 id="order_review_heading" class="wcsc-section-title wcas-block-title"><?php echo esc_html( $heading ); ?></h3>
 			<div id="order_review" class="woocommerce-checkout-review-order">
 				<?php echo self::render_order_review_table_html(); // phpcs:ignore WordPress.Security.EscapeOutput.OutputNotEscaped ?>
@@ -1056,11 +1054,15 @@ class Checkout_Handler {
 	 * the dedicated Order Button block (req 32). Only the available payment
 	 * gateways are output, wrapped in the native `#payment` element so
 	 * WooCommerce's AJAX updates still target the correct selector.
+	 *
+	 * @param bool $is_visible
 	 */
-	private static function render_payment_block() {
+	private static function render_payment_block( $is_visible = true ) {
 		$checkout = WC()->checkout();
+		$class    = $is_visible ? 'wcas-block wcas-block-payment' : 'wcas-block wcas-block-payment wcas-layout-hidden';
+		$style    = $is_visible ? '' : ' style="display: none !important;"';
 		?>
-		<div class="wcas-block wcas-block-payment">
+		<div class="<?php echo esc_attr( $class ); ?>"<?php echo $style; // phpcs:ignore WordPress.Security.EscapeOutput.OutputNotEscaped ?>>
 			<h3 class="wcsc-section-title wcas-block-title wcsc-payment-heading"><?php echo esc_html( self::get_payment_label() ); ?></h3>
 			<?php
 			do_action( 'woocommerce_review_order_before_payment' );
@@ -1068,6 +1070,21 @@ class Checkout_Handler {
 			if ( function_exists( 'WC' ) && WC()->cart && WC()->cart->needs_payment() ) {
 				$available_gateways = WC()->payment_gateways()->get_available_payment_gateways();
 				WC()->payment_gateways()->set_current_gateway( $available_gateways );
+
+				// Ensure at least one payment gateway is chosen/checked so checkout POST is never empty
+				if ( ! empty( $available_gateways ) ) {
+					$has_chosen = false;
+					foreach ( $available_gateways as $gateway ) {
+						if ( ! empty( $gateway->chosen ) ) {
+							$has_chosen = true;
+							break;
+						}
+					}
+					if ( ! $has_chosen ) {
+						$first_gateway = reset( $available_gateways );
+						$first_gateway->chosen = true;
+					}
+				}
 				?>
 				<div id="payment" class="woocommerce-checkout-payment">
 					<?php if ( ! empty( $available_gateways ) ) : ?>
