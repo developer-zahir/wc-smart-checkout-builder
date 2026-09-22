@@ -721,7 +721,7 @@ class Elementor_Widget extends Widget_Base {
 			array(
 				'label'       => esc_html__( 'Modal Title', 'wc-smart-checkout-builder' ),
 				'type'        => Controls_Manager::TEXT,
-				'default'     => esc_html__( 'সঠিক ফোন নম্বর দিন', 'wc-smart-checkout-builder' ),
+				'default'     => esc_html__( 'প্রয়োজনীয় তথ্য পূরণ করুন', 'wc-smart-checkout-builder' ),
 				'condition'   => array(
 					'enable_phone_validation' => 'yes',
 				),
@@ -733,7 +733,7 @@ class Elementor_Widget extends Widget_Base {
 			array(
 				'label'       => esc_html__( 'Modal Message', 'wc-smart-checkout-builder' ),
 				'type'        => Controls_Manager::TEXTAREA,
-				'default'     => esc_html__( 'অনুগ্রহ করে একটি ১১ ডিজিটের বৈধ বাংলাদেশি মোবাইল নম্বর ব্যবহার করুন।', 'wc-smart-checkout-builder' ),
+				'default'     => esc_html__( 'অনুগ্রহ করে নিচের তথ্যগুলো সঠিকভাবে প্রদান করুন:', 'wc-smart-checkout-builder' ),
 				'condition'   => array(
 					'enable_phone_validation' => 'yes',
 				),

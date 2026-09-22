@@ -1542,13 +1542,10 @@ class Checkout_Handler {
 				$clean = preg_replace( '/[^0-9+]/', '', trim( $phone ) );
 				// BD format regex: optional +880 or 880 or 0, followed by 1, then 3-9, then 8 digits
 				if ( ! preg_match( '/^(?:\+?880|880|0)?1[3-9]\d{8}$/', $clean ) ) {
-					$msg = ! empty( self::$active_widget_settings['phone_modal_message'] )
-						? self::$active_widget_settings['phone_modal_message']
-						: __( 'অনুগ্রহ করে একটি ১১ ডিজিটের বৈধ বাংলাদেশি মোবাইল নম্বর ব্যবহার করুন।', 'wc-smart-checkout-builder' );
-					$errors->add( 'billing_phone', esc_html( $msg ) );
+					$errors->add( 'billing_phone', esc_html__( '১১ সংখ্যার একটি সঠিক মোবাইল নম্বর প্রদান করুন', 'wc-smart-checkout-builder' ) );
 				}
 			} else {
-				$errors->add( 'billing_phone', __( 'ফোন নম্বর দিন।', 'wc-smart-checkout-builder' ) );
+				$errors->add( 'billing_phone', esc_html__( 'আপনার মোবাইল নম্বরটি দিন', 'wc-smart-checkout-builder' ) );
 			}
 		}
 	}

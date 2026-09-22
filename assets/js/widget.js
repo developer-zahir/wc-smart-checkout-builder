@@ -367,10 +367,10 @@
 					var missingFields = [];
 
 					// Clear previous error states
-					$form.find('.wcsc-invalid').removeClass('wcsc-invalid');
+					$form.find('.wcsc-invalid, .wcas-input-error').removeClass('wcsc-invalid wcas-input-error');
 					$form.find('.form-row.woocommerce-invalid').removeClass('woocommerce-invalid');
 
-					// Validate all visible required fields
+					// 1. Validate all visible required fields
 					$form.find('input[required], textarea[required], select[required], .validate-required input.input-text, .validate-required textarea, .validate-required select, .validate-required input').each(function () {
 						var $field = $(this);
 						if (!$field.is(':visible') || $field.is(':disabled')) {
@@ -379,7 +379,7 @@
 						var val = $.trim($field.val() || '');
 						if (!val) {
 							hasInvalid = true;
-							$field.addClass('wcsc-invalid');
+							$field.addClass('wcsc-invalid wcas-input-error');
 							$field.closest('.form-row').addClass('woocommerce-invalid');
 							if (!$firstInvalid) {
 								$firstInvalid = $field;
@@ -387,11 +387,11 @@
 							var nameAttr = ($field.attr('name') || '').toLowerCase();
 							var msg = '';
 							if (nameAttr.indexOf('first_name') !== -1 || nameAttr.indexOf('last_name') !== -1 || nameAttr.indexOf('name') !== -1) {
-								msg = 'অনুগ্রহ করে আপনার নাম প্রদান করুন';
+								msg = 'আপনার নাম প্রদান করুন';
 							} else if (nameAttr.indexOf('phone') !== -1) {
-								msg = 'ফোন নম্বর প্রদান করা বাধ্যতামূলক';
+								msg = 'আপনার মোবাইল নম্বরটি দিন';
 							} else if (nameAttr.indexOf('address_1') !== -1 || nameAttr.indexOf('address') !== -1) {
-								msg = 'অনুগ্রহ করে আপনার সম্পূর্ণ ঠিকানা প্রদান করুন';
+								msg = 'আপনার সম্পূর্ণ ঠিকানা প্রদান করুন';
 							} else if (nameAttr.indexOf('city') !== -1) {
 								msg = 'শহর / জেলা প্রদান করুন';
 							} else {
@@ -404,23 +404,25 @@
 						}
 					});
 
-					// Validate BD phone if enabled
+					// 2. Validate phone format ONLY if phone field is non-empty and validation is enabled
 					var $hasValidation = self.$container.find('input[name="wcsc_bd_phone_validation"]');
 					var $phone = self.$container.find('input[name="billing_phone"]');
 					if ($phone.length && $phone.is(':visible')) {
 						var rawPhone = $.trim($phone.val() || '').replace(/[\s\-\(\)]/g, '');
-						if ($hasValidation.length && $hasValidation.val() === '1' && rawPhone) {
-							var bdPhoneRegex = /^(?:\+?880|880|0)?1[3-9]\d{8}$/;
-							if (!bdPhoneRegex.test(rawPhone)) {
-								hasInvalid = true;
-								$phone.addClass('wcsc-invalid');
-								$phone.closest('.form-row').addClass('woocommerce-invalid');
-								var phoneErr = 'সঠিক ১১ ডিজিটের মোবাইল নম্বর প্রদান করুন';
-								if (missingFields.indexOf(phoneErr) === -1) {
-									missingFields.push(phoneErr);
-								}
-								if (!$firstInvalid) {
-									$firstInvalid = $phone;
+						if (rawPhone) {
+							if ($hasValidation.length && $hasValidation.val() === '1') {
+								var bdPhoneRegex = /^(?:\+?880|880|0)?1[3-9]\d{8}$/;
+								if (!bdPhoneRegex.test(rawPhone)) {
+									hasInvalid = true;
+									$phone.addClass('wcsc-invalid wcas-input-error');
+									$phone.closest('.form-row').addClass('woocommerce-invalid');
+									var phoneErr = '১১ সংখ্যার একটি সঠিক মোবাইল নম্বর প্রদান করুন';
+									if (missingFields.indexOf(phoneErr) === -1) {
+										missingFields.push(phoneErr);
+									}
+									if (!$firstInvalid) {
+										$firstInvalid = $phone;
+									}
 								}
 							}
 						}
@@ -465,7 +467,7 @@
 			this.$container.on('input change', 'input, textarea, select', function () {
 				var $input = $(this);
 				if ($.trim($input.val() || '')) {
-					$input.removeClass('wcsc-invalid');
+					$input.removeClass('wcsc-invalid wcas-input-error');
 					$input.closest('.form-row').removeClass('woocommerce-invalid');
 				}
 			});
@@ -997,6 +999,10 @@
 			}
 			if ($modal.length) {
 				var $list = $modal.find('.wcsc-missing-fields-list');
+				var $intro = $modal.find('.wcsc-modal-intro-text');
+				if ($intro.length) {
+					$intro.text('অনুগ্রহ করে নিচের তথ্যগুলো সঠিকভাবে প্রদান করুন:');
+				}
 				if ($list.length) {
 					$list.empty();
 					if (Array.isArray(messages)) {

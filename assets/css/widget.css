@@ -1199,12 +1199,18 @@
 .wcsc-product-checkout-widget .woocommerce form.checkout input.input-text.wcsc-invalid,
 .wcsc-product-checkout-widget .woocommerce form.checkout textarea.wcsc-invalid,
 .wcsc-product-checkout-widget .woocommerce form.checkout select.wcsc-invalid,
+.wcsc-product-checkout-widget .woocommerce form.checkout input.input-text.wcas-input-error,
+.wcsc-product-checkout-widget .woocommerce form.checkout textarea.wcas-input-error,
+.wcsc-product-checkout-widget .woocommerce form.checkout select.wcas-input-error,
 .wcas-checkout-wrapper .woocommerce-invalid input.input-text,
 .wcas-checkout-wrapper .woocommerce-invalid textarea,
 .wcas-checkout-wrapper .woocommerce-invalid select,
 .wcas-checkout-wrapper input.input-text.wcsc-invalid,
 .wcas-checkout-wrapper textarea.wcsc-invalid,
-.wcas-checkout-wrapper select.wcsc-invalid {
+.wcas-checkout-wrapper select.wcsc-invalid,
+.wcas-checkout-wrapper input.input-text.wcas-input-error,
+.wcas-checkout-wrapper textarea.wcas-input-error,
+.wcas-checkout-wrapper select.wcas-input-error {
 	border-color: var(--wcsc-error-border-color, #ff0000) !important;
 	box-shadow: 0 0 0 1px var(--wcsc-error-border-color, #ff0000) !important;
 }
