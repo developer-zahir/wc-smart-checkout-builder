@@ -1412,6 +1412,38 @@ body.elementor-editor-active .wcsc-floating-btn-wrap,
 	box-sizing: border-box;
 }
 
+.wcas-modal-top-close-btn,
+.wcsc-modal-top-close-btn {
+	position: absolute;
+	top: 14px;
+	left: 14px;
+	width: 32px;
+	height: 32px;
+	display: flex;
+	align-items: center;
+	justify-content: center;
+	background: #f1f5f9;
+	border: none;
+	border-radius: 50%;
+	color: #64748b;
+	cursor: pointer;
+	padding: 0;
+	transition: background-color 0.2s ease, color 0.2s ease, transform 0.1s ease;
+	z-index: 10;
+}
+
+.wcas-modal-top-close-btn:hover,
+.wcsc-modal-top-close-btn:hover {
+	background: #e2e8f0;
+	color: #0f172a;
+	transform: scale(1.05);
+}
+
+.wcas-modal-top-close-btn:active,
+.wcsc-modal-top-close-btn:active {
+	transform: scale(0.95);
+}
+
 @keyframes wcsc-modal-pop {
 	0% {
 		opacity: 0;

@@ -1218,6 +1218,12 @@ class Checkout_Handler {
 		?>
 		<div id="wcsc-validation-modal" class="wcsc-phone-modal-backdrop wcsc-validation-modal-backdrop" style="display: none;" role="dialog" aria-modal="true">
 			<div class="wcsc-phone-modal-box wcsc-validation-modal-box">
+				<button type="button" class="wcas-modal-top-close-btn wcsc-modal-top-close-btn" aria-label="<?php esc_attr_e( 'Close', 'wc-smart-checkout-builder' ); ?>">
+					<svg viewBox="0 0 24 24" width="18" height="18" fill="none" stroke="currentColor" stroke-width="2.5" stroke-linecap="round" stroke-linejoin="round">
+						<line x1="18" y1="6" x2="6" y2="18"></line>
+						<line x1="6" y1="6" x2="18" y2="18"></line>
+					</svg>
+				</button>
 				<div class="wcsc-phone-modal-icon wcsc-validation-modal-icon">
 					<svg viewBox="0 0 24 24" width="36" height="36" fill="none" stroke="currentColor" stroke-width="2" stroke-linecap="round" stroke-linejoin="round">
 						<circle cx="12" cy="12" r="10"></circle>
@@ -1225,12 +1231,12 @@ class Checkout_Handler {
 						<line x1="12" y1="16" x2="12.01" y2="16"></line>
 					</svg>
 				</div>
-				<h4 class="wcsc-phone-modal-title wcsc-validation-modal-title"><?php echo esc_html( $title ); ?></h4>
+				<h4 class="wcsc-phone-modal-title wcsc-validation-modal-title"><?php echo esc_html( __( 'প্রয়োজনীয় তথ্য পূরণ করুন', 'wc-smart-checkout-builder' ) ); ?></h4>
 				<div class="wcsc-phone-modal-message wcsc-validation-modal-message">
-					<p class="wcsc-modal-intro-text" style="margin: 0 0 8px 0;"><?php echo esc_html( $message ); ?></p>
+					<p class="wcsc-modal-intro-text" style="margin: 0 0 8px 0;"><?php echo esc_html( __( 'অনুগ্রহ করে নিচের তথ্যগুলো সঠিকভাবে প্রদান করুন:', 'wc-smart-checkout-builder' ) ); ?></p>
 					<ul class="wcsc-missing-fields-list"></ul>
 				</div>
-				<button type="button" class="wcsc-phone-modal-close-btn wcsc-validation-modal-close-btn"><?php echo esc_html( $btn_text ); ?></button>
+				<button type="button" class="wcsc-phone-modal-close-btn wcsc-validation-modal-close-btn"><?php echo esc_html( ! empty( $btn_text ) ? $btn_text : __( 'ঠিক আছে', 'wc-smart-checkout-builder' ) ); ?></button>
 			</div>
 		</div>
 		<?php

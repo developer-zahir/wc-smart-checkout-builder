@@ -314,12 +314,12 @@
 				}
 			});
 
-			// Close modal on close button click
-			$(document).on('click', '.wcsc-phone-modal-close-btn, .wcsc-validation-modal-close-btn', function (e) {
+			// Close modal on close button click (top-left X or bottom button)
+			$(document).on('click', '.wcas-modal-top-close-btn, .wcsc-modal-top-close-btn, .wcsc-phone-modal-close-btn, .wcsc-validation-modal-close-btn', function (e) {
 				e.preventDefault();
 				var $modal = $('#wcsc-validation-modal, #wcsc-phone-modal');
 				$modal.fadeOut(200);
-				var $firstInvalid = $modal.data('first-invalid') || self.$container.find('.wcsc-invalid').first();
+				var $firstInvalid = $modal.data('first-invalid') || self.$container.find('.wcsc-invalid, .wcas-input-error').first();
 				if ($firstInvalid && $firstInvalid.length) {
 					$('html, body').animate({
 						scrollTop: $firstInvalid.offset().top - 100
@@ -991,17 +991,20 @@
 			}
 		},
 
-		showValidationModal: function (messages, firstInvalid) {
+		showValidationModal: function (messages, firstInvalid, customTitle) {
 			var self = this;
 			var $modal = $('#wcsc-validation-modal, #wcsc-phone-modal');
 			if (!$modal.length) {
 				$modal = self.$container.find('#wcsc-validation-modal, #wcsc-phone-modal');
 			}
 			if ($modal.length) {
+				var titleText = customTitle || 'প্রয়োজনীয় তথ্য পূরণ করুন';
+				$modal.find('.wcsc-phone-modal-title, .wcsc-validation-modal-title').text(titleText);
+
 				var $list = $modal.find('.wcsc-missing-fields-list');
 				var $intro = $modal.find('.wcsc-modal-intro-text');
 				if ($intro.length) {
-					$intro.text('অনুগ্রহ করে নিচের তথ্যগুলো সঠিকভাবে প্রদান করুন:');
+					$intro.text('অনুগ্রহ করে নিচের তথ্যগুলো সঠিকভাবে প্রদান করুন:').show();
 				}
 				if ($list.length) {
 					$list.empty();
