@@ -62,6 +62,7 @@ class Updater {
 		add_filter( 'site_transient_update_plugins', array( $this, 'check_for_plugin_update' ) );
 		add_filter( 'plugins_api', array( $this, 'plugin_popup_information' ), 20, 3 );
 		add_filter( 'upgrader_post_install', array( $this, 'rename_github_folder_after_update' ), 10, 3 );
+		add_action( 'upgrader_process_complete', array( $this, 'on_update_completed' ), 10, 2 );
 		
 		// Add manual update check link and handlers
 		add_filter( 'plugin_row_meta', array( $this, 'add_check_update_link' ), 10, 2 );
@@ -294,15 +295,40 @@ class Updater {
 			return $result;
 		}
 
-		$proper_destination = WP_PLUGIN_DIR . '/' . $this->plugin_slug;
-		$current_destination = untrailingslashit( $result['destination'] );
+		$proper_destination  = WP_PLUGIN_DIR . '/' . $this->plugin_slug;
+		$current_destination = isset( $result['destination'] ) ? untrailingslashit( $result['destination'] ) : '';
 
-		if ( $current_destination !== $proper_destination ) {
-			$wp_filesystem->move( $current_destination, $proper_destination );
-			$result['destination'] = $proper_destination;
+		if ( $current_destination && $current_destination !== $proper_destination ) {
+			if ( $wp_filesystem->exists( $proper_destination ) ) {
+				$wp_filesystem->delete( $proper_destination, true );
+			}
+			$moved = $wp_filesystem->move( $current_destination, $proper_destination, true );
+			if ( ! $moved && function_exists( 'copy_dir' ) ) {
+				copy_dir( $current_destination, $proper_destination );
+				$wp_filesystem->delete( $current_destination, true );
+			}
+			$result['destination']      = $proper_destination;
+			$result['destination_name'] = $this->plugin_slug;
 		}
 
+		// Clear transients immediately so WordPress sees the updated version
+		delete_site_transient( $this->cache_key );
+		delete_site_transient( 'update_plugins' );
+
 		return $result;
+	}
+
+	/**
+	 * Automatically clear update cache when any plugin update completes.
+	 *
+	 * @param \WP_Upgrader $upgrader_object
+	 * @param array        $options
+	 */
+	public function on_update_completed( $upgrader_object, $options ) {
+		if ( isset( $options['action'] ) && 'update' === $options['action'] && isset( $options['type'] ) && 'plugin' === $options['type'] ) {
+			delete_site_transient( $this->cache_key );
+			delete_site_transient( 'update_plugins' );
+		}
 	}
 
 	/**
