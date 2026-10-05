@@ -1286,8 +1286,11 @@ class Checkout_Handler {
 					foreach ( $available_variations as $variation ) {
 						$match = true;
 						foreach ( $default_attributes as $attr_key => $attr_val ) {
-							$var_attr_key = 'attribute_' . $attr_key;
-							if ( isset( $variation['attributes'][ $var_attr_key ] ) && '' !== $variation['attributes'][ $var_attr_key ] && $variation['attributes'][ $var_attr_key ] !== $attr_val ) {
+							$var_attr_key  = 'attribute_' . sanitize_title( $attr_key );
+							$var_attr_key2 = 'attribute_pa_' . sanitize_title( preg_replace( '/^pa_/', '', $attr_key ) );
+							$val_in_var    = isset( $variation['attributes'][ $var_attr_key ] ) ? $variation['attributes'][ $var_attr_key ] : ( isset( $variation['attributes'][ $var_attr_key2 ] ) ? $variation['attributes'][ $var_attr_key2 ] : ( isset( $variation['attributes'][ $attr_key ] ) ? $variation['attributes'][ $attr_key ] : '' ) );
+
+							if ( '' !== $val_in_var && $val_in_var !== $attr_val && sanitize_title( $val_in_var ) !== sanitize_title( $attr_val ) ) {
 								$match = false;
 								break;
 							}
@@ -1303,12 +1306,19 @@ class Checkout_Handler {
 					$selected_variation = $available_variations[0];
 				}
 
-				$cart->add_to_cart(
-					$product_id,
-					1,
-					$selected_variation['variation_id'],
-					$selected_variation['attributes']
-				);
+				$var_id    = ! empty( $selected_variation['variation_id'] ) ? absint( $selected_variation['variation_id'] ) : 0;
+				$var_attrs = ! empty( $selected_variation['attributes'] ) ? $selected_variation['attributes'] : array();
+
+				$added = false;
+				if ( $var_id > 0 ) {
+					$added = $cart->add_to_cart( $product_id, 1, $var_id, $var_attrs );
+					if ( ! $added ) {
+						$added = $cart->add_to_cart( $var_id, 1 );
+					}
+				}
+				if ( ! $added ) {
+					$cart->add_to_cart( $product_id, 1 );
+				}
 			}
 		} else {
 			$cart->add_to_cart( $product_id, 1 );
@@ -1439,11 +1449,46 @@ class Checkout_Handler {
 		$product_id   = isset( $_POST['product_id'] ) ? absint( $_POST['product_id'] ) : 0;
 		$variation_id = isset( $_POST['variation_id'] ) ? absint( $_POST['variation_id'] ) : 0;
 		$quantity     = isset( $_POST['quantity'] ) ? max( 1, absint( $_POST['quantity'] ) ) : 1;
-		$attributes   = isset( $_POST['attributes'] ) && is_array( $_POST['attributes'] ) ? array_map( 'sanitize_text_field', wp_unslash( $_POST['attributes'] ) ) : array();
+		$raw_attrs    = isset( $_POST['attributes'] ) && is_array( $_POST['attributes'] ) ? array_map( 'sanitize_text_field', wp_unslash( $_POST['attributes'] ) ) : array();
 
 		$product = wc_get_product( $product_id );
 		if ( ! $product || ! $product->is_purchasable() ) {
 			wp_send_json_error( array( 'message' => __( 'Selected product is not purchasable.', 'wc-smart-checkout-builder' ) ) );
+		}
+
+		$variation_attributes = array();
+
+		// Format passed attributes with attribute_ prefix
+		foreach ( $raw_attrs as $k => $v ) {
+			$key = ( strpos( $k, 'attribute_' ) === 0 ) ? $k : 'attribute_' . sanitize_title( $k );
+			$variation_attributes[ $key ] = $v;
+		}
+
+		// If product is variable and variation_id is given or needs to be resolved
+		if ( $product->is_type( 'variable' ) ) {
+			if ( $variation_id > 0 ) {
+				$var_product = wc_get_product( $variation_id );
+				if ( $var_product && $var_product->is_type( 'variation' ) ) {
+					$parent_id = $var_product->get_parent_id();
+					if ( $parent_id && $parent_id === $product_id ) {
+						$def_var_attrs = $var_product->get_variation_attributes();
+						foreach ( $def_var_attrs as $attr_k => $attr_v ) {
+							if ( '' !== $attr_v ) {
+								$variation_attributes[ $attr_k ] = $attr_v;
+							}
+						}
+					}
+				}
+			} else {
+				// Find matching variation server-side if not explicitly provided
+				$data_store = \WC_Data_Store::load( 'product' );
+				if ( method_exists( $data_store, 'find_matching_product_variation' ) ) {
+					$matched_id = $data_store->find_matching_product_variation( $product, $variation_attributes );
+					if ( $matched_id > 0 ) {
+						$variation_id = $matched_id;
+					}
+				}
+			}
 		}
 
 		$cart = WC()->cart;
@@ -1451,19 +1496,32 @@ class Checkout_Handler {
 		// Clear cart to prevent extra products from mixing.
 		$cart->empty_cart();
 
-		// Add item to cart.
-		$cart->add_to_cart( $product_id, $quantity, $variation_id, $attributes );
+		// Add main item (variation or simple product) to cart.
+		$added = false;
+		if ( $product->is_type( 'variable' ) && $variation_id > 0 ) {
+			$added = $cart->add_to_cart( $product_id, $quantity, $variation_id, $variation_attributes );
+			if ( ! $added ) {
+				$added = $cart->add_to_cart( $variation_id, $quantity );
+			}
+		}
+		if ( ! $added ) {
+			$cart->add_to_cart( $product_id, $quantity );
+		}
 
 		// Preserve selected order bump products if provided
 		if ( ! empty( $_POST['bump_product_ids'] ) && is_array( $_POST['bump_product_ids'] ) ) {
 			foreach ( $_POST['bump_product_ids'] as $bump_id ) {
 				$bump_id = absint( $bump_id );
-				if ( $bump_id > 0 && $bump_id !== $product_id ) {
+				if ( $bump_id > 0 && $bump_id !== $product_id && $bump_id !== $variation_id ) {
 					$cart->add_to_cart( $bump_id, 1 );
 				}
 			}
 		}
 
+		// Recalculate shipping and totals
+		if ( method_exists( $cart, 'calculate_shipping' ) ) {
+			$cart->calculate_shipping();
+		}
 		$cart->calculate_totals();
 
 		$clean_total = html_entity_decode( wp_strip_all_tags( $cart->get_total() ), ENT_QUOTES, 'UTF-8' );

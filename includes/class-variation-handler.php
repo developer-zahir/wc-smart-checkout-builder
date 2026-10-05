@@ -89,9 +89,9 @@ class Variation_Handler {
 				}
 			}
 
-			// Get default value if set.
+			// Get default value if set, or fallback to first option value.
 			$default_attributes = $product->get_default_attributes();
-			$default_value      = isset( $default_attributes[ sanitize_title( $attribute_name ) ] ) ? $default_attributes[ sanitize_title( $attribute_name ) ] : '';
+			$default_value      = isset( $default_attributes[ sanitize_title( $attribute_name ) ] ) ? $default_attributes[ sanitize_title( $attribute_name ) ] : ( isset( $default_attributes[ $attribute_name ] ) ? $default_attributes[ $attribute_name ] : ( ! empty( $parsed_options[0]['value'] ) ? $parsed_options[0]['value'] : '' ) );
 
 			$parsed_attributes[] = array(
 				'name'          => $attribute_name,

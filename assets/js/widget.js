@@ -614,7 +614,7 @@
 			if (matchedVariation) {
 				this.currentVariationId = matchedVariation.variation_id;
 
-				// Update Price
+				// Update Price display in product summary section
 				if (matchedVariation.price_html && this.$priceContainer.length) {
 					this.$priceContainer.html(matchedVariation.price_html);
 				}
@@ -665,9 +665,19 @@
 		},
 
 		findMatchingVariation: function (selectedAttrs) {
-			if (!this.variations.length) {
+			if (!this.variations || !this.variations.length) {
 				return null;
 			}
+
+			var normalizeStr = function (str) {
+				if (str === null || typeof str === 'undefined') return '';
+				try {
+					str = decodeURIComponent(String(str));
+				} catch (e) {
+					str = String(str);
+				}
+				return str.toLowerCase().trim().replace(/[\s_]+/g, '-');
+			};
 
 			for (var i = 0; i < this.variations.length; i++) {
 				var variation = this.variations[i];
@@ -677,24 +687,31 @@
 				for (var name in selectedAttrs) {
 					if (!selectedAttrs.hasOwnProperty(name)) continue;
 
-					var selectedVal = String(selectedAttrs[name]).toLowerCase();
-					// WC attributes keys can be 'attribute_pa_color' or 'attribute_color'
-					var key1 = 'attribute_' + name.toLowerCase();
-					var key2 = 'attribute_pa_' + name.toLowerCase().replace(/^pa_/, '');
+					var selectedVal = normalizeStr(selectedAttrs[name]);
+					var cleanName = normalizeStr(name);
+					var cleanNameWithoutPa = cleanName.replace(/^pa-/, '').replace(/^attribute-pa-/, '').replace(/^attribute-/, '');
 
-					var varVal = '';
-					if (typeof varAttrs[key1] !== 'undefined') {
-						varVal = String(varAttrs[key1]).toLowerCase();
-					} else if (typeof varAttrs[key2] !== 'undefined') {
-						varVal = String(varAttrs[key2]).toLowerCase();
-					} else if (typeof varAttrs[name] !== 'undefined') {
-						varVal = String(varAttrs[name]).toLowerCase();
+					// Search all possible keys in varAttrs
+					var varVal = null;
+					for (var vKey in varAttrs) {
+						if (!varAttrs.hasOwnProperty(vKey)) continue;
+						var cleanVKey = normalizeStr(vKey);
+						var cleanVKeyWithoutPa = cleanVKey.replace(/^pa-/, '').replace(/^attribute-pa-/, '').replace(/^attribute-/, '');
+
+						if (cleanVKey === cleanName || cleanVKeyWithoutPa === cleanNameWithoutPa || cleanVKey === 'attribute-' + cleanName || cleanVKey === 'attribute-pa-' + cleanNameWithoutPa) {
+							varVal = varAttrs[vKey];
+							break;
+						}
 					}
 
-					// If variation attribute is not blank (any) and doesn't match selected value
-					if (varVal !== '' && varVal !== selectedVal) {
-						match = false;
-						break;
+					// If attribute was found in variation definition
+					if (varVal !== null && typeof varVal !== 'undefined') {
+						var normVarVal = normalizeStr(varVal);
+						// '' means ANY value is accepted for this variation
+						if (normVarVal !== '' && normVarVal !== selectedVal) {
+							match = false;
+							break;
+						}
 					}
 				}
 
@@ -747,7 +764,7 @@
 			decodedTotal = decodedTotal.replace(/\u00a0/g, ' ').replace(/<[^>]*>/g, '').trim();
 
 			// Update all order buttons synchronously (scoped to our container only)
-			var $buttons = this.$container.find('#place_order, .wcsc-order-now-btn, .wcas-block-order-button button');
+			var $buttons = this.$container.find('#place_order, .wcsc-order-now-btn, .wcas-block-order-button button, .wcsc-mobile-sticky-btn, .wcsc-floating-btn');
 			$buttons.each(function () {
 				var $button = $(this);
 				var templateText = $button.attr('data-template-text') || $button.data('template-text');
@@ -764,7 +781,7 @@
 				var newButtonText = templateText.replace('{total_price}', decodedTotal).trim();
 
 				// If button has separate inner text wrapper (e.g. beam/icon buttons), update inner text
-				var $innerBtnText = $button.find('.wcsc-btn-text');
+				var $innerBtnText = $button.find('.wcsc-btn-text, .wcsc-sticky-text');
 
 				if ($innerBtnText.length) {
 					$innerBtnText.html(newButtonText);
@@ -969,20 +986,74 @@
 		},
 
 		updateEditorPreview: function (variation) {
+			if (!variation) return;
+
+			var qty = parseInt(this.$qtyInput.val(), 10) || 1;
+			var unitPrice = typeof variation.display_price !== 'undefined' ? parseFloat(variation.display_price) : 0;
+			var itemSubtotal = unitPrice * qty;
+
+			// Extract currency symbol
+			var currencySymbol = '$';
+			var $existingAmount = this.$container.find('.woocommerce-Price-currencySymbol');
+			if ($existingAmount.length) {
+				currencySymbol = $existingAmount.first().text();
+			}
+
+			var formatCurrency = function (val) {
+				return currencySymbol + (Math.round(val * 100) / 100).toFixed(0);
+			};
+
 			// Update preview price in order review table
-			var $previewPrice = this.$container.find('.wcsc-preview-item-price, .wcsc-preview-subtotal, .wcsc-preview-total');
-			if ($previewPrice.length && variation.price_html) {
-				$previewPrice.html(variation.price_html);
-			}
-			// Update button price text
-			if (variation.display_price) {
-				var currencySymbol = '$';
-				var $existingAmount = this.$container.find('.woocommerce-Price-currencySymbol');
-				if ($existingAmount.length) {
-					currencySymbol = $existingAmount.first().text();
+			var $itemPrice = this.$container.find('.wcsc-preview-item-price');
+			if ($itemPrice.length) {
+				if (variation.price_html) {
+					$itemPrice.html(variation.price_html);
+				} else {
+					$itemPrice.text(formatCurrency(unitPrice));
 				}
-				this.updateButtonPrice(currencySymbol + variation.display_price);
 			}
+
+			var $previewSubtotal = this.$container.find('.wcsc-preview-subtotal');
+			if ($previewSubtotal.length) {
+				$previewSubtotal.text(formatCurrency(itemSubtotal));
+			}
+
+			// Extract shipping cost in preview
+			var shippingCost = 0;
+			var $activeShipping = this.$container.find('.wcas-block-shipping li.is-active, .wcas-block-shipping input[type="radio"]:checked');
+			if ($activeShipping.length) {
+				var $shippingPrice = $activeShipping.closest('li').find('.woocommerce-Price-amount');
+				if ($shippingPrice.length) {
+					var rawShip = parseFloat($shippingPrice.text().replace(/[^0-9.]/g, ''));
+					if (!isNaN(rawShip)) {
+						shippingCost = rawShip;
+					}
+				}
+			}
+
+			// Extract order bump totals in preview
+			var bumpTotal = 0;
+			this.$container.find('.wcsc-order-bump-checkbox:checked').each(function () {
+				var $card = $(this).closest('.wcsc-order-bump-card');
+				var $bumpPrice = $card.find('.wcsc-order-bump-price .woocommerce-Price-amount').last();
+				if ($bumpPrice.length) {
+					var rawBump = parseFloat($bumpPrice.text().replace(/[^0-9.]/g, ''));
+					if (!isNaN(rawBump)) {
+						bumpTotal += rawBump;
+					}
+				}
+			});
+
+			var grandTotal = itemSubtotal + shippingCost + bumpTotal;
+			var formattedTotal = formatCurrency(grandTotal);
+
+			var $previewTotal = this.$container.find('.wcsc-preview-total');
+			if ($previewTotal.length) {
+				$previewTotal.text(formattedTotal);
+			}
+
+			// Update button price text
+			this.updateButtonPrice(formattedTotal);
 
 			// Update preview item thumbnail (first/main product only)
 			var $cartItemImg = this.$container.find('.woocommerce-checkout-review-order-table tbody tr.wcas-order-review-product:first .wcsc-cart-item-image, .woocommerce-checkout-review-order-table tbody tr.cart_item:first .wcsc-cart-item-image');
