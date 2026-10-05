@@ -71,7 +71,10 @@ class Updater {
 	}
 
 	/**
-	 * Fetch latest release from GitHub API.
+	 * Fetch latest release/version data from GitHub.
+	 *
+	 * Uses raw file check on main first (bypassing GitHub API rate limits),
+	 * then falls back to GitHub Tags and Releases API.
 	 *
 	 * @param bool $force_check
 	 * @return object|false
@@ -85,7 +88,7 @@ class Updater {
 		}
 
 		$args = array(
-			'timeout' => 10,
+			'timeout' => 15,
 			'headers' => array(
 				'Accept'     => 'application/vnd.github.v3+json',
 				'User-Agent' => 'WordPress/' . get_bloginfo( 'version' ) . '; ' . home_url(),
@@ -94,33 +97,43 @@ class Updater {
 
 		$release_data = false;
 
-		// 1. Fetch latest formal release
-		$url      = sprintf( 'https://api.github.com/repos/%s/releases/latest', $this->repository );
-		$response = wp_remote_get( $url, $args );
+		// 1. Direct raw check on main branch (never rate-limited by GitHub API)
+		$raw_url = sprintf( 'https://raw.githubusercontent.com/%s/main/wc-smart-checkout-builder.php', $this->repository );
+		$raw_res = wp_remote_get( $raw_url, array( 'timeout' => 10 ) );
+		if ( ! is_wp_error( $raw_res ) && 200 === wp_remote_retrieve_response_code( $raw_res ) ) {
+			$raw_body = wp_remote_retrieve_body( $raw_res );
+			if ( preg_match( '/^[ \t\/*#@]*Version:\s*([0-9.]+)/mi', $raw_body, $matches ) ) {
+				$remote_ver   = trim( $matches[1] );
+				$tag_name     = 'v' . $remote_ver;
+				$zip_url      = sprintf( 'https://github.com/%s/raw/%s/wc-smart-checkout-builder.zip', $this->repository, $tag_name );
+				$fallback_zip = sprintf( 'https://github.com/%s/archive/refs/tags/%s.zip', $this->repository, $tag_name );
 
-		if ( ! is_wp_error( $response ) && 200 === wp_remote_retrieve_response_code( $response ) ) {
-			$body = wp_remote_retrieve_body( $response );
-			$data = json_decode( $body );
-
-			if ( ! empty( $data ) && is_object( $data ) && ! empty( $data->tag_name ) ) {
-				$release_data = $data;
+				$release_data = (object) array(
+					'tag_name'    => $tag_name,
+					'zipball_url' => $fallback_zip,
+					'assets'      => array(
+						(object) array(
+							'name'                 => 'wc-smart-checkout-builder.zip',
+							'browser_download_url' => $zip_url,
+						),
+					),
+					'body'        => sprintf( 'Update to version %s.', $remote_ver ),
+				);
 			}
 		}
 
-		// 2. Fetch tags to ensure we never miss a newer git tag even if formal release was not published
-		$tags_url      = sprintf( 'https://api.github.com/repos/%s/tags', $this->repository );
-		$tags_response = wp_remote_get( $tags_url, $args );
+		// 2. Fallback to GitHub Tags API
+		if ( ! $release_data ) {
+			$tags_url      = sprintf( 'https://api.github.com/repos/%s/tags', $this->repository );
+			$tags_response = wp_remote_get( $tags_url, $args );
 
-		if ( ! is_wp_error( $tags_response ) && 200 === wp_remote_retrieve_response_code( $tags_response ) ) {
-			$tags_body = wp_remote_retrieve_body( $tags_response );
-			$tags_data = json_decode( $tags_body );
+			if ( ! is_wp_error( $tags_response ) && 200 === wp_remote_retrieve_response_code( $tags_response ) ) {
+				$tags_body = wp_remote_retrieve_body( $tags_response );
+				$tags_data = json_decode( $tags_body );
 
-			if ( ! empty( $tags_data ) && is_array( $tags_data ) && ! empty( $tags_data[0]->name ) ) {
-				$latest_tag = $tags_data[0];
-				$tag_ver    = ltrim( $latest_tag->name, 'v' );
-				$rel_ver    = $release_data ? ltrim( $release_data->tag_name, 'v' ) : '0.0.0';
-
-				if ( version_compare( $tag_ver, $rel_ver, '>' ) || ! $release_data ) {
+				if ( ! empty( $tags_data ) && is_array( $tags_data ) && ! empty( $tags_data[0]->name ) ) {
+					$latest_tag    = $tags_data[0];
+					$tag_ver       = ltrim( $latest_tag->name, 'v' );
 					$tag_asset_url = sprintf( 'https://github.com/%s/raw/%s/wc-smart-checkout-builder.zip', $this->repository, $latest_tag->name );
 					$release_data  = (object) array(
 						'tag_name'    => $latest_tag->name,
@@ -138,7 +151,8 @@ class Updater {
 		}
 
 		if ( $release_data ) {
-			set_site_transient( $this->cache_key, $release_data, HOUR_IN_SECONDS );
+			// Cache for 30 minutes unless force-checked
+			set_site_transient( $this->cache_key, $release_data, 30 * MINUTE_IN_SECONDS );
 			return $release_data;
 		}
 
@@ -158,6 +172,7 @@ class Updater {
 
 		// Allow manual force checking or AJAX update action
 		$force = ( isset( $_GET['force-check'] ) && '1' === $_GET['force-check'] )
+			|| ( isset( $_GET['action'] ) && 'wcsc_check_update' === $_GET['action'] )
 			|| ( function_exists( 'wp_doing_ajax' ) && wp_doing_ajax() && isset( $_REQUEST['action'] ) && 'update-plugin' === $_REQUEST['action'] );
 		$release = $this->get_github_release( $force );
 
@@ -364,14 +379,17 @@ class Updater {
 					$new_version = ltrim( $release->tag_name, 'v' );
 					if ( version_compare( $new_version, $this->version, '>' ) ) {
 						$status = 'available';
+
+						// Force inject into WordPress update_plugins transient
+						$current_transient = get_site_transient( 'update_plugins' );
+						if ( ! is_object( $current_transient ) ) {
+							$current_transient = new \stdClass();
+						}
+						$current_transient = $this->check_for_plugin_update( $current_transient );
+						set_site_transient( 'update_plugins', $current_transient );
 					} else {
 						$status = 'latest';
 					}
-				}
-				
-				// Re-prime WordPress core update transient
-				if ( function_exists( 'wp_update_plugins' ) ) {
-					wp_update_plugins();
 				}
 
 				// Redirect back to plugins page with message
