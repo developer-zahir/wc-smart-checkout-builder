@@ -74,7 +74,7 @@ class Updater {
 	 * Fetch latest release/version data from GitHub.
 	 *
 	 * Uses raw file check on main first (bypassing GitHub API rate limits),
-	 * then falls back to GitHub Tags and Releases API.
+	 * then falls back to GitHub Releases API and Tags API.
 	 *
 	 * @param bool $force_check
 	 * @return object|false
@@ -82,50 +82,71 @@ class Updater {
 	protected function get_github_release( $force_check = false ) {
 		if ( ! $force_check ) {
 			$cached = get_site_transient( $this->cache_key );
-			if ( false !== $cached ) {
+			if ( false !== $cached && is_object( $cached ) && ! empty( $cached->tag_name ) ) {
 				return $cached;
 			}
 		}
 
-		$args = array(
-			'timeout' => 15,
-			'headers' => array(
+		$request_args = array(
+			'timeout'   => 20,
+			'sslverify' => false,
+			'headers'   => array(
 				'Accept'     => 'application/vnd.github.v3+json',
-				'User-Agent' => 'WordPress/' . get_bloginfo( 'version' ) . '; ' . home_url(),
+				'User-Agent' => 'WordPress/' . ( function_exists( 'get_bloginfo' ) ? get_bloginfo( 'version' ) : '6.7' ) . '; ' . ( function_exists( 'home_url' ) ? home_url() : 'https://developerzahir.com' ),
 			),
 		);
 
 		$release_data = false;
 
-		// 1. Direct raw check on main branch (never rate-limited by GitHub API)
-		$raw_url = sprintf( 'https://raw.githubusercontent.com/%s/main/wc-smart-checkout-builder.php', $this->repository );
-		$raw_res = wp_remote_get( $raw_url, array( 'timeout' => 10 ) );
-		if ( ! is_wp_error( $raw_res ) && 200 === wp_remote_retrieve_response_code( $raw_res ) ) {
-			$raw_body = wp_remote_retrieve_body( $raw_res );
-			if ( preg_match( '/^[ \t\/*#@]*Version:\s*([0-9.]+)/mi', $raw_body, $matches ) ) {
-				$remote_ver   = trim( $matches[1] );
-				$tag_name     = 'v' . $remote_ver;
-				$zip_url      = sprintf( 'https://github.com/%s/raw/%s/wc-smart-checkout-builder.zip', $this->repository, $tag_name );
-				$fallback_zip = sprintf( 'https://github.com/%s/archive/refs/tags/%s.zip', $this->repository, $tag_name );
+		// 1. Check official GitHub Releases first
+		$rel_url = sprintf( 'https://api.github.com/repos/%s/releases/latest', $this->repository );
+		$rel_res = wp_remote_get( $rel_url, $request_args );
 
-				$release_data = (object) array(
-					'tag_name'    => $tag_name,
-					'zipball_url' => $fallback_zip,
-					'assets'      => array(
-						(object) array(
-							'name'                 => 'wc-smart-checkout-builder.zip',
-							'browser_download_url' => $zip_url,
-						),
-					),
-					'body'        => sprintf( 'Update to version %s.', $remote_ver ),
-				);
+		if ( ! is_wp_error( $rel_res ) && 200 === wp_remote_retrieve_response_code( $rel_res ) ) {
+			$body = wp_remote_retrieve_body( $rel_res );
+			$data = json_decode( $body );
+
+			if ( ! empty( $data ) && is_object( $data ) && ! empty( $data->tag_name ) ) {
+				$release_data = $data;
 			}
 		}
 
-		// 2. Fallback to GitHub Tags API
+		// 2. Direct raw check on main branch (never rate-limited by GitHub API)
+		if ( ! $release_data ) {
+			$raw_url = sprintf( 'https://raw.githubusercontent.com/%s/main/wc-smart-checkout-builder.php', $this->repository );
+			$raw_res = wp_remote_get( $raw_url, array( 'timeout' => 15, 'sslverify' => false ) );
+			if ( ! is_wp_error( $raw_res ) && 200 === wp_remote_retrieve_response_code( $raw_res ) ) {
+				$raw_body = wp_remote_retrieve_body( $raw_res );
+				if ( preg_match( '/^[ \t\/*#@]*Version:\s*([0-9.]+)/mi', $raw_body, $matches ) ) {
+					$remote_ver   = trim( $matches[1] );
+					$tag_name     = 'v' . $remote_ver;
+					$zip_url      = sprintf( 'https://github.com/%s/releases/download/%s/wc-smart-checkout-builder.zip', $this->repository, $tag_name );
+					$raw_zip_url  = sprintf( 'https://github.com/%s/raw/%s/wc-smart-checkout-builder.zip', $this->repository, $tag_name );
+					$fallback_zip = sprintf( 'https://github.com/%s/archive/refs/tags/%s.zip', $this->repository, $tag_name );
+
+					$release_data = (object) array(
+						'tag_name'    => $tag_name,
+						'zipball_url' => $fallback_zip,
+						'assets'      => array(
+							(object) array(
+								'name'                 => 'wc-smart-checkout-builder.zip',
+								'browser_download_url' => $zip_url,
+							),
+							(object) array(
+								'name'                 => 'wc-smart-checkout-builder.zip',
+								'browser_download_url' => $raw_zip_url,
+							),
+						),
+						'body'        => sprintf( 'Update to version %s.', $remote_ver ),
+					);
+				}
+			}
+		}
+
+		// 3. Fallback to GitHub Tags API
 		if ( ! $release_data ) {
 			$tags_url      = sprintf( 'https://api.github.com/repos/%s/tags', $this->repository );
-			$tags_response = wp_remote_get( $tags_url, $args );
+			$tags_response = wp_remote_get( $tags_url, $request_args );
 
 			if ( ! is_wp_error( $tags_response ) && 200 === wp_remote_retrieve_response_code( $tags_response ) ) {
 				$tags_body = wp_remote_retrieve_body( $tags_response );
@@ -134,7 +155,7 @@ class Updater {
 				if ( ! empty( $tags_data ) && is_array( $tags_data ) && ! empty( $tags_data[0]->name ) ) {
 					$latest_tag    = $tags_data[0];
 					$tag_ver       = ltrim( $latest_tag->name, 'v' );
-					$tag_asset_url = sprintf( 'https://github.com/%s/raw/%s/wc-smart-checkout-builder.zip', $this->repository, $latest_tag->name );
+					$tag_asset_url = sprintf( 'https://github.com/%s/releases/download/%s/wc-smart-checkout-builder.zip', $this->repository, $latest_tag->name );
 					$release_data  = (object) array(
 						'tag_name'    => $latest_tag->name,
 						'zipball_url' => $latest_tag->zipball_url,
@@ -151,7 +172,7 @@ class Updater {
 		}
 
 		if ( $release_data ) {
-			// Cache for 30 minutes unless force-checked
+			// Cache for 30 minutes
 			set_site_transient( $this->cache_key, $release_data, 30 * MINUTE_IN_SECONDS );
 			return $release_data;
 		}
@@ -213,6 +234,7 @@ class Updater {
 			'icons'         => array(),
 			'banners'       => array(),
 			'banners_rtl'   => array(),
+			'requires'      => '5.8',
 			'tested'        => '6.7',
 			'requires_php'  => '7.4',
 			'compatibility' => new \stdClass(),
@@ -224,6 +246,11 @@ class Updater {
 		if ( ! isset( $transient->no_update ) || ! is_array( $transient->no_update ) ) {
 			$transient->no_update = array();
 		}
+		if ( ! isset( $transient->checked ) || ! is_array( $transient->checked ) ) {
+			$transient->checked = array();
+		}
+
+		$transient->checked[ $this->plugin_basename ] = $this->version;
 
 		if ( version_compare( $new_version, $this->version, '>' ) ) {
 			$transient->response[ $this->plugin_basename ] = $update_data;

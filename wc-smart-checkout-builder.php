@@ -3,7 +3,7 @@
  * Plugin Name:       WC Smart Checkout Builder
  * Plugin URI:        https://github.com/developer-zahir/wc-smart-checkout-builder
  * Description:       A lightweight Elementor widget for selecting WooCommerce products and checking out.
- * Version:           1.9.18
+ * Version:           1.9.19
  * Author:            Developer Zahir
  * Author URI:        https://developerzahir.com
  * Text Domain:       wc-smart-checkout-builder
@@ -21,7 +21,7 @@ if ( ! defined( 'ABSPATH' ) ) {
 	exit; // Exit if accessed directly.
 }
 
-define( 'WCSC_VERSION', '1.9.18' );
+define( 'WCSC_VERSION', '1.9.19' );
 define( 'WCSC_FILE', __FILE__ );
 define( 'WCSC_PATH', plugin_dir_path( __FILE__ ) );
 define( 'WCSC_URL', plugin_dir_url( __FILE__ ) );
@@ -37,6 +37,10 @@ function wcsc_init() {
 	// Check if Elementor is active.
 	$elementor_active = did_action( 'elementor/loaded' ) || in_array( 'elementor/elementor.php', apply_filters( 'active_plugins', get_option( 'active_plugins', array() ) ), true );
 
+	// Include and initialize GitHub automatic updater early.
+	require_once WCSC_PATH . 'includes/class-updater.php';
+	new \WCSC\Updater( WCSC_BASENAME, WCSC_VERSION );
+
 	if ( ! $woocommerce_active || ! $elementor_active ) {
 		add_action( 'admin_notices', 'wcsc_missing_dependencies_notice' );
 		return;
@@ -47,7 +51,6 @@ function wcsc_init() {
 	require_once WCSC_PATH . 'includes/class-variation-handler.php';
 	require_once WCSC_PATH . 'includes/class-checkout-handler.php';
 	require_once WCSC_PATH . 'includes/class-license-manager.php';
-	require_once WCSC_PATH . 'includes/class-updater.php';
 	require_once WCSC_PATH . 'includes/class-plugin.php';
 
 	// Initialize License Manager.
@@ -55,9 +58,6 @@ function wcsc_init() {
 
 	// Bootstrap plugin.
 	\WCSC\Plugin::instance();
-
-	// Initialize GitHub automatic updater for WordPress dashboard & background updates.
-	new \WCSC\Updater( WCSC_BASENAME, WCSC_VERSION );
 }
 add_action( 'plugins_loaded', 'wcsc_init', 20 );
 
