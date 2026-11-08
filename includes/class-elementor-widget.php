@@ -6280,6 +6280,93 @@ class Elementor_Widget extends Widget_Base {
 		);
 
 		$this->end_controls_section();
+
+		// --- Section: Bundle Selected Badge Styling ---
+		$this->start_controls_section(
+			'section_style_bundle_badge',
+			array(
+				'label'     => esc_html__( 'Bundle Selected Badge', 'wc-smart-checkout-builder' ),
+				'tab'       => Controls_Manager::TAB_STYLE,
+				'condition' => array(
+					'checkout_mode'     => 'bundle',
+					'show_bundle_badge' => 'yes',
+				),
+			)
+		);
+
+		$this->add_group_control(
+			Group_Control_Typography::get_type(),
+			array(
+				'name'     => 'bundle_badge_typography',
+				'selector' => '{{WRAPPER}} .wcsc-bundle-badge',
+			)
+		);
+
+		$this->add_control(
+			'bundle_badge_text_color',
+			array(
+				'label'     => esc_html__( 'Badge Text Color', 'wc-smart-checkout-builder' ),
+				'type'      => Controls_Manager::COLOR,
+				'default'   => '#ffffff',
+				'selectors' => array(
+					'{{WRAPPER}} .wcsc-bundle-badge' => 'color: {{VALUE}} !important;',
+				),
+			)
+		);
+
+		$this->add_control(
+			'bundle_badge_bg',
+			array(
+				'label'     => esc_html__( 'Badge Background Color', 'wc-smart-checkout-builder' ),
+				'type'      => Controls_Manager::COLOR,
+				'default'   => '#2271b1',
+				'selectors' => array(
+					'{{WRAPPER}} .wcsc-bundle-badge' => 'background-color: {{VALUE}} !important;',
+				),
+			)
+		);
+
+		$this->add_group_control(
+			Group_Control_Border::get_type(),
+			array(
+				'name'     => 'bundle_badge_border',
+				'selector' => '{{WRAPPER}} .wcsc-bundle-badge',
+			)
+		);
+
+		$this->add_responsive_control(
+			'bundle_badge_radius',
+			array(
+				'label'      => esc_html__( 'Border Radius', 'wc-smart-checkout-builder' ),
+				'type'       => Controls_Manager::DIMENSIONS,
+				'size_units' => array( 'px', '%' ),
+				'selectors'  => array(
+					'{{WRAPPER}} .wcsc-bundle-badge' => 'border-radius: {{TOP}}{{UNIT}} {{RIGHT}}{{UNIT}} {{BOTTOM}}{{UNIT}} {{LEFT}}{{UNIT}};',
+				),
+			)
+		);
+
+		$this->add_responsive_control(
+			'bundle_badge_padding',
+			array(
+				'label'      => esc_html__( 'Padding', 'wc-smart-checkout-builder' ),
+				'type'       => Controls_Manager::DIMENSIONS,
+				'size_units' => array( 'px', 'em' ),
+				'selectors'  => array(
+					'{{WRAPPER}} .wcsc-bundle-badge' => 'padding: {{TOP}}{{UNIT}} {{RIGHT}}{{UNIT}} {{BOTTOM}}{{UNIT}} {{LEFT}}{{UNIT}};',
+				),
+			)
+		);
+
+		$this->add_group_control(
+			Group_Control_Box_Shadow::get_type(),
+			array(
+				'name'     => 'bundle_badge_box_shadow',
+				'selector' => '{{WRAPPER}} .wcsc-bundle-badge',
+			)
+		);
+
+		$this->end_controls_section();
 	}
 
 
@@ -6454,92 +6541,6 @@ class Elementor_Widget extends Widget_Base {
 			)
 		);
 
-		// --- Section: Bundle Selected Badge Styling ---
-		$this->start_controls_section(
-			'section_style_bundle_badge',
-			array(
-				'label'     => esc_html__( 'Bundle Selected Badge', 'wc-smart-checkout-builder' ),
-				'tab'       => Controls_Manager::TAB_STYLE,
-				'condition' => array(
-					'checkout_mode'     => 'bundle',
-					'show_bundle_badge' => 'yes',
-				),
-			)
-		);
-
-		$this->add_group_control(
-			Group_Control_Typography::get_type(),
-			array(
-				'name'     => 'bundle_badge_typography',
-				'selector' => '{{WRAPPER}} .wcsc-bundle-badge',
-			)
-		);
-
-		$this->add_control(
-			'bundle_badge_text_color',
-			array(
-				'label'     => esc_html__( 'Badge Text Color', 'wc-smart-checkout-builder' ),
-				'type'      => Controls_Manager::COLOR,
-				'default'   => '#ffffff',
-				'selectors' => array(
-					'{{WRAPPER}} .wcsc-bundle-badge' => 'color: {{VALUE}} !important;',
-				),
-			)
-		);
-
-		$this->add_control(
-			'bundle_badge_bg',
-			array(
-				'label'     => esc_html__( 'Badge Background Color', 'wc-smart-checkout-builder' ),
-				'type'      => Controls_Manager::COLOR,
-				'default'   => '#2271b1',
-				'selectors' => array(
-					'{{WRAPPER}} .wcsc-bundle-badge' => 'background-color: {{VALUE}} !important;',
-				),
-			)
-		);
-
-		$this->add_group_control(
-			Group_Control_Border::get_type(),
-			array(
-				'name'     => 'bundle_badge_border',
-				'selector' => '{{WRAPPER}} .wcsc-bundle-badge',
-			)
-		);
-
-		$this->add_responsive_control(
-			'bundle_badge_radius',
-			array(
-				'label'      => esc_html__( 'Border Radius', 'wc-smart-checkout-builder' ),
-				'type'       => Controls_Manager::DIMENSIONS,
-				'size_units' => array( 'px', '%' ),
-				'selectors'  => array(
-					'{{WRAPPER}} .wcsc-bundle-badge' => 'border-radius: {{TOP}}{{UNIT}} {{RIGHT}}{{UNIT}} {{BOTTOM}}{{UNIT}} {{LEFT}}{{UNIT}};',
-				),
-			)
-		);
-
-		$this->add_responsive_control(
-			'bundle_badge_padding',
-			array(
-				'label'      => esc_html__( 'Padding', 'wc-smart-checkout-builder' ),
-				'type'       => Controls_Manager::DIMENSIONS,
-				'size_units' => array( 'px', 'em' ),
-				'selectors'  => array(
-					'{{WRAPPER}} .wcsc-bundle-badge' => 'padding: {{TOP}}{{UNIT}} {{RIGHT}}{{UNIT}} {{BOTTOM}}{{UNIT}} {{LEFT}}{{UNIT}};',
-				),
-			)
-		);
-
-		$this->add_group_control(
-			Group_Control_Box_Shadow::get_type(),
-			array(
-				'name'     => 'bundle_badge_box_shadow',
-				'selector' => '{{WRAPPER}} .wcsc-bundle-badge',
-			)
-		);
-
-		$this->end_controls_section();
 	}
 
 	/**

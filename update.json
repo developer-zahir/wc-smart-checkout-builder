@@ -1,9 +1,9 @@
 {
-  "version": "1.9.34",
+  "version": "1.9.35",
   "requires": "5.8",
   "tested": "6.7",
   "requires_php": "7.4",
   "download_url": "https://raw.githubusercontent.com/developer-zahir/wc-smart-checkout-builder/main/wc-smart-checkout-builder.zip",
   "details_url": "https://github.com/developer-zahir/wc-smart-checkout-builder",
-  "changelog": "## v1.9.34\n\n- Shipping Card Defaults: Shipping method cards now have default margin of 0 and default border radius of 4px\n- Bundle Product Image Improvements: Image sizing uses aspect-ratio (1:1 square default, with custom options), and image hover scale distortion has been completely removed\n- Responsive Bundle Layout Selection: Bundle layout is now fully responsive with device-specific selection (Desktop, Laptop/Tablet, and Mobile) supporting Grid and List layouts\n- Clean Horizontal List Layout: Mobile list layout preserves strict horizontal orientation with left image and right content, preventing vertical collapsing"
+  "changelog": "## v1.9.35\n\n- Fix Elementor Section Error: Fixed 'You can\\'t start a section before the end of the previous section section_style_block_checkout_form' error by properly isolating register_block_container_controls and moving bundle badge styling into register_bundle_style_controls\n- All Elementor controls sections are now strictly paired and cleanly registered"
 }
