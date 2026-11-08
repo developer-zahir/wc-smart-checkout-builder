@@ -321,3 +321,4 @@ class Widget_Variation_Selector extends Widget_Base {
 		<?php
 	}
 }
+

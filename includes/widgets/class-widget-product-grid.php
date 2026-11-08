@@ -689,3 +689,4 @@ class Widget_Product_Grid extends Widget_Base {
 		<?php
 	}
 }
+

@@ -292,3 +292,4 @@ class Widget_Embedded_Checkout extends Widget_Base {
 		<?php
 	}
 }
+

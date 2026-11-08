@@ -1,9 +1,9 @@
 {
-  "version": "1.9.24",
+  "version": "1.9.25",
   "requires": "5.8",
   "tested": "6.7",
   "requires_php": "7.4",
   "download_url": "https://raw.githubusercontent.com/developer-zahir/wc-smart-checkout-builder/main/wc-smart-checkout-builder.zip",
   "details_url": "https://github.com/developer-zahir/wc-smart-checkout-builder",
-  "changelog": "## v1.9.24\n\n- New Modular Elementor Widget: Product Selector & Grid with tiered discounts, selection badges, and real-time total summary\n- New Modular Elementor Widget: Product Variation Selector with image/price preview and swatch/dropdown UI\n- New Modular Elementor Widget: Embedded Checkout Form with direct AJAX submission\n- New: Order Tagging System automatically tags orders with 'WC Smart Checkout' / 'WC SC' and displays admin badges in WooCommerce orders list (Standard & HPOS)\n- Auto-updater: 1-click update support directly from WordPress admin dashboard"
+  "changelog": "## v1.9.25\n\n- Fix: Removed redundant sub-plugin header that caused WordPress to detect two plugins and trigger 'Plugin file does not exist' on activation\n- Unified all features under single clean 'WC Smart Checkout Builder' plugin\n- 3 Modular Elementor Widgets: Product Selector & Grid, Product Variation Selector, Embedded Checkout Form\n- Order Tagging System and HPOS Admin Badges"
 }
