@@ -342,16 +342,24 @@ class Updater {
 	 * @return array
 	 */
 	public function rename_github_folder_after_update( $true, $hook_extra, $result ) {
-		global $wp_filesystem;
+		if ( is_wp_error( $result ) || false === $result || ! is_array( $result ) ) {
+			return $result;
+		}
 
 		if ( empty( $hook_extra['plugin'] ) || $hook_extra['plugin'] !== $this->plugin_basename ) {
 			return $result;
 		}
 
-		$proper_destination  = WP_PLUGIN_DIR . '/' . $this->plugin_slug;
+		global $wp_filesystem;
+		if ( ! $wp_filesystem ) {
+			require_once ABSPATH . 'wp-admin/includes/file.php';
+			\WP_Filesystem();
+		}
+
+		$proper_destination  = untrailingslashit( WP_PLUGIN_DIR ) . '/' . $this->plugin_slug;
 		$current_destination = isset( $result['destination'] ) ? untrailingslashit( $result['destination'] ) : '';
 
-		if ( $current_destination && $current_destination !== $proper_destination ) {
+		if ( $current_destination && $current_destination !== $proper_destination && $wp_filesystem ) {
 			if ( $wp_filesystem->exists( $proper_destination ) ) {
 				$wp_filesystem->delete( $proper_destination, true );
 			}
