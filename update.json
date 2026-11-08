@@ -1,9 +1,9 @@
 {
-  "version": "1.9.22",
+  "version": "1.9.23",
   "requires": "5.8",
   "tested": "6.7",
   "requires_php": "7.4",
-  "download_url": "https://github.com/developer-zahir/wc-smart-checkout-builder/releases/download/v1.9.22/wc-smart-checkout-builder.zip",
+  "download_url": "https://raw.githubusercontent.com/developer-zahir/wc-smart-checkout-builder/main/wc-smart-checkout-builder.zip",
   "details_url": "https://github.com/developer-zahir/wc-smart-checkout-builder",
-  "changelog": "## v1.9.22\n\n- Overhauled auto-update system: Now uses update.json manifest for instant, rate-limit-free WordPress dashboard updates\n- Added WooFlexiBundle Builder sub-plugin: Dynamic product bundle grid with tiered discounts and AJAX checkout\n- Improved GitHub release workflow with reliable ZIP packaging"
+  "changelog": "## v1.9.23\n\n- Fix: Direct dashboard update detection with raw GitHub zip delivery\n- Added WooFlexiBundle Builder: Product bundle grid with tiered discounts and AJAX checkout\n- Seamless 1-click update support"
 }
