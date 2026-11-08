@@ -487,11 +487,44 @@ class Elementor_Widget extends Widget_Base {
 				'type'      => Controls_Manager::SELECT,
 				'default'   => 'layout_1',
 				'options'   => array(
-					'layout_1' => esc_html__( 'Layout 1: 1 Column Stack (Centered)', 'wc-smart-checkout-builder' ),
+					'layout_1' => esc_html__( 'Layout 1: 1 Column Stack', 'wc-smart-checkout-builder' ),
 					'layout_2' => esc_html__( 'Layout 2: 2 Columns (Content Left, Timer Right)', 'wc-smart-checkout-builder' ),
 				),
 				'condition' => array(
 					'show_summary_bar' => 'yes',
+				),
+			)
+		);
+
+		$this->add_responsive_control(
+			'bundle_summary_1col_align',
+			array(
+				'label'        => esc_html__( 'Content Alignment', 'wc-smart-checkout-builder' ),
+				'type'         => Controls_Manager::CHOOSE,
+				'options'      => array(
+					'left'   => array(
+						'title' => esc_html__( 'Left', 'wc-smart-checkout-builder' ),
+						'icon'  => 'eicon-text-align-left',
+					),
+					'center' => array(
+						'title' => esc_html__( 'Center', 'wc-smart-checkout-builder' ),
+						'icon'  => 'eicon-text-align-center',
+					),
+					'right'  => array(
+						'title' => esc_html__( 'Right', 'wc-smart-checkout-builder' ),
+						'icon'  => 'eicon-text-align-right',
+					),
+				),
+				'default'      => 'center',
+				'prefix_class' => 'wcsc-summary-align-',
+				'selectors'    => array(
+					'{{WRAPPER}} .wcsc-summary-layout-1, {{WRAPPER}} .wcsc-summary-layout-layout_1' => 'text-align: {{VALUE}};',
+					'{{WRAPPER}} .wcsc-summary-layout-1 .wcsc-summary-price-row, {{WRAPPER}} .wcsc-summary-layout-layout_1 .wcsc-summary-price-row' => 'justify-content: {{VALUE}};',
+					'{{WRAPPER}} .wcsc-summary-layout-1 .wcsc-bundle-timer-box, {{WRAPPER}} .wcsc-summary-layout-layout_1 .wcsc-bundle-timer-box' => 'justify-content: {{VALUE}};',
+				),
+				'condition'    => array(
+					'show_summary_bar'      => 'yes',
+					'bundle_summary_layout' => 'layout_1',
 				),
 			)
 		);
@@ -6295,16 +6328,7 @@ class Elementor_Widget extends Widget_Base {
 			)
 		);
 
-		$this->add_group_control(
-			Group_Control_Border::get_type(),
-			array(
-				'name'      => 'summary_timer_box_border',
-				'selector'  => '{{WRAPPER}} .wcsc-bundle-timer-box',
-				'condition' => array(
-					'enable_summary_timer' => 'yes',
-				),
-			)
-		);
+
 
 		$this->add_responsive_control(
 			'summary_timer_box_radius',
@@ -6402,6 +6426,17 @@ class Elementor_Widget extends Widget_Base {
 					'{{WRAPPER}} .wcsc-timer-digit' => 'border-radius: {{TOP}}{{UNIT}} {{RIGHT}}{{UNIT}} {{BOTTOM}}{{UNIT}} {{LEFT}}{{UNIT}};',
 				),
 				'condition'  => array(
+					'enable_summary_timer' => 'yes',
+				),
+			)
+		);
+
+		$this->add_group_control(
+			Group_Control_Border::get_type(),
+			array(
+				'name'      => 'summary_timer_digit_border',
+				'selector'  => '{{WRAPPER}} .wcsc-timer-digit',
+				'condition' => array(
 					'enable_summary_timer' => 'yes',
 				),
 			)
@@ -7450,7 +7485,10 @@ class Elementor_Widget extends Widget_Base {
 			</div>
 
 			<?php if ( 'yes' === ( $settings['show_summary_bar'] ?? 'yes' ) ) :
-				$summary_layout = ! empty( $settings['bundle_summary_layout'] ) ? sanitize_key( $settings['bundle_summary_layout'] ) : 'layout_1';
+				$raw_layout     = ! empty( $settings['bundle_summary_layout'] ) ? sanitize_key( $settings['bundle_summary_layout'] ) : 'layout_1';
+				$is_layout_2    = in_array( $raw_layout, array( 'layout_2', 'layout-2', '2', '2_col', 'compact_card' ), true );
+				$align_1col     = ! empty( $settings['bundle_summary_1col_align'] ) ? sanitize_key( $settings['bundle_summary_1col_align'] ) : 'center';
+
 				$summary_title  = ! empty( $settings['bundle_summary_title'] ) ? $settings['bundle_summary_title'] : '';
 				$summary_desc   = ! empty( $settings['bundle_summary_desc'] ) ? $settings['bundle_summary_desc'] : '';
 				$cta_text       = ! empty( $settings['bundle_cta_button_text'] ) ? $settings['bundle_cta_button_text'] : __( 'অর্ডার কনফার্ম করতে ক্লিক করুন', 'wc-smart-checkout-builder' );
@@ -7463,16 +7501,26 @@ class Elementor_Widget extends Widget_Base {
 				$timer_m      = max( 0, min( 59, absint( $settings['summary_timer_minutes'] ?? 15 ) ) );
 				$timer_s      = max( 0, min( 59, absint( $settings['summary_timer_seconds'] ?? 0 ) ) );
 				$timer_loop   = ( 'yes' === ( $settings['summary_timer_loop'] ?? 'yes' ) ) ? 'yes' : 'no';
+
+				$bar_classes   = array( 'wcsc-bundle-summary-bar' );
+				if ( $is_layout_2 ) {
+					$bar_classes[] = 'wcsc-summary-layout-2';
+					$bar_classes[] = 'wcsc-summary-layout-layout_2';
+				} else {
+					$bar_classes[] = 'wcsc-summary-layout-1';
+					$bar_classes[] = 'wcsc-summary-layout-layout_1';
+					$bar_classes[] = 'wcsc-summary-align-' . esc_attr( $align_1col );
+				}
 			?>
-				<div class="wcsc-bundle-summary-bar wcsc-summary-layout-<?php echo esc_attr( $summary_layout ); ?>">
-					<?php if ( 'layout_2' === $summary_layout ) : ?>
+				<div class="<?php echo esc_attr( implode( ' ', $bar_classes ) ); ?>">
+					<?php if ( $is_layout_2 ) : ?>
 						<!-- Layout 2: 2 Column (Content Left, Timer Right) -->
 						<div class="wcsc-summary-col wcsc-summary-col-left">
 							<?php if ( ! empty( $summary_title ) ) : ?>
-								<h4 class="wcsc-summary-title"><?php echo esc_html( $summary_title ); ?></h4>
+							<h4 class="wcsc-summary-title"><?php echo esc_html( $summary_title ); ?></h4>
 							<?php endif; ?>
 							<?php if ( ! empty( $summary_desc ) ) : ?>
-								<p class="wcsc-summary-desc"><?php echo esc_html( $summary_desc ); ?></p>
+								p class="wcsc-summary-desc"><?php echo esc_html( $summary_desc ); ?></p>
 							<?php endif; ?>
 							<div class="wcsc-summary-price-row">
 								<span class="wcsc-summary-price-wrap">
@@ -7521,7 +7569,7 @@ class Elementor_Widget extends Widget_Base {
 						<?php endif; ?>
 
 					<?php else : ?>
-						<!-- Layout 1: 1 Column Stack (Centered) -->
+						<!-- Layout 1: 1 Column Stack -->
 						<?php if ( ! empty( $summary_title ) ) : ?>
 							<h4 class="wcsc-summary-title"><?php echo esc_html( $summary_title ); ?></h4>
 						<?php endif; ?>
