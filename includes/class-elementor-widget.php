@@ -164,18 +164,22 @@ class Elementor_Widget extends Widget_Base {
 			)
 		);
 
-		$this->add_control(
+		$this->add_responsive_control(
 			'bundle_layout',
 			array(
-				'label'   => esc_html__( 'Layout Type', 'wc-smart-checkout-builder' ),
-				'type'    => Controls_Manager::SELECT,
-				'default' => 'grid',
-				'options' => array(
-					'grid'  => esc_html__( 'Grid Cards (Multi-Column)', 'wc-smart-checkout-builder' ),
-					'list'  => esc_html__( 'Horizontal List (Row by Row)', 'wc-smart-checkout-builder' ),
+				'label'          => esc_html__( 'Layout Type', 'wc-smart-checkout-builder' ),
+				'type'           => Controls_Manager::SELECT,
+				'default'        => 'grid',
+				'tablet_default' => 'grid',
+				'mobile_default' => 'list',
+				'options'        => array(
+					'grid'  => esc_html__( 'Grid (Top Image, Bottom Content)', 'wc-smart-checkout-builder' ),
+					'list'  => esc_html__( 'List (Left Image, Right Content)', 'wc-smart-checkout-builder' ),
 					'table' => esc_html__( 'Compact Table / Quick Select', 'wc-smart-checkout-builder' ),
 				),
-				'condition' => array(
+				'prefix_class'   => 'wcsc-bundle-layout%s-',
+				'render_type'    => 'template',
+				'condition'      => array(
 					'checkout_mode' => 'bundle',
 				),
 			)
@@ -197,11 +201,11 @@ class Elementor_Widget extends Widget_Base {
 				),
 				'selectors'      => array(
 					'{{WRAPPER}} .wcsc-bundle-container.wcsc-bundle-layout-grid' => 'grid-template-columns: repeat({{VALUE}}, minmax(0, 1fr));',
-					'{{WRAPPER}} .wcsc-bundle-grid' => 'grid-template-columns: repeat({{VALUE}}, minmax(0, 1fr));',
+					'{{WRAPPER}} .wcsc-bundle-grid'                              => 'grid-template-columns: repeat({{VALUE}}, minmax(0, 1fr));',
+					'{{WRAPPER}} .wcsc-bundle-container'                         => '--wcsc-bundle-cols: {{VALUE}};',
 				),
 				'condition'      => array(
 					'checkout_mode' => 'bundle',
-					'bundle_layout' => 'grid',
 				),
 			)
 		);
@@ -2540,6 +2544,14 @@ class Elementor_Widget extends Widget_Base {
 				'label'      => esc_html__( 'Margin', 'wc-smart-checkout-builder' ),
 				'type'       => Controls_Manager::DIMENSIONS,
 				'size_units' => array( 'px', 'em', '%' ),
+				'default'    => array(
+					'top'      => '0',
+					'right'    => '0',
+					'bottom'   => '0',
+					'left'     => '0',
+					'unit'     => 'px',
+					'isLinked' => true,
+				),
 				'selectors'  => array(
 					$shipping_card_sel => 'margin: {{TOP}}{{UNIT}} {{RIGHT}}{{UNIT}} {{BOTTOM}}{{UNIT}} {{LEFT}}{{UNIT}} !important;',
 				),
@@ -2652,10 +2664,10 @@ class Elementor_Widget extends Widget_Base {
 				'type'       => Controls_Manager::DIMENSIONS,
 				'size_units' => array( 'px', 'em', '%' ),
 				'default'    => array(
-					'top'      => '8',
-					'right'    => '8',
-					'bottom'   => '8',
-					'left'     => '8',
+					'top'      => '4',
+					'right'    => '4',
+					'bottom'   => '4',
+					'left'     => '4',
 					'unit'     => 'px',
 					'isLinked' => true,
 				),
@@ -5406,6 +5418,27 @@ class Elementor_Widget extends Widget_Base {
 		);
 
 		$this->add_responsive_control(
+			'bundle_img_aspect_ratio',
+			array(
+				'label'     => esc_html__( 'Aspect Ratio', 'wc-smart-checkout-builder' ),
+				'type'      => Controls_Manager::SELECT,
+				'default'   => '1/1',
+				'options'   => array(
+					'1/1'    => esc_html__( '1:1 Square (Default)', 'wc-smart-checkout-builder' ),
+					'4/3'    => esc_html__( '4:3 Standard', 'wc-smart-checkout-builder' ),
+					'3/4'    => esc_html__( '3:4 Portrait', 'wc-smart-checkout-builder' ),
+					'16/9'   => esc_html__( '16:9 Landscape', 'wc-smart-checkout-builder' ),
+					'auto'   => esc_html__( 'Auto / Original', 'wc-smart-checkout-builder' ),
+					'custom' => esc_html__( 'Custom Fixed Height', 'wc-smart-checkout-builder' ),
+				),
+				'selectors' => array(
+					'{{WRAPPER}}'                         => '--wcsc-bundle-img-aspect: {{VALUE}};',
+					'{{WRAPPER}} .wcsc-bundle-card-image' => 'aspect-ratio: {{VALUE}} !important; height: auto !important;',
+				),
+			)
+		);
+
+		$this->add_responsive_control(
 			'bundle_img_height',
 			array(
 				'label'      => esc_html__( 'Image Height', 'wc-smart-checkout-builder' ),
@@ -5415,7 +5448,10 @@ class Elementor_Widget extends Widget_Base {
 					'px' => array( 'min' => 50, 'max' => 400 ),
 				),
 				'selectors'  => array(
-					'{{WRAPPER}} .wcsc-bundle-card-image' => 'height: {{SIZE}}{{UNIT}};',
+					'{{WRAPPER}} .wcsc-bundle-card-image' => 'height: {{SIZE}}{{UNIT}} !important; aspect-ratio: unset !important;',
+				),
+				'condition'  => array(
+					'bundle_img_aspect_ratio' => 'custom',
 				),
 			)
 		);
@@ -6819,9 +6855,16 @@ class Elementor_Widget extends Widget_Base {
 		$sel_txt   = ! empty( $settings['bundle_select_btn_text'] ) ? $settings['bundle_select_btn_text'] : __( 'Select', 'wc-smart-checkout-builder' );
 		$seled_txt = ! empty( $settings['bundle_selected_btn_text'] ) ? $settings['bundle_selected_btn_text'] : __( 'Selected', 'wc-smart-checkout-builder' );
 		$cta_text  = ! empty( $settings['bundle_cta_button_text'] ) ? $settings['bundle_cta_button_text'] : __( 'Proceed to Checkout', 'wc-smart-checkout-builder' );
-		$layout    = ! empty( $settings['bundle_layout'] ) ? sanitize_key( $settings['bundle_layout'] ) : 'grid';
-		$container_classes = 'wcsc-bundle-container wcsc-bundle-layout-' . $layout;
-		if ( 'grid' === $layout ) {
+		$layout_desktop = ! empty( $settings['bundle_layout'] ) ? sanitize_key( $settings['bundle_layout'] ) : 'grid';
+		$layout_tablet  = ! empty( $settings['bundle_layout_tablet'] ) ? sanitize_key( $settings['bundle_layout_tablet'] ) : $layout_desktop;
+		$layout_mobile  = ! empty( $settings['bundle_layout_mobile'] ) ? sanitize_key( $settings['bundle_layout_mobile'] ) : 'list';
+
+		$container_classes = 'wcsc-bundle-container';
+		$container_classes .= ' wcsc-bundle-layout-' . $layout_desktop;
+		$container_classes .= ' wcsc-view-desktop-' . $layout_desktop;
+		$container_classes .= ' wcsc-view-tablet-' . $layout_tablet;
+		$container_classes .= ' wcsc-view-mobile-' . $layout_mobile;
+		if ( 'grid' === $layout_desktop ) {
 			$container_classes .= ' wcsc-bundle-grid';
 		}
 

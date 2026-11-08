@@ -1,9 +1,9 @@
 {
-  "version": "1.9.33",
+  "version": "1.9.34",
   "requires": "5.8",
   "tested": "6.7",
   "requires_php": "7.4",
   "download_url": "https://raw.githubusercontent.com/developer-zahir/wc-smart-checkout-builder/main/wc-smart-checkout-builder.zip",
   "details_url": "https://github.com/developer-zahir/wc-smart-checkout-builder",
-  "changelog": "## v1.9.33\n\n- Bundle Badge Show/Hide & Corner Ribbon: Added toggle to hide/show bundle selected badge, removed default box-shadow, added full styling, and added Top-Right corner rotated ribbon style\n- Checkout Section Header: Added dedicated title and description header before checkout form with default Bengali text ('অর্ডার করুন' / 'অর্ডার করতে নিচের ফর্মটি সঠিক ভাবে পূরণ করুন...')\n- Checkout Section Styling: Added comprehensive container styling for the entire checkout section including background, border, border-radius, padding, margin, box-shadow, and divider line"
+  "changelog": "## v1.9.34\n\n- Shipping Card Defaults: Shipping method cards now have default margin of 0 and default border radius of 4px\n- Bundle Product Image Improvements: Image sizing uses aspect-ratio (1:1 square default, with custom options), and image hover scale distortion has been completely removed\n- Responsive Bundle Layout Selection: Bundle layout is now fully responsive with device-specific selection (Desktop, Laptop/Tablet, and Mobile) supporting Grid and List layouts\n- Clean Horizontal List Layout: Mobile list layout preserves strict horizontal orientation with left image and right content, preventing vertical collapsing"
 }
