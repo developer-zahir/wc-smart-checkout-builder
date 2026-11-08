@@ -3,7 +3,7 @@
  * Plugin Name:       WC Smart Checkout Builder
  * Plugin URI:        https://github.com/developer-zahir/wc-smart-checkout-builder
  * Description:       A lightweight Elementor widget for selecting WooCommerce products and checking out.
- * Version:           1.9.25
+ * Version:           1.9.26
  * Author:            Developer Zahir
  * Author URI:        https://developerzahir.com
  * Text Domain:       wc-smart-checkout-builder
@@ -21,7 +21,7 @@ if ( ! defined( 'ABSPATH' ) ) {
 	exit; // Exit if accessed directly.
 }
 
-define( 'WCSC_VERSION', '1.9.25' );
+define( 'WCSC_VERSION', '1.9.26' );
 define( 'WCSC_FILE', __FILE__ );
 define( 'WCSC_PATH', plugin_dir_path( __FILE__ ) );
 define( 'WCSC_URL', plugin_dir_url( __FILE__ ) );
@@ -30,7 +30,53 @@ define( 'WCSC_BASENAME', plugin_basename( __FILE__ ) );
 /**
  * Check dependencies and initialize the plugin.
  */
+function wcsc_cleanup_legacy_subplugin() {
+	$legacy_dir = WCSC_PATH . 'wooflexibundle-builder';
+	if ( is_dir( $legacy_dir ) ) {
+		require_once ABSPATH . 'wp-admin/includes/file.php';
+		\WP_Filesystem();
+		global $wp_filesystem;
+		if ( $wp_filesystem ) {
+			$wp_filesystem->delete( $legacy_dir, true );
+		} else {
+			$delete_recursive = function( $dir ) use ( &$delete_recursive ) {
+				if ( ! is_dir( $dir ) ) return;
+				$items = scandir( $dir );
+				if ( is_array( $items ) ) {
+					foreach ( $items as $item ) {
+						if ( '.' === $item || '..' === $item ) continue;
+						$path = $dir . DIRECTORY_SEPARATOR . $item;
+						is_dir( $path ) ? $delete_recursive( $path ) : @unlink( $path );
+					}
+				}
+				@rmdir( $dir );
+			};
+			$delete_recursive( $legacy_dir );
+		}
+	}
+	$active_plugins = get_option( 'active_plugins', array() );
+	$cleaned = false;
+	if ( is_array( $active_plugins ) ) {
+		foreach ( $active_plugins as $key => $plugin_path ) {
+			if ( false !== strpos( $plugin_path, 'wooflexibundle' ) ) {
+				unset( $active_plugins[ $key ] );
+				$cleaned = true;
+			}
+		}
+		if ( $cleaned ) {
+			update_option( 'active_plugins', array_values( $active_plugins ) );
+		}
+	}
+	$installed_ver = get_option( 'wcsc_version' );
+	if ( $installed_ver !== WCSC_VERSION ) {
+		delete_site_transient( 'wcsc_github_release_data' );
+		delete_site_transient( 'update_plugins' );
+		update_option( 'wcsc_version', WCSC_VERSION );
+	}
+}
+
 function wcsc_init() {
+	wcsc_cleanup_legacy_subplugin();
 	// Check if WooCommerce is active.
 	$woocommerce_active = class_exists( 'WooCommerce' ) || in_array( 'woocommerce/woocommerce.php', apply_filters( 'active_plugins', get_option( 'active_plugins', array() ) ), true );
 

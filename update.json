@@ -1,9 +1,9 @@
 {
-  "version": "1.9.25",
+  "version": "1.9.26",
   "requires": "5.8",
   "tested": "6.7",
   "requires_php": "7.4",
   "download_url": "https://raw.githubusercontent.com/developer-zahir/wc-smart-checkout-builder/main/wc-smart-checkout-builder.zip",
   "details_url": "https://github.com/developer-zahir/wc-smart-checkout-builder",
-  "changelog": "## v1.9.25\n\n- Fix: Removed redundant sub-plugin header that caused WordPress to detect two plugins and trigger 'Plugin file does not exist' on activation\n- Unified all features under single clean 'WC Smart Checkout Builder' plugin\n- 3 Modular Elementor Widgets: Product Selector & Grid, Product Variation Selector, Embedded Checkout Form\n- Order Tagging System and HPOS Admin Badges"
+  "changelog": "## v1.9.26\n\n- Fix: Permanent elimination of duplicate WooFlexiBundle plugin entry\n- Added self-healing legacy cleanup: automatically detects and purges any legacy wooflexibundle directory or active_plugins database entry\n- Unified 3 Modular Elementor Widgets: Product Grid with Tiered Discounts, Variation Selector, Embedded Checkout\n- Order Tagging System and HPOS Admin Badges\n- Instant 1-click update support"
 }
