@@ -164,6 +164,23 @@ class Elementor_Widget extends Widget_Base {
 			)
 		);
 
+		$this->add_control(
+			'bundle_layout',
+			array(
+				'label'   => esc_html__( 'Layout Type', 'wc-smart-checkout-builder' ),
+				'type'    => Controls_Manager::SELECT,
+				'default' => 'grid',
+				'options' => array(
+					'grid'  => esc_html__( 'Grid Cards (Multi-Column)', 'wc-smart-checkout-builder' ),
+					'list'  => esc_html__( 'Horizontal List (Row by Row)', 'wc-smart-checkout-builder' ),
+					'table' => esc_html__( 'Compact Table / Quick Select', 'wc-smart-checkout-builder' ),
+				),
+				'condition' => array(
+					'checkout_mode' => 'bundle',
+				),
+			)
+		);
+
 		$this->add_responsive_control(
 			'bundle_columns',
 			array(
@@ -179,9 +196,37 @@ class Elementor_Widget extends Widget_Base {
 					'4' => '4 Columns',
 				),
 				'selectors'      => array(
+					'{{WRAPPER}} .wcsc-bundle-container.wcsc-bundle-layout-grid' => 'grid-template-columns: repeat({{VALUE}}, minmax(0, 1fr));',
 					'{{WRAPPER}} .wcsc-bundle-grid' => 'grid-template-columns: repeat({{VALUE}}, minmax(0, 1fr));',
 				),
 				'condition'      => array(
+					'checkout_mode' => 'bundle',
+					'bundle_layout' => 'grid',
+				),
+			)
+		);
+
+		$this->add_responsive_control(
+			'bundle_gap',
+			array(
+				'label'      => esc_html__( 'Items Gap / Spacing', 'wc-smart-checkout-builder' ),
+				'type'       => Controls_Manager::SLIDER,
+				'size_units' => array( 'px', 'em' ),
+				'range'      => array(
+					'px' => array(
+						'min' => 0,
+						'max' => 50,
+					),
+				),
+				'default'    => array(
+					'unit' => 'px',
+					'size' => 16,
+				),
+				'selectors'  => array(
+					'{{WRAPPER}} .wcsc-bundle-container' => 'gap: {{SIZE}}{{UNIT}};',
+					'{{WRAPPER}} .wcsc-bundle-grid'      => 'gap: {{SIZE}}{{UNIT}};',
+				),
+				'condition'  => array(
 					'checkout_mode' => 'bundle',
 				),
 			)
@@ -4807,7 +4852,796 @@ class Elementor_Widget extends Widget_Base {
 				);
 		
 				$this->end_controls_section();
+
+		// Bundle Mode Specialized Style Controls
+		$this->register_bundle_style_controls();
 	}
+
+	/**
+	 * Style controls specifically for Multi-Product Bundle Mode.
+	 */
+	protected function register_bundle_style_controls() {
+		// --- Section: Bundle Cards / Rows ---
+		$this->start_controls_section(
+			'section_style_bundle_cards',
+			array(
+				'label'     => esc_html__( 'Bundle Items / Cards', 'wc-smart-checkout-builder' ),
+				'tab'       => Controls_Manager::TAB_STYLE,
+				'condition' => array(
+					'checkout_mode' => 'bundle',
+				),
+			)
+		);
+
+		$this->add_control(
+			'bundle_card_bg',
+			array(
+				'label'     => esc_html__( 'Card Background', 'wc-smart-checkout-builder' ),
+				'type'      => Controls_Manager::COLOR,
+				'default'   => '#ffffff',
+				'selectors' => array(
+					'{{WRAPPER}} .wcsc-bundle-card' => 'background-color: {{VALUE}};',
+				),
+			)
+		);
+
+		$this->add_control(
+			'bundle_card_active_bg',
+			array(
+				'label'     => esc_html__( 'Selected Card Background', 'wc-smart-checkout-builder' ),
+				'type'      => Controls_Manager::COLOR,
+				'default'   => '#f8fbff',
+				'selectors' => array(
+					'{{WRAPPER}} .wcsc-bundle-card.is-selected' => 'background-color: {{VALUE}} !important;',
+				),
+			)
+		);
+
+		$this->add_group_control(
+			Group_Control_Border::get_type(),
+			array(
+				'name'     => 'bundle_card_border',
+				'selector' => '{{WRAPPER}} .wcsc-bundle-card',
+			)
+		);
+
+		$this->add_control(
+			'bundle_card_active_border_color',
+			array(
+				'label'     => esc_html__( 'Selected Border Color', 'wc-smart-checkout-builder' ),
+				'type'      => Controls_Manager::COLOR,
+				'default'   => '#2271b1',
+				'selectors' => array(
+					'{{WRAPPER}} .wcsc-bundle-card.is-selected' => 'border-color: {{VALUE}} !important;',
+				),
+			)
+		);
+
+		$this->add_responsive_control(
+			'bundle_card_border_radius',
+			array(
+				'label'      => esc_html__( 'Border Radius', 'wc-smart-checkout-builder' ),
+				'type'       => Controls_Manager::DIMENSIONS,
+				'size_units' => array( 'px', '%' ),
+				'selectors'  => array(
+					'{{WRAPPER}} .wcsc-bundle-card' => 'border-radius: {{TOP}}{{UNIT}} {{RIGHT}}{{UNIT}} {{BOTTOM}}{{UNIT}} {{LEFT}}{{UNIT}};',
+				),
+			)
+		);
+
+		$this->add_responsive_control(
+			'bundle_card_padding',
+			array(
+				'label'      => esc_html__( 'Padding', 'wc-smart-checkout-builder' ),
+				'type'       => Controls_Manager::DIMENSIONS,
+				'size_units' => array( 'px', 'em' ),
+				'selectors'  => array(
+					'{{WRAPPER}} .wcsc-bundle-card' => 'padding: {{TOP}}{{UNIT}} {{RIGHT}}{{UNIT}} {{BOTTOM}}{{UNIT}} {{LEFT}}{{UNIT}};',
+				),
+			)
+		);
+
+		$this->add_group_control(
+			Group_Control_Box_Shadow::get_type(),
+			array(
+				'name'     => 'bundle_card_shadow',
+				'selector' => '{{WRAPPER}} .wcsc-bundle-card',
+			)
+		);
+
+		$this->end_controls_section();
+
+		// --- Section: Bundle Product Images ---
+		$this->start_controls_section(
+			'section_style_bundle_images',
+			array(
+				'label'     => esc_html__( 'Bundle Product Images', 'wc-smart-checkout-builder' ),
+				'tab'       => Controls_Manager::TAB_STYLE,
+				'condition' => array(
+					'checkout_mode' => 'bundle',
+				),
+			)
+		);
+
+		$this->add_responsive_control(
+			'bundle_img_height',
+			array(
+				'label'      => esc_html__( 'Image Height', 'wc-smart-checkout-builder' ),
+				'type'       => Controls_Manager::SLIDER,
+				'size_units' => array( 'px', 'vh' ),
+				'range'      => array(
+					'px' => array( 'min' => 50, 'max' => 400 ),
+				),
+				'selectors'  => array(
+					'{{WRAPPER}} .wcsc-bundle-card-image' => 'height: {{SIZE}}{{UNIT}};',
+				),
+			)
+		);
+
+		$this->add_responsive_control(
+			'bundle_img_width',
+			array(
+				'label'      => esc_html__( 'Image Width (List/Table)', 'wc-smart-checkout-builder' ),
+				'type'       => Controls_Manager::SLIDER,
+				'size_units' => array( 'px', '%' ),
+				'range'      => array(
+					'px' => array( 'min' => 40, 'max' => 300 ),
+				),
+				'selectors'  => array(
+					'{{WRAPPER}} .wcsc-bundle-layout-list .wcsc-bundle-card-image'  => 'width: {{SIZE}}{{UNIT}};',
+					'{{WRAPPER}} .wcsc-bundle-layout-table .wcsc-bundle-card-image' => 'width: {{SIZE}}{{UNIT}};',
+				),
+			)
+		);
+
+		$this->add_control(
+			'bundle_img_fit',
+			array(
+				'label'     => esc_html__( 'Object Fit', 'wc-smart-checkout-builder' ),
+				'type'      => Controls_Manager::SELECT,
+				'default'   => 'contain',
+				'options'   => array(
+					'contain' => esc_html__( 'Contain', 'wc-smart-checkout-builder' ),
+					'cover'   => esc_html__( 'Cover', 'wc-smart-checkout-builder' ),
+					'fill'    => esc_html__( 'Fill', 'wc-smart-checkout-builder' ),
+				),
+				'selectors' => array(
+					'{{WRAPPER}} img.wcsc-card-img' => 'object-fit: {{VALUE}};',
+				),
+			)
+		);
+
+		$this->add_responsive_control(
+			'bundle_img_radius',
+			array(
+				'label'      => esc_html__( 'Image Border Radius', 'wc-smart-checkout-builder' ),
+				'type'       => Controls_Manager::DIMENSIONS,
+				'size_units' => array( 'px', '%' ),
+				'selectors'  => array(
+					'{{WRAPPER}} .wcsc-bundle-card-image, {{WRAPPER}} img.wcsc-card-img' => 'border-radius: {{TOP}}{{UNIT}} {{RIGHT}}{{UNIT}} {{BOTTOM}}{{UNIT}} {{LEFT}}{{UNIT}};',
+				),
+			)
+		);
+
+		$this->add_control(
+			'bundle_img_bg',
+			array(
+				'label'     => esc_html__( 'Image Background', 'wc-smart-checkout-builder' ),
+				'type'      => Controls_Manager::COLOR,
+				'selectors' => array(
+					'{{WRAPPER}} .wcsc-bundle-card-image' => 'background-color: {{VALUE}};',
+				),
+			)
+		);
+
+		$this->end_controls_section();
+
+		// --- Section: Bundle Titles & Prices ---
+		$this->start_controls_section(
+			'section_style_bundle_typography',
+			array(
+				'label'     => esc_html__( 'Bundle Title & Price', 'wc-smart-checkout-builder' ),
+				'tab'       => Controls_Manager::TAB_STYLE,
+				'condition' => array(
+					'checkout_mode' => 'bundle',
+				),
+			)
+		);
+
+		$this->add_control(
+			'bundle_title_heading',
+			array(
+				'label' => esc_html__( 'Product Title', 'wc-smart-checkout-builder' ),
+				'type'  => Controls_Manager::HEADING,
+			)
+		);
+
+		$this->add_group_control(
+			Group_Control_Typography::get_type(),
+			array(
+				'name'     => 'bundle_title_typography',
+				'selector' => '{{WRAPPER}} .wcsc-bundle-card-title',
+			)
+		);
+
+		$this->add_control(
+			'bundle_title_color',
+			array(
+				'label'     => esc_html__( 'Title Color', 'wc-smart-checkout-builder' ),
+				'type'      => Controls_Manager::COLOR,
+				'selectors' => array(
+					'{{WRAPPER}} .wcsc-bundle-card-title' => 'color: {{VALUE}};',
+				),
+			)
+		);
+
+		$this->add_responsive_control(
+			'bundle_title_margin_bottom',
+			array(
+				'label'      => esc_html__( 'Title Bottom Margin', 'wc-smart-checkout-builder' ),
+				'type'       => Controls_Manager::SLIDER,
+				'size_units' => array( 'px' ),
+				'selectors'  => array(
+					'{{WRAPPER}} .wcsc-bundle-card-title' => 'margin-bottom: {{SIZE}}{{UNIT}};',
+				),
+			)
+		);
+
+		$this->add_control(
+			'bundle_price_heading',
+			array(
+				'label'     => esc_html__( 'Product Price', 'wc-smart-checkout-builder' ),
+				'type'      => Controls_Manager::HEADING,
+				'separator' => 'before',
+			)
+		);
+
+		$this->add_group_control(
+			Group_Control_Typography::get_type(),
+			array(
+				'name'     => 'bundle_price_typography',
+				'selector' => '{{WRAPPER}} .wcsc-bundle-card-price, {{WRAPPER}} .wcsc-bundle-card-price .woocommerce-Price-amount',
+			)
+		);
+
+		$this->add_control(
+			'bundle_price_color',
+			array(
+				'label'     => esc_html__( 'Price Color', 'wc-smart-checkout-builder' ),
+				'type'      => Controls_Manager::COLOR,
+				'selectors' => array(
+					'{{WRAPPER}} .wcsc-bundle-card-price' => 'color: {{VALUE}};',
+				),
+			)
+		);
+
+		$this->add_control(
+			'bundle_price_sale_color',
+			array(
+				'label'     => esc_html__( 'Sale Price Color', 'wc-smart-checkout-builder' ),
+				'type'      => Controls_Manager::COLOR,
+				'selectors' => array(
+					'{{WRAPPER}} .wcsc-bundle-card-price ins, {{WRAPPER}} .wcsc-bundle-card-price ins .woocommerce-Price-amount' => 'color: {{VALUE}};',
+				),
+			)
+		);
+
+		$this->end_controls_section();
+
+		// --- Section: Bundle Variation Swatches ---
+		$this->start_controls_section(
+			'section_style_bundle_swatches',
+			array(
+				'label'     => esc_html__( 'Bundle Variation Swatches', 'wc-smart-checkout-builder' ),
+				'tab'       => Controls_Manager::TAB_STYLE,
+				'condition' => array(
+					'checkout_mode' => 'bundle',
+				),
+			)
+		);
+
+		$this->add_control(
+			'bundle_attr_label_color',
+			array(
+				'label'     => esc_html__( 'Attribute Label Color', 'wc-smart-checkout-builder' ),
+				'type'      => Controls_Manager::COLOR,
+				'selectors' => array(
+					'{{WRAPPER}} .wcsc-bundle-attr-label' => 'color: {{VALUE}};',
+				),
+			)
+		);
+
+		$this->add_group_control(
+			Group_Control_Typography::get_type(),
+			array(
+				'name'     => 'bundle_attr_label_typography',
+				'selector' => '{{WRAPPER}} .wcsc-bundle-attr-label',
+			)
+		);
+
+		$this->add_group_control(
+			Group_Control_Typography::get_type(),
+			array(
+				'name'     => 'bundle_var_btn_typography',
+				'selector' => '{{WRAPPER}} .wcsc-bundle-var-btn',
+			)
+		);
+
+		$this->add_responsive_control(
+			'bundle_var_btn_padding',
+			array(
+				'label'      => esc_html__( 'Button Padding', 'wc-smart-checkout-builder' ),
+				'type'       => Controls_Manager::DIMENSIONS,
+				'size_units' => array( 'px', 'em' ),
+				'selectors'  => array(
+					'{{WRAPPER}} .wcsc-bundle-var-btn' => 'padding: {{TOP}}{{UNIT}} {{RIGHT}}{{UNIT}} {{BOTTOM}}{{UNIT}} {{LEFT}}{{UNIT}};',
+				),
+			)
+		);
+
+		$this->add_responsive_control(
+			'bundle_var_btn_radius',
+			array(
+				'label'      => esc_html__( 'Border Radius', 'wc-smart-checkout-builder' ),
+				'type'       => Controls_Manager::DIMENSIONS,
+				'size_units' => array( 'px', '%' ),
+				'selectors'  => array(
+					'{{WRAPPER}} .wcsc-bundle-var-btn' => 'border-radius: {{TOP}}{{UNIT}} {{RIGHT}}{{UNIT}} {{BOTTOM}}{{UNIT}} {{LEFT}}{{UNIT}};',
+				),
+			)
+		);
+
+		$this->start_controls_tabs( 'tabs_bundle_var_btn' );
+
+		// Normal
+		$this->start_controls_tab(
+			'tab_bundle_var_normal',
+			array( 'label' => esc_html__( 'Normal', 'wc-smart-checkout-builder' ) )
+		);
+		$this->add_control(
+			'bundle_var_btn_color',
+			array(
+				'label'     => esc_html__( 'Text Color', 'wc-smart-checkout-builder' ),
+				'type'      => Controls_Manager::COLOR,
+				'selectors' => array(
+					'{{WRAPPER}} .wcsc-bundle-var-btn' => 'color: {{VALUE}};',
+				),
+			)
+		);
+		$this->add_control(
+			'bundle_var_btn_bg',
+			array(
+				'label'     => esc_html__( 'Background Color', 'wc-smart-checkout-builder' ),
+				'type'      => Controls_Manager::COLOR,
+				'selectors' => array(
+					'{{WRAPPER}} .wcsc-bundle-var-btn' => 'background-color: {{VALUE}};',
+				),
+			)
+		);
+		$this->add_control(
+			'bundle_var_btn_border_color',
+			array(
+				'label'     => esc_html__( 'Border Color', 'wc-smart-checkout-builder' ),
+				'type'      => Controls_Manager::COLOR,
+				'selectors' => array(
+					'{{WRAPPER}} .wcsc-bundle-var-btn' => 'border-color: {{VALUE}};',
+				),
+			)
+		);
+		$this->end_controls_tab();
+
+		// Selected
+		$this->start_controls_tab(
+			'tab_bundle_var_selected',
+			array( 'label' => esc_html__( 'Selected', 'wc-smart-checkout-builder' ) )
+		);
+		$this->add_control(
+			'bundle_var_btn_selected_color',
+			array(
+				'label'     => esc_html__( 'Text Color', 'wc-smart-checkout-builder' ),
+				'type'      => Controls_Manager::COLOR,
+				'selectors' => array(
+					'{{WRAPPER}} .wcsc-bundle-var-btn.is-selected' => 'color: {{VALUE}} !important;',
+				),
+			)
+		);
+		$this->add_control(
+			'bundle_var_btn_selected_bg',
+			array(
+				'label'     => esc_html__( 'Background Color', 'wc-smart-checkout-builder' ),
+				'type'      => Controls_Manager::COLOR,
+				'selectors' => array(
+					'{{WRAPPER}} .wcsc-bundle-var-btn.is-selected' => 'background-color: {{VALUE}} !important;',
+				),
+			)
+		);
+		$this->add_control(
+			'bundle_var_btn_selected_border',
+			array(
+				'label'     => esc_html__( 'Border Color', 'wc-smart-checkout-builder' ),
+				'type'      => Controls_Manager::COLOR,
+				'selectors' => array(
+					'{{WRAPPER}} .wcsc-bundle-var-btn.is-selected' => 'border-color: {{VALUE}} !important;',
+				),
+			)
+		);
+		$this->end_controls_tab();
+
+		$this->end_controls_tabs();
+
+		$this->end_controls_section();
+
+		// --- Section: Bundle Quantity Stepper ---
+		$this->start_controls_section(
+			'section_style_bundle_quantity',
+			array(
+				'label'     => esc_html__( 'Bundle Quantity Stepper', 'wc-smart-checkout-builder' ),
+				'tab'       => Controls_Manager::TAB_STYLE,
+				'condition' => array(
+					'checkout_mode' => 'bundle',
+				),
+			)
+		);
+
+		$this->add_responsive_control(
+			'bundle_qty_height',
+			array(
+				'label'      => esc_html__( 'Stepper Height', 'wc-smart-checkout-builder' ),
+				'type'       => Controls_Manager::SLIDER,
+				'size_units' => array( 'px' ),
+				'range'      => array(
+					'px' => array( 'min' => 24, 'max' => 60 ),
+				),
+				'selectors'  => array(
+					'{{WRAPPER}} .wcsc-bundle-qty' => 'height: {{SIZE}}{{UNIT}};',
+					'{{WRAPPER}} .wcsc-bundle-qty-btn' => 'height: {{SIZE}}{{UNIT}}; width: {{SIZE}}{{UNIT}}; line-height: {{SIZE}}{{UNIT}};',
+					'{{WRAPPER}} .wcsc-bundle-qty-val' => 'height: {{SIZE}}{{UNIT}};',
+				),
+			)
+		);
+
+		$this->add_control(
+			'bundle_qty_bg',
+			array(
+				'label'     => esc_html__( 'Background Color', 'wc-smart-checkout-builder' ),
+				'type'      => Controls_Manager::COLOR,
+				'selectors' => array(
+					'{{WRAPPER}} .wcsc-bundle-qty' => 'background-color: {{VALUE}};',
+				),
+			)
+		);
+
+		$this->add_control(
+			'bundle_qty_text_color',
+			array(
+				'label'     => esc_html__( 'Number Text Color', 'wc-smart-checkout-builder' ),
+				'type'      => Controls_Manager::COLOR,
+				'selectors' => array(
+					'{{WRAPPER}} .wcsc-bundle-qty-val' => 'color: {{VALUE}};',
+				),
+			)
+		);
+
+		$this->add_control(
+			'bundle_qty_btn_color',
+			array(
+				'label'     => esc_html__( 'Button (+ / -) Color', 'wc-smart-checkout-builder' ),
+				'type'      => Controls_Manager::COLOR,
+				'selectors' => array(
+					'{{WRAPPER}} .wcsc-bundle-qty-btn' => 'color: {{VALUE}};',
+				),
+			)
+		);
+
+		$this->add_group_control(
+			Group_Control_Border::get_type(),
+			array(
+				'name'     => 'bundle_qty_border',
+				'selector' => '{{WRAPPER}} .wcsc-bundle-qty',
+			)
+		);
+
+		$this->add_responsive_control(
+			'bundle_qty_radius',
+			array(
+				'label'      => esc_html__( 'Border Radius', 'wc-smart-checkout-builder' ),
+				'type'       => Controls_Manager::DIMENSIONS,
+				'size_units' => array( 'px', '%' ),
+				'selectors'  => array(
+					'{{WRAPPER}} .wcsc-bundle-qty' => 'border-radius: {{TOP}}{{UNIT}} {{RIGHT}}{{UNIT}} {{BOTTOM}}{{UNIT}} {{LEFT}}{{UNIT}};',
+				),
+			)
+		);
+
+		$this->end_controls_section();
+
+		// --- Section: Bundle Select Button ---
+		$this->start_controls_section(
+			'section_style_bundle_select_btn',
+			array(
+				'label'     => esc_html__( 'Bundle Select Button', 'wc-smart-checkout-builder' ),
+				'tab'       => Controls_Manager::TAB_STYLE,
+				'condition' => array(
+					'checkout_mode' => 'bundle',
+				),
+			)
+		);
+
+		$this->add_group_control(
+			Group_Control_Typography::get_type(),
+			array(
+				'name'     => 'bundle_btn_typography',
+				'selector' => '{{WRAPPER}} .wcsc-bundle-select-btn',
+			)
+		);
+
+		$this->add_responsive_control(
+			'bundle_btn_padding',
+			array(
+				'label'      => esc_html__( 'Padding', 'wc-smart-checkout-builder' ),
+				'type'       => Controls_Manager::DIMENSIONS,
+				'size_units' => array( 'px', 'em' ),
+				'selectors'  => array(
+					'{{WRAPPER}} .wcsc-bundle-select-btn' => 'padding: {{TOP}}{{UNIT}} {{RIGHT}}{{UNIT}} {{BOTTOM}}{{UNIT}} {{LEFT}}{{UNIT}};',
+				),
+			)
+		);
+
+		$this->add_responsive_control(
+			'bundle_btn_radius',
+			array(
+				'label'      => esc_html__( 'Border Radius', 'wc-smart-checkout-builder' ),
+				'type'       => Controls_Manager::DIMENSIONS,
+				'size_units' => array( 'px', '%' ),
+				'selectors'  => array(
+					'{{WRAPPER}} .wcsc-bundle-select-btn' => 'border-radius: {{TOP}}{{UNIT}} {{RIGHT}}{{UNIT}} {{BOTTOM}}{{UNIT}} {{LEFT}}{{UNIT}};',
+				),
+			)
+		);
+
+		$this->start_controls_tabs( 'tabs_bundle_select_btn' );
+
+		// Normal
+		$this->start_controls_tab(
+			'tab_bundle_btn_normal',
+			array( 'label' => esc_html__( 'Normal State', 'wc-smart-checkout-builder' ) )
+		);
+		$this->add_control(
+			'bundle_btn_text_color',
+			array(
+				'label'     => esc_html__( 'Text Color', 'wc-smart-checkout-builder' ),
+				'type'      => Controls_Manager::COLOR,
+				'selectors' => array(
+					'{{WRAPPER}} .wcsc-bundle-select-btn' => 'color: {{VALUE}};',
+				),
+			)
+		);
+		$this->add_control(
+			'bundle_btn_bg',
+			array(
+				'label'     => esc_html__( 'Background Color', 'wc-smart-checkout-builder' ),
+				'type'      => Controls_Manager::COLOR,
+				'selectors' => array(
+					'{{WRAPPER}} .wcsc-bundle-select-btn' => 'background-color: {{VALUE}};',
+				),
+			)
+		);
+		$this->add_control(
+			'bundle_btn_border_color',
+			array(
+				'label'     => esc_html__( 'Border Color', 'wc-smart-checkout-builder' ),
+				'type'      => Controls_Manager::COLOR,
+				'selectors' => array(
+					'{{WRAPPER}} .wcsc-bundle-select-btn' => 'border-color: {{VALUE}};',
+				),
+			)
+		);
+		$this->end_controls_tab();
+
+		// Selected
+		$this->start_controls_tab(
+			'tab_bundle_btn_selected',
+			array( 'label' => esc_html__( 'Selected State', 'wc-smart-checkout-builder' ) )
+		);
+		$this->add_control(
+			'bundle_btn_selected_text_color',
+			array(
+				'label'     => esc_html__( 'Text Color', 'wc-smart-checkout-builder' ),
+				'type'      => Controls_Manager::COLOR,
+				'selectors' => array(
+					'{{WRAPPER}} .wcsc-bundle-card.is-selected .wcsc-bundle-select-btn' => 'color: {{VALUE}} !important;',
+				),
+			)
+		);
+		$this->add_control(
+			'bundle_btn_selected_bg',
+			array(
+				'label'     => esc_html__( 'Background Color', 'wc-smart-checkout-builder' ),
+				'type'      => Controls_Manager::COLOR,
+				'selectors' => array(
+					'{{WRAPPER}} .wcsc-bundle-card.is-selected .wcsc-bundle-select-btn' => 'background-color: {{VALUE}} !important;',
+				),
+			)
+		);
+		$this->add_control(
+			'bundle_btn_selected_border',
+			array(
+				'label'     => esc_html__( 'Border Color', 'wc-smart-checkout-builder' ),
+				'type'      => Controls_Manager::COLOR,
+				'selectors' => array(
+					'{{WRAPPER}} .wcsc-bundle-card.is-selected .wcsc-bundle-select-btn' => 'border-color: {{VALUE}} !important;',
+				),
+			)
+		);
+		$this->end_controls_tab();
+
+		$this->end_controls_tabs();
+
+		$this->end_controls_section();
+
+		// --- Section: Bundle Summary Bar ---
+		$this->start_controls_section(
+			'section_style_bundle_summary_bar',
+			array(
+				'label'     => esc_html__( 'Bundle Summary Bar', 'wc-smart-checkout-builder' ),
+				'tab'       => Controls_Manager::TAB_STYLE,
+				'condition' => array(
+					'checkout_mode' => 'bundle',
+				),
+			)
+		);
+
+		$this->add_control(
+			'bundle_summary_bg',
+			array(
+				'label'     => esc_html__( 'Background Color', 'wc-smart-checkout-builder' ),
+				'type'      => Controls_Manager::COLOR,
+				'default'   => '#f0f7ff',
+				'selectors' => array(
+					'{{WRAPPER}} .wcsc-bundle-summary-bar' => 'background-color: {{VALUE}};',
+				),
+			)
+		);
+
+		$this->add_group_control(
+			Group_Control_Border::get_type(),
+			array(
+				'name'     => 'bundle_summary_border',
+				'selector' => '{{WRAPPER}} .wcsc-bundle-summary-bar',
+			)
+		);
+
+		$this->add_responsive_control(
+			'bundle_summary_radius',
+			array(
+				'label'      => esc_html__( 'Border Radius', 'wc-smart-checkout-builder' ),
+				'type'       => Controls_Manager::DIMENSIONS,
+				'size_units' => array( 'px', '%' ),
+				'selectors'  => array(
+					'{{WRAPPER}} .wcsc-bundle-summary-bar' => 'border-radius: {{TOP}}{{UNIT}} {{RIGHT}}{{UNIT}} {{BOTTOM}}{{UNIT}} {{LEFT}}{{UNIT}};',
+				),
+			)
+		);
+
+		$this->add_responsive_control(
+			'bundle_summary_padding',
+			array(
+				'label'      => esc_html__( 'Padding', 'wc-smart-checkout-builder' ),
+				'type'       => Controls_Manager::DIMENSIONS,
+				'size_units' => array( 'px', 'em' ),
+				'selectors'  => array(
+					'{{WRAPPER}} .wcsc-bundle-summary-bar' => 'padding: {{TOP}}{{UNIT}} {{RIGHT}}{{UNIT}} {{BOTTOM}}{{UNIT}} {{LEFT}}{{UNIT}};',
+				),
+			)
+		);
+
+		$this->add_control(
+			'bundle_summary_text_color',
+			array(
+				'label'     => esc_html__( 'Info Text Color', 'wc-smart-checkout-builder' ),
+				'type'      => Controls_Manager::COLOR,
+				'selectors' => array(
+					'{{WRAPPER}} .wcsc-summary-count-line' => 'color: {{VALUE}};',
+				),
+			)
+		);
+
+		$this->add_control(
+			'bundle_summary_total_color',
+			array(
+				'label'     => esc_html__( 'Total Amount Color', 'wc-smart-checkout-builder' ),
+				'type'      => Controls_Manager::COLOR,
+				'selectors' => array(
+					'{{WRAPPER}} .wcsc-summary-total-val' => 'color: {{VALUE}};',
+				),
+			)
+		);
+
+		$this->add_group_control(
+			Group_Control_Typography::get_type(),
+			array(
+				'name'     => 'bundle_summary_total_typography',
+				'selector' => '{{WRAPPER}} .wcsc-summary-total-val',
+			)
+		);
+
+		$this->add_control(
+			'bundle_cta_heading',
+			array(
+				'label'     => esc_html__( 'Summary CTA Button', 'wc-smart-checkout-builder' ),
+				'type'      => Controls_Manager::HEADING,
+				'separator' => 'before',
+			)
+		);
+
+		$this->add_group_control(
+			Group_Control_Typography::get_type(),
+			array(
+				'name'     => 'bundle_cta_typography',
+				'selector' => '{{WRAPPER}} .wcsc-summary-cta-btn',
+			)
+		);
+
+		$this->add_control(
+			'bundle_cta_color',
+			array(
+				'label'     => esc_html__( 'Button Text Color', 'wc-smart-checkout-builder' ),
+				'type'      => Controls_Manager::COLOR,
+				'selectors' => array(
+					'{{WRAPPER}} .wcsc-summary-cta-btn' => 'color: {{VALUE}};',
+				),
+			)
+		);
+
+		$this->add_control(
+			'bundle_cta_bg',
+			array(
+				'label'     => esc_html__( 'Button Background Color', 'wc-smart-checkout-builder' ),
+				'type'      => Controls_Manager::COLOR,
+				'selectors' => array(
+					'{{WRAPPER}} .wcsc-summary-cta-btn' => 'background-color: {{VALUE}};',
+				),
+			)
+		);
+
+		$this->add_control(
+			'bundle_cta_hover_bg',
+			array(
+				'label'     => esc_html__( 'Button Hover Background', 'wc-smart-checkout-builder' ),
+				'type'      => Controls_Manager::COLOR,
+				'selectors' => array(
+					'{{WRAPPER}} .wcsc-summary-cta-btn:hover' => 'background-color: {{VALUE}};',
+				),
+			)
+		);
+
+		$this->add_responsive_control(
+			'bundle_cta_radius',
+			array(
+				'label'      => esc_html__( 'Button Border Radius', 'wc-smart-checkout-builder' ),
+				'type'       => Controls_Manager::DIMENSIONS,
+				'size_units' => array( 'px', '%' ),
+				'selectors'  => array(
+					'{{WRAPPER}} .wcsc-summary-cta-btn' => 'border-radius: {{TOP}}{{UNIT}} {{RIGHT}}{{UNIT}} {{BOTTOM}}{{UNIT}} {{LEFT}}{{UNIT}};',
+				),
+			)
+		);
+
+		$this->add_responsive_control(
+			'bundle_cta_padding',
+			array(
+				'label'      => esc_html__( 'Button Padding', 'wc-smart-checkout-builder' ),
+				'type'       => Controls_Manager::DIMENSIONS,
+				'size_units' => array( 'px', 'em' ),
+				'selectors'  => array(
+					'{{WRAPPER}} .wcsc-summary-cta-btn' => 'padding: {{TOP}}{{UNIT}} {{RIGHT}}{{UNIT}} {{BOTTOM}}{{UNIT}} {{LEFT}}{{UNIT}};',
+				),
+			)
+		);
+
+		$this->end_controls_section();
+	}
+
 
 	/**
 	 * Register standard card/block container and title override controls.
@@ -5263,6 +6097,11 @@ class Elementor_Widget extends Widget_Base {
 		$sel_txt   = ! empty( $settings['bundle_select_btn_text'] ) ? $settings['bundle_select_btn_text'] : __( 'Select', 'wc-smart-checkout-builder' );
 		$seled_txt = ! empty( $settings['bundle_selected_btn_text'] ) ? $settings['bundle_selected_btn_text'] : __( 'Selected', 'wc-smart-checkout-builder' );
 		$cta_text  = ! empty( $settings['bundle_cta_button_text'] ) ? $settings['bundle_cta_button_text'] : __( 'Proceed to Checkout', 'wc-smart-checkout-builder' );
+		$layout    = ! empty( $settings['bundle_layout'] ) ? sanitize_key( $settings['bundle_layout'] ) : 'grid';
+		$container_classes = 'wcsc-bundle-container wcsc-bundle-layout-' . $layout;
+		if ( 'grid' === $layout ) {
+			$container_classes .= ' wcsc-bundle-grid';
+		}
 
 		$tiers_data = array();
 		if ( 'yes' === ( $settings['enable_tiered_discount'] ?? 'yes' ) && is_array( $tiers ) ) {
@@ -5284,7 +6123,7 @@ class Elementor_Widget extends Widget_Base {
 			data-tiers="<?php echo esc_attr( wp_json_encode( $tiers_data ) ); ?>"
 			<?php echo Checkout_Handler::render_data_attrs( $settings ); ?>>
 
-			<div class="wcsc-bundle-grid">
+			<div class="<?php echo esc_attr( $container_classes ); ?>">
 				<?php
 				$first_item = true;
 				foreach ( $product_ids as $pid ) :

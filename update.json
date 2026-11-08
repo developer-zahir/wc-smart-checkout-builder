@@ -1,9 +1,9 @@
 {
-  "version": "1.9.30",
+  "version": "1.9.31",
   "requires": "5.8",
   "tested": "6.7",
   "requires_php": "7.4",
   "download_url": "https://raw.githubusercontent.com/developer-zahir/wc-smart-checkout-builder/main/wc-smart-checkout-builder.zip",
   "details_url": "https://github.com/developer-zahir/wc-smart-checkout-builder",
-  "changelog": "## v1.9.30\n\n- Fix: Resolved infinite auto-reload loop when adding variable products to bundle checkout\n- Enhanced: Variable products now automatically resolve and match valid variations on selection to prevent empty cart rejects\n- Added: woocommerce_checkout_redirect_empty_cart filter and AJAX reload suppressor\n- Full Control Parity: Integrated multi-product bundle mode directly into the core widget so all 5,000+ lines of checkout layouts, order bump, typography, borders, and animations are 100% available in both Single and Bundle modes"
+  "changelog": "## v1.9.31\n\n- Unified Single Widget Architecture: Removed duplicate bundle widget registration so only ONE clean widget appears in Elementor panel with Single vs Multi-Product mode switcher\n- Multi-Product Layouts: Added Grid Cards, Horizontal List Row, and Compact Table layouts with responsive styling\n- Full Element Customization: Added Elementor style controls for cards, thumbnails, titles, prices, variation swatches, quantity steppers, select buttons, and summary bar\n- Instant AJAX Sync: Checkout order review updates instantly upon product selection, variation switch, or quantity change"
 }

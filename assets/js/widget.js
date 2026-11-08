@@ -10,6 +10,9 @@
 	 * Widget Controller Class
 	 */
 	function WCSCWidget($container) {
+		if ($container.hasClass('wcsc-bundle-checkout-wrapper')) {
+			return;
+		}
 		this.$container = $container;
 		this.productId = parseInt($container.data('product-id'), 10) || 0;
 		this.productType = $container.data('product-type') || 'simple';
@@ -1169,7 +1172,7 @@
 				}
 
 				self.updateCalculations();
-				self.debouncedSync();
+				self.debouncedSync(true);
 			});
 
 			// Quantity Stepper: Plus
@@ -1187,7 +1190,7 @@
 				}
 
 				self.updateCalculations();
-				self.debouncedSync();
+				self.debouncedSync(true);
 			});
 
 			// Quantity Stepper: Minus
@@ -1201,7 +1204,7 @@
 					$input.val(qty - 1);
 					$card.data('qty', qty - 1);
 					self.updateCalculations();
-				self.debouncedSync();
+				self.debouncedSync(true);
 				}
 			});
 
@@ -1212,7 +1215,7 @@
 				$(this).val(qty);
 				$card.data('qty', qty);
 				self.updateCalculations();
-				self.debouncedSync();
+				self.debouncedSync(true);
 			});
 
 			// CTA Smooth Scroll
@@ -1322,7 +1325,7 @@
 			}
 
 			this.updateCalculations();
-			this.debouncedSync();
+			this.debouncedSync(true);
 		},
 
 		updateCalculations: function () {
@@ -1383,12 +1386,16 @@
 			return '$' + amount.toFixed(2);
 		},
 
-		debouncedSync: function () {
+		debouncedSync: function (immediate) {
 			var self = this;
 			clearTimeout(this.syncTimer);
-			this.syncTimer = setTimeout(function () {
+			if (immediate) {
 				self.syncCartWithCheckout();
-			}, 300);
+			} else {
+				this.syncTimer = setTimeout(function () {
+					self.syncCartWithCheckout();
+				}, 120);
+			}
 		},
 
 		syncCartWithCheckout: function () {
@@ -1431,6 +1438,9 @@
 				return;
 			}
 
+			var $checkoutSec = this.$wrapper.find('.wcsc-checkout-section');
+			$checkoutSec.addClass('wcsc-syncing');
+
 			$.ajax({
 				url: window.wcsc_params.ajax_url,
 				type: 'POST',
@@ -1445,6 +1455,9 @@
 					if (res && res.success) {
 						$(document.body).trigger('update_checkout');
 					}
+				},
+				complete: function () {
+					$checkoutSec.removeClass('wcsc-syncing');
 				}
 			});
 		}
@@ -1458,6 +1471,9 @@
 		var $elements = $scope ? $scope.find('.wcsc-product-checkout-widget') : $('.wcsc-product-checkout-widget');
 		$elements.each(function () {
 			var $this = $(this);
+			if ($this.hasClass('wcsc-bundle-checkout-wrapper')) {
+				return;
+			}
 			if (!$this.data('wcsc_initialized')) {
 				$this.data('wcsc_initialized', true);
 				new WCSCWidget($this);
@@ -1488,12 +1504,7 @@
 					initWidgets($scope);
 				}
 			);
-			window.elementorFrontend.hooks.addAction(
-				'frontend/element_ready/wcsc_bundle_checkout.default',
-				function ($scope) {
-					initWidgets($scope);
-				}
-			);
+
 		}
 	});
 
