@@ -178,15 +178,11 @@ class Plugin {
 	public function register_widgets( $widgets_manager ) {
 		require_once WCSC_PATH . 'includes/class-elementor-widget.php';
 		require_once WCSC_PATH . 'includes/class-thankyou-widget.php';
-		require_once WCSC_PATH . 'includes/widgets/class-widget-product-grid.php';
-		require_once WCSC_PATH . 'includes/widgets/class-widget-variation-selector.php';
-		require_once WCSC_PATH . 'includes/widgets/class-widget-embedded-checkout.php';
+		require_once WCSC_PATH . 'includes/widgets/class-widget-bundle-checkout.php';
 
 		$widgets_manager->register( new Elementor_Widget() );
 		$widgets_manager->register( new ThankYou_Widget() );
-		$widgets_manager->register( new Widgets\Widget_Product_Grid() );
-		$widgets_manager->register( new Widgets\Widget_Variation_Selector() );
-		$widgets_manager->register( new Widgets\Widget_Embedded_Checkout() );
+		$widgets_manager->register( new Widgets\Widget_Bundle_Checkout() );
 	}
 
 	/**
@@ -200,15 +196,11 @@ class Plugin {
 		}
 		require_once WCSC_PATH . 'includes/class-elementor-widget.php';
 		require_once WCSC_PATH . 'includes/class-thankyou-widget.php';
-		require_once WCSC_PATH . 'includes/widgets/class-widget-product-grid.php';
-		require_once WCSC_PATH . 'includes/widgets/class-widget-variation-selector.php';
-		require_once WCSC_PATH . 'includes/widgets/class-widget-embedded-checkout.php';
+		require_once WCSC_PATH . 'includes/widgets/class-widget-bundle-checkout.php';
 
 		$widgets_manager->register_widget_type( new Elementor_Widget() );
 		$widgets_manager->register_widget_type( new ThankYou_Widget() );
-		$widgets_manager->register_widget_type( new Widgets\Widget_Product_Grid() );
-		$widgets_manager->register_widget_type( new Widgets\Widget_Variation_Selector() );
-		$widgets_manager->register_widget_type( new Widgets\Widget_Embedded_Checkout() );
+		$widgets_manager->register_widget_type( new Widgets\Widget_Bundle_Checkout() );
 	}
 
 	/**

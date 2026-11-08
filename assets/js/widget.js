@@ -1102,17 +1102,17 @@
 
 	/**
 	 * =========================================================================
-	 * WCSC Modular Widget 1: Product Selector & Grid
+	 * WCSC All-in-One Bundle Smart Checkout Controller
 	 * =========================================================================
 	 */
-	function WCSCModularGrid($container) {
-		this.$container = $container;
-		this.minItems = parseInt($container.data('min-items'), 10) || 1;
-		this.maxItems = parseInt($container.data('max-items'), 10) || 0;
-		this.scrollTarget = $container.data('scroll-target') || '#wcsc-embedded-checkout';
+	function WCSCBundleCheckout($wrapper) {
+		this.$wrapper = $wrapper;
+		this.minItems = parseInt($wrapper.data('min-items'), 10) || 1;
+		this.maxItems = parseInt($wrapper.data('max-items'), 10) || 0;
 		this.tiers = [];
+		this.syncTimer = null;
 
-		var rawTiers = $container.data('tiers');
+		var rawTiers = $wrapper.data('tiers');
 		if (rawTiers) {
 			try {
 				this.tiers = typeof rawTiers === 'string' ? JSON.parse(rawTiers) : rawTiers;
@@ -1124,210 +1124,294 @@
 		this.init();
 	}
 
-	WCSCModularGrid.prototype = {
+	WCSCBundleCheckout.prototype = {
 		init: function () {
 			var self = this;
 
-			// Card Click Toggle
-			this.$container.on('click', '.wcsc-grid-card', function (e) {
+			// Initialize default variation for variable products that are selected
+			this.$wrapper.find('.wcsc-bundle-card').each(function () {
+				self.resolveCardInitialVariation($(this));
+			});
+
+			// Card selection toggle (clicking anywhere on card, except var buttons, qty, or links)
+			this.$wrapper.on('click', '.wcsc-bundle-card', function (e) {
+				if ($(e.target).closest('.wcsc-bundle-var-btn, .wcsc-bundle-qty, a').length) {
+					return;
+				}
 				self.toggleCardSelection($(this));
 			});
 
-			this.$container.on('click', '.wcsc-card-select-btn', function (e) {
+			// Select button click inside card
+			this.$wrapper.on('click', '.wcsc-bundle-select-btn', function (e) {
 				e.preventDefault();
 				e.stopPropagation();
-				self.toggleCardSelection($(this).closest('.wcsc-grid-card'));
+				self.toggleCardSelection($(this).closest('.wcsc-bundle-card'));
 			});
 
-			// Quantity Stepper
-			this.$container.on('click', '.wcsc-qty-plus', function (e) {
+			// Inline variation button click
+			this.$wrapper.on('click', '.wcsc-bundle-var-btn', function (e) {
 				e.preventDefault();
 				e.stopPropagation();
-				var $card = $(this).closest('.wcsc-grid-card');
-				var $val = $card.find('.wcsc-qty-val');
-				var current = parseInt($val.val(), 10) || 1;
-				$val.val(current + 1);
+
+				var $btn = $(this);
+				var $row = $btn.closest('.wcsc-bundle-attr-row');
+				var $card = $btn.closest('.wcsc-bundle-card');
+
+				$row.find('.wcsc-bundle-var-btn').removeClass('is-selected');
+				$btn.addClass('is-selected');
+
+				// Match variation for this card
+			self.matchCardVariation($card);
+
+				// Auto-select card if not already selected
+				if (!$card.hasClass('is-selected')) {
+					$card.addClass('is-selected');
+				}
+
+				self.updateCalculations();
+				self.debouncedSync();
+			});
+
+			// Quantity Stepper: Plus
+			this.$wrapper.on('click', '.wcsc-bundle-qty-btn.plus', function (e) {
+				e.preventDefault();
+				e.stopPropagation();
+				var $card = $(this).closest('.wcsc-bundle-card');
+				var $input = $card.find('.wcsc-bundle-qty-val');
+				var qty = parseInt($input.val(), 10) || 1;
+				$input.val(qty + 1);
+				$card.data('qty', qty + 1);
 
 				if (!$card.hasClass('is-selected')) {
 					$card.addClass('is-selected');
 				}
-				self.updateCalculation();
+
+				self.updateCalculations();
+				self.debouncedSync();
 			});
 
-			this.$container.on('click', '.wcsc-qty-minus', function (e) {
+			// Quantity Stepper: Minus
+			this.$wrapper.on('click', '.wcsc-bundle-qty-btn.minus', function (e) {
 				e.preventDefault();
 				e.stopPropagation();
-				var $card = $(this).closest('.wcsc-grid-card');
-				var $val = $card.find('.wcsc-qty-val');
-				var current = parseInt($val.val(), 10) || 1;
-
-				if (current > 1) {
-					$val.val(current - 1);
-				} else {
-					$card.removeClass('is-selected');
+				var $card = $(this).closest('.wcsc-bundle-card');
+				var $input = $card.find('.wcsc-bundle-qty-val');
+				var qty = parseInt($input.val(), 10) || 1;
+				if (qty > 1) {
+					$input.val(qty - 1);
+					$card.data('qty', qty - 1);
+					self.updateCalculations();
+				self.debouncedSync();
 				}
-				self.updateCalculation();
 			});
 
-			this.$container.on('change', '.wcsc-qty-val', function () {
-				var val = parseInt($(this).val(), 10) || 1;
-				if (val < 1) $(this).val(1);
-				self.updateCalculation();
+			// Quantity Stepper: Input change
+			this.$wrapper.on('change', '.wcsc-bundle-qty-val', function () {
+				var $card = $(this).closest('.wcsc-bundle-card');
+				var qty = Math.max(1, parseInt($(this).val(), 10) || 1);
+				$(this).val(qty);
+				$card.data('qty', qty);
+				self.updateCalculations();
+				self.debouncedSync();
 			});
 
-			// Order CTA Button Click (Smooth Scroll + AJAX Sync)
-			this.$container.on('click', '.wcsc-grid-cta-btn', function (e) {
-				e.preventDefault();
-				self.handleCtaClick();
+			// CTA Smooth Scroll
+			this.$wrapper.on('click', '.wcsc-summary-cta-btn', function (e) {
+				var target = $(this).attr('href');
+				if (target && target.startsWith('#')) {
+					var $target = $(target);
+					if ($target.length) {
+						e.preventDefault();
+						$('html, body').animate({
+							scrollTop: $target.offset().top - 40
+						}, 600);
+					}
+				}
 			});
 
-			this.updateCalculation();
+			// Run initial calculation and cart synchronization
+			this.updateCalculations();
+			this.syncCartWithCheckout();
+		},
+
+		resolveCardInitialVariation: function ($card) {
+			if ($card.data('is-variable') !== 'yes') {
+				return;
+			}
+			this.matchCardVariation($card);
+		},
+
+		matchCardVariation: function ($card) {
+			var $jsonScript = $card.find('.wcsc-product-variations-json');
+			if (!$jsonScript.length) return;
+
+			var variations = [];
+			try {
+				variations = JSON.parse($jsonScript.text().trim());
+			} catch (e) {
+				variations = [];
+			}
+			if (!variations.length) return;
+
+			var selectedAttrs = {};
+			$card.find('.wcsc-bundle-var-btn.is-selected').each(function () {
+				var attrName = $(this).data('attr');
+				selectedAttrs['attribute_' + attrName] = $(this).data('value');
+			});
+
+			var matched = null;
+			for (var i = 0; i < variations.length; i++) {
+				var varObj = variations[i];
+				var isMatch = true;
+
+				for (var key in selectedAttrs) {
+					if (varObj.attributes && varObj.attributes[key] !== '' && varObj.attributes[key] !== selectedAttrs[key]) {
+						isMatch = false;
+						break;
+					}
+				}
+
+				if (isMatch) {
+					matched = varObj;
+					break;
+				}
+			}
+
+			if (matched) {
+				$card.data('variation-id', matched.variation_id);
+				if (matched.display_price) {
+					$card.data('current-price', matched.display_price);
+				}
+				if (matched.price_html) {
+					$card.find('.wcsc-bundle-card-price').html(matched.price_html);
+				}
+				if (matched.image && matched.image.src) {
+					$card.find('img.wcsc-card-img').attr('src', matched.image.src);
+				}
+			}
 		},
 
 		toggleCardSelection: function ($card) {
-			$card.toggleClass('is-selected');
-			this.updateCalculation();
+			if ($card.hasClass('is-selected')) {
+				var selectedCount = this.$wrapper.find('.wcsc-bundle-card.is-selected').length;
+				if (selectedCount <= 1 && this.minItems >= 1) {
+					return;
+				}
+				$card.removeClass('is-selected');
+			} else {
+				if (this.maxItems > 0) {
+					var currentCount = 0;
+					this.$wrapper.find('.wcsc-bundle-card.is-selected').each(function () {
+						currentCount += parseInt($(this).data('qty'), 10) || 1;
+					});
+					var thisQty = parseInt($card.data('qty'), 10) || 1;
+					if (currentCount + thisQty > this.maxItems) {
+						alert('You can select a maximum of ' + this.maxItems + ' items.');
+						return;
+					}
+				}
+				$card.addClass('is-selected');
+			}
+
+			this.updateCalculations();
+			this.debouncedSync();
 		},
 
-		getSelectedItems: function () {
-			var items = [];
-			this.$container.find('.wcsc-grid-card.is-selected').each(function () {
-				var $card = $(this);
-				var pId = parseInt($card.data('product-id'), 10);
-				var qty = parseInt($card.find('.wcsc-qty-val').val(), 10) || 1;
-				items.push({
-					product_id: pId,
-					quantity: qty,
-					variation_id: 0,
-					attributes: {}
-				});
-			});
-			return items;
-		},
-
-		updateCalculation: function () {
-			var totalItems = 0;
+		updateCalculations: function () {
+			var totalQty = 0;
 			var subtotal = 0;
-			var selectedProducts = [];
 
-			this.$container.find('.wcsc-grid-card.is-selected').each(function () {
+			this.$wrapper.find('.wcsc-bundle-card.is-selected').each(function () {
 				var $card = $(this);
-				var price = parseFloat($card.data('base-price')) || 0;
-				var qty = parseInt($card.find('.wcsc-qty-val').val(), 10) || 1;
-				totalItems += qty;
-				subtotal += (price * qty);
+				var qty = parseInt($card.find('.wcsc-bundle-qty-val').val(), 10) || parseInt($card.data('qty'), 10) || 1;
+				var price = parseFloat($card.data('current-price')) || parseFloat($card.data('base-price')) || 0;
 
-				selectedProducts.push({
-					product_id: parseInt($card.data('product-id'), 10),
-					is_variable: $card.data('is-variable') == '1',
-					quantity: qty,
-					price: price
-				});
+				totalQty += qty;
+			subtotal += (price * qty);
 			});
 
-			// Match Tiered Discount
-			var discountAmount = 0;
-			var discountLabel = '';
+			this.$wrapper.find('.wcsc-summary-count').text(totalQty);
 
+			var bestTier = null;
 			if (this.tiers && this.tiers.length) {
-				var sortedTiers = this.tiers.slice().sort(function (a, b) {
-					return (parseInt(b.min_qty, 10) || 0) - (parseInt(a.min_qty, 10) || 0);
-				});
-
-				for (var i = 0; i < sortedTiers.length; i++) {
-					var tier = sortedTiers[i];
-					var minQ = parseInt(tier.min_qty, 10) || 0;
-					if (totalItems >= minQ) {
-						var val = parseFloat(tier.discount_value) || 0;
-						if (tier.discount_type === 'percentage') {
-							discountAmount = (subtotal * val) / 100;
-							discountLabel = tier.tier_label || val + '% OFF';
-						} else {
-							discountAmount = val;
-							discountLabel = tier.tier_label || '$' + val + ' OFF';
+				for (var t = 0; t < this.tiers.length; t++) {
+					var tier = this.tiers[t];
+					var minQ = parseInt(tier.min_qty, 10) || 1;
+					if (totalQty >= minQ) {
+						if (!bestTier || minQ > parseInt(bestTier.min_qty, 10)) {
+							bestTier = tier;
 						}
-						break;
 					}
 				}
 			}
 
-			var finalPrice = Math.max(0, subtotal - discountAmount);
+			var discountAmount = 0;
+			if (bestTier && parseFloat(bestTier.discount_amount) > 0) {
+				var val = parseFloat(bestTier.discount_amount);
+				if (bestTier.discount_type === 'percentage') {
+					discountAmount = subtotal * (val / 100);
+				} else {
+					discountAmount = val;
+				}
+			}
 
-			// Update Summary UI
-			this.$container.find('.wcsc-total-items-badge').text(totalItems);
+			var finalTotal = Math.max(0, subtotal - discountAmount);
 
-			var $tierBadge = this.$container.find('.wcsc-applied-tier-badge');
-			if (discountAmount > 0 && discountLabel) {
-				$tierBadge.text(discountLabel).show();
+			var $savingsBox = this.$wrapper.find('.wcsc-summary-savings');
+			if (discountAmount > 0 && bestTier) {
+				var badgeTxt = bestTier.tier_badge ? bestTier.tier_badge : (bestTier.discount_amount + '% OFF');
+				$savingsBox.find('.wcsc-savings-badge').text(badgeTxt);
+				$savingsBox.find('.wcsc-savings-amount').text('(Saved ' + this.formatPrice(discountAmount) + ')');
+				$savingsBox.show();
 			} else {
-				$tierBadge.hide();
+				$savingsBox.hide();
 			}
 
-			var $strike = this.$container.find('.wcsc-subtotal-strike');
-			if (discountAmount > 0) {
-				$strike.text('$' + subtotal.toFixed(2)).show();
-			} else {
-				$strike.hide();
-			}
-
-			this.$container.find('.wcsc-calculated-price').text('$' + finalPrice.toFixed(2));
-
-			// Rule warning
-			var $warn = this.$container.find('.wcsc-rule-warning');
-			var $btn = this.$container.find('.wcsc-grid-cta-btn');
-
-			if (totalItems > 0 && totalItems < this.minItems) {
-				$warn.text('Please select at least ' + this.minItems + ' item(s).').show();
-				$btn.prop('disabled', true).css('opacity', '0.6');
-			} else if (this.maxItems > 0 && totalItems > this.maxItems) {
-				$warn.text('Maximum ' + this.maxItems + ' item(s) allowed.').show();
-				$btn.prop('disabled', true).css('opacity', '0.6');
-			} else {
-				$warn.hide();
-				$btn.prop('disabled', false).css('opacity', '1');
-			}
-
-			// Broadcast event for variation selector or other widgets
-			if (selectedProducts.length) {
-				$(document).trigger('wcsc_product_selected', [ selectedProducts[0] ]);
-			}
-
-			// Auto sync cart if items selected
-			if (totalItems > 0 && window.wcsc_params) {
-				this.syncCartAjax(false);
-			}
+			this.$wrapper.find('.wcsc-summary-total-val').text(this.formatPrice(finalTotal));
 		},
 
-		handleCtaClick: function () {
+		formatPrice: function (amount) {
+			if (isNaN(amount)) return '$0.00';
+			return '$' + amount.toFixed(2);
+		},
+
+		debouncedSync: function () {
 			var self = this;
-			var items = this.getSelectedItems();
+			clearTimeout(this.syncTimer);
+			this.syncTimer = setTimeout(function () {
+				self.syncCartWithCheckout();
+			}, 300);
+		},
+
+		syncCartWithCheckout: function () {
+			if (!window.wcsc_params || !window.wcsc_params.ajax_url) {
+				return;
+			}
+
+			var items = [];
+			this.$wrapper.find('.wcsc-bundle-card.is-selected').each(function () {
+				var $card = $(this);
+				var pid = parseInt($card.data('product-id'), 10);
+				var vid = parseInt($card.data('variation-id'), 10) || 0;
+				var qty = parseInt($card.find('.wcsc-bundle-qty-val').val(), 10) || parseInt($card.data('qty'), 10) || 1;
+
+				var attrs = {};
+				$card.find('.wcsc-bundle-var-btn.is-selected').each(function () {
+					attrs['attribute_' + $(this).data('attr')] = $(this).data('value');
+				});
+
+				if (pid) {
+					items.push({
+						product_id: pid,
+						variation_id: vid,
+						quantity: qty,
+						attributes: attrs
+					});
+				}
+			});
+
 			if (!items.length) {
-				alert('Please select at least one product.');
 				return;
-			}
-
-			var totalCount = 0;
-			items.forEach(function (it) { totalCount += it.quantity; });
-
-			if (totalCount < this.minItems) {
-				alert('Please select at least ' + this.minItems + ' item(s).');
-				return;
-			}
-
-			this.syncCartAjax(true);
-		},
-
-		syncCartAjax: function (doScroll) {
-			var self = this;
-			if (!window.wcsc_params) return;
-
-			var items = this.getSelectedItems();
-			var $btn = this.$container.find('.wcsc-grid-cta-btn');
-			var $spinner = $btn.find('.wcsc-cta-spinner');
-
-			if (doScroll) {
-				$btn.prop('disabled', true);
-				$spinner.show();
 			}
 
 			$.ajax({
@@ -1338,170 +1422,12 @@
 					action: 'wcsc_sync_bundle_cart',
 					nonce: window.wcsc_params.nonce,
 					items: JSON.stringify(items),
-					tiers: JSON.stringify(self.tiers)
+					tiers: JSON.stringify(this.tiers)
 				},
-				success: function (res) {
-					if (res.success) {
-						// Trigger WooCommerce native checkout update
-						$(document.body).trigger('update_checkout');
-
-						if (doScroll && self.scrollTarget && $(self.scrollTarget).length) {
-							$('html, body').animate({
-								scrollTop: $(self.scrollTarget).offset().top - 40
-							}, 600);
-						}
-					}
-				},
-				complete: function () {
-					if (doScroll) {
-						$btn.prop('disabled', false);
-						$spinner.hide();
-					}
+				success: function () {
+					$(document.body).trigger('update_checkout');
 				}
 			});
-		}
-	};
-
-	/**
-	 * =========================================================================
-	 * WCSC Modular Widget 2: Product Variation Selector
-	 * =========================================================================
-	 */
-	function WCSCVariationSelector($container) {
-		this.$container = $container;
-		this.productId = parseInt($container.data('product-id'), 10) || 0;
-		this.variations = [];
-
-		var raw = $container.data('product-variations');
-		if (raw) {
-			try {
-				this.variations = typeof raw === 'string' ? JSON.parse(raw) : raw;
-			} catch (e) {
-				this.variations = [];
-			}
-		}
-
-		this.init();
-	}
-
-	WCSCVariationSelector.prototype = {
-		init: function () {
-			var self = this;
-
-			// Swatch click
-			this.$container.on('click', '.wcsc-swatch-item', function (e) {
-				e.preventDefault();
-				var $btn = $(this);
-				var $row = $btn.closest('.wcsc-var-attr-row');
-				$row.find('.wcsc-swatch-item').removeClass('is-selected');
-				$btn.addClass('is-selected');
-				$row.find('.label-selected-val').text($btn.data('value'));
-				self.checkMatch();
-			});
-
-			// Dropdown change
-			this.$container.on('change', '.wcsc-var-dropdown-select', function () {
-				self.checkMatch();
-			});
-
-			// Listen for product selection from Grid
-			$(document).on('wcsc_product_selected', function (e, data) {
-				if (data && data.is_variable && data.product_id) {
-					self.handleBoundProduct(data.product_id);
-				}
-			});
-
-			// Auto select first option on load
-			this.$container.find('.wcsc-var-attr-row').each(function () {
-				var $row = $(this);
-				var $firstSwatch = $row.find('.wcsc-swatch-item').first();
-				if ($firstSwatch.length) {
-					$firstSwatch.addClass('is-selected');
-					$row.find('.label-selected-val').text($firstSwatch.data('value'));
-				}
-			});
-
-			this.checkMatch();
-		},
-
-		handleBoundProduct: function (newId) {
-			if (this.productId === newId) return;
-		},
-
-		checkMatch: function () {
-			var selectedAttrs = {};
-			var allSelected = true;
-			var self = this;
-
-			this.$container.find('.wcsc-var-attr-row').each(function () {
-				var $row = $(this);
-				var name = $row.data('attribute-name');
-				var val = '';
-
-				if ($row.find('.wcsc-swatch-item').length) {
-					var $sel = $row.find('.wcsc-swatch-item.is-selected');
-					if ($sel.length) val = $sel.data('value');
-				} else {
-					val = $row.find('.wcsc-var-dropdown-select').val();
-				}
-
-				if (!val) allSelected = false;
-				selectedAttrs[name] = val;
-			});
-
-			if (!allSelected || !this.variations.length) return;
-
-			var matched = null;
-			for (var i = 0; i < this.variations.length; i++) {
-				var v = this.variations[i];
-				var match = true;
-				for (var k in v.attributes) {
-					var cleanKey = k.replace('attribute_', '');
-					if (v.attributes[k] !== '' && selectedAttrs[cleanKey] !== v.attributes[k]) {
-						match = false;
-						break;
-					}
-				}
-				if (match) {
-					matched = v;
-					break;
-				}
-			}
-
-			if (matched) {
-				// Update Preview
-				if (matched.image && matched.image.thumb_src) {
-					self.$container.find('.wcsc-var-preview-img').attr('src', matched.image.thumb_src);
-				}
-				if (matched.price_html) {
-					self.$container.find('.wcsc-var-preview-price').html(matched.price_html);
-				}
-				if (matched.is_in_stock) {
-					self.$container.find('.wcsc-var-stock-status').html('<span style="color:#16a34a;font-size:12px;font-weight:600;">✓ In Stock</span>');
-				} else {
-					self.$container.find('.wcsc-var-stock-status').html('<span style="color:#dc2626;font-size:12px;font-weight:600;">✗ Out of Stock</span>');
-				}
-
-				// Sync with cart via AJAX
-				if (window.wcsc_params) {
-					$.ajax({
-						url: window.wcsc_params.ajax_url,
-						type: 'POST',
-						dataType: 'json',
-						data: {
-							action: 'wcsc_sync_cart',
-							nonce: window.wcsc_params.nonce,
-							product_id: self.productId,
-							variation_id: matched.variation_id,
-							quantity: 1,
-							attributes: selectedAttrs
-						},
-						success: function () {
-							$(document.body).trigger('update_checkout');
-						}
-					});
-				}
-			}
 		}
 	};
 
@@ -1509,7 +1435,7 @@
 	 * Elementor & Document Initialization Hook
 	 */
 	function initWidgets($scope) {
-		// All-in-one product checkout widgets
+		// All-in-One standard product checkout widgets
 		var $elements = $scope ? $scope.find('.wcsc-product-checkout-widget') : $('.wcsc-product-checkout-widget');
 		$elements.each(function () {
 			var $this = $(this);
@@ -1519,23 +1445,13 @@
 			}
 		});
 
-		// Modular Widget 1: Product Grid
-		var $grids = $scope ? $scope.find('.wcsc-product-grid-container') : $('.wcsc-product-grid-container');
-		$grids.each(function () {
+		// All-in-One Bundle Smart Checkout Widgets
+		var $bundleWidgets = $scope ? $scope.find('.wcsc-bundle-checkout-wrapper') : $('.wcsc-bundle-checkout-wrapper');
+		$bundleWidgets.each(function () {
 			var $this = $(this);
-			if (!$this.data('wcsc_grid_init')) {
-				$this.data('wcsc_grid_init', true);
-				new WCSCModularGrid($this);
-			}
-		});
-
-		// Modular Widget 2: Variation Selector
-		var $vars = $scope ? $scope.find('.wcsc-variation-selector-widget') : $('.wcsc-variation-selector-widget');
-		$vars.each(function () {
-			var $this = $(this);
-			if (!$this.data('wcsc_var_init')) {
-				$this.data('wcsc_var_init', true);
-				new WCSCVariationSelector($this);
+			if (!$this.data('wcsc_bundle_init')) {
+				$this.data('wcsc_bundle_init', true);
+				new WCSCBundleCheckout($this);
 			}
 		});
 	}
@@ -1554,19 +1470,7 @@
 				}
 			);
 			window.elementorFrontend.hooks.addAction(
-				'frontend/element_ready/wcsc_product_grid.default',
-				function ($scope) {
-					initWidgets($scope);
-				}
-			);
-			window.elementorFrontend.hooks.addAction(
-				'frontend/element_ready/wcsc_variation_selector.default',
-				function ($scope) {
-					initWidgets($scope);
-				}
-			);
-			window.elementorFrontend.hooks.addAction(
-				'frontend/element_ready/wcsc_embedded_checkout.default',
+				'frontend/element_ready/wcsc_bundle_checkout.default',
 				function ($scope) {
 					initWidgets($scope);
 				}

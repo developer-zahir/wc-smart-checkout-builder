@@ -1,9 +1,9 @@
 {
-  "version": "1.9.28",
+  "version": "1.9.29",
   "requires": "5.8",
   "tested": "6.7",
   "requires_php": "7.4",
   "download_url": "https://raw.githubusercontent.com/developer-zahir/wc-smart-checkout-builder/main/wc-smart-checkout-builder.zip",
   "details_url": "https://github.com/developer-zahir/wc-smart-checkout-builder",
-  "changelog": "## v1.9.28\n\n- Fix: Permanent resolution for landing pages 404 (Oops! That page can't be found)\n- Added automatic rewrite rules check & flush on CPT registration and version upgrade\n- Added dynamic 404 recovery handler for landing page URLs\n- Built with POSIX forward-slash standard ZIP package for Linux/cPanel compatibility"
+  "changelog": "## v1.9.29\n\n- NEW: Unified All-in-One 'Bundle Smart Checkout' Elementor Widget (wcsc_bundle_checkout)\n  - Multi-product bundle grid with selection states\n  - Inline variation buttons for variable products directly on product cards\n  - Tiered quantity discounts with real-time dynamic summary bar\n  - Integrated Order Bump section with 1-click toggle\n  - Complete native WooCommerce checkout form with AJAX order placement\n- Existing 'Product Variation & Checkout' and 'Thank You' widgets remain completely untouched and backward-compatible\n- Linux/cPanel POSIX ZIP standard package"
 }
