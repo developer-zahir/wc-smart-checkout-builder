@@ -115,6 +115,9 @@ class Checkout_Handler {
 		// Tiered dynamic fee discount calculation
 		add_action( 'woocommerce_cart_calculate_fees', array( __CLASS__, 'apply_tiered_bundle_discount' ), 20, 1 );
 
+		// Prevent WooCommerce from triggering page reload if cart is temporarily empty during checkout sync
+		add_filter( 'woocommerce_checkout_redirect_empty_cart', array( __CLASS__, 'prevent_checkout_empty_cart_redirect' ), 20, 1 );
+
 		// AJAX endpoints for modular product grid cart sync
 		add_action( 'wp_ajax_wcsc_sync_bundle_cart', array( __CLASS__, 'ajax_sync_bundle_cart' ) );
 		add_action( 'wp_ajax_nopriv_wcsc_sync_bundle_cart', array( __CLASS__, 'ajax_sync_bundle_cart' ) );
@@ -1861,6 +1864,22 @@ class Checkout_Handler {
 	/**
 	 * AJAX handler for modular product selector & grid selection sync.
 	 */
+	/**
+	 * Prevent WooCommerce from redirecting/reloading on empty cart when in Smart Checkout context.
+	 *
+	 * @param bool $redirect
+	 * @return bool
+	 */
+	public static function prevent_checkout_empty_cart_redirect( $redirect ) {
+		if ( self::is_widget_checkout_context() || ( function_exists( 'WC' ) && WC()->session && WC()->session->get( 'wcsc_order_placed' ) ) ) {
+			return false;
+		}
+		return $redirect;
+	}
+
+	/**
+	 * AJAX handler for modular product selector & grid selection sync.
+	 */
 	public static function ajax_sync_bundle_cart() {
 		check_ajax_referer( 'wcsc_checkout_nonce', 'nonce' );
 
@@ -1881,21 +1900,48 @@ class Checkout_Handler {
 			WC()->session->__unset( 'wcsc_bundle_tiers' );
 		}
 
+		if ( empty( $items ) || ! is_array( $items ) ) {
+			wp_send_json_error( array( 'message' => __( 'No items selected.', 'wc-smart-checkout-builder' ) ) );
+		}
+
 		$cart->empty_cart();
 
-		if ( is_array( $items ) ) {
-			foreach ( $items as $item ) {
-				$p_id   = isset( $item['product_id'] ) ? absint( $item['product_id'] ) : 0;
-				$v_id   = isset( $item['variation_id'] ) ? absint( $item['variation_id'] ) : 0;
-				$qty    = isset( $item['quantity'] ) ? max( 1, absint( $item['quantity'] ) ) : 1;
-				$attrs  = isset( $item['attributes'] ) && is_array( $item['attributes'] ) ? array_map( 'sanitize_text_field', $item['attributes'] ) : array();
+		foreach ( $items as $item ) {
+			$p_id  = isset( $item['product_id'] ) ? absint( $item['product_id'] ) : 0;
+			$v_id  = isset( $item['variation_id'] ) ? absint( $item['variation_id'] ) : 0;
+			$qty   = isset( $item['quantity'] ) ? max( 1, absint( $item['quantity'] ) ) : 1;
+			$attrs = isset( $item['attributes'] ) && is_array( $item['attributes'] ) ? array_map( 'sanitize_text_field', $item['attributes'] ) : array();
 
-				if ( ! $p_id ) continue;
+			if ( ! $p_id ) {
+				continue;
+			}
 
-				$product = wc_get_product( $v_id ? $v_id : $p_id );
-				if ( ! $product || ! $product->is_purchasable() ) continue;
+			$product = wc_get_product( $p_id );
+			if ( ! $product || ! $product->is_purchasable() ) {
+				continue;
+			}
 
-				$cart->add_to_cart( $p_id, $qty, $v_id, $attrs );
+			// CRITICAL FIX: If variable product and variation_id is 0 or missing,
+			// automatically resolve to the matching or first available variation.
+			if ( $product->is_type( 'variable' ) ) {
+				if ( ! $v_id ) {
+					if ( ! empty( $attrs ) ) {
+						$data_store = \WC_Data_Store::load( 'product' );
+						$v_id       = $data_store->find_matching_product_variation( $product, $attrs );
+					}
+					if ( ! $v_id ) {
+						$available_variations = $product->get_available_variations();
+						if ( ! empty( $available_variations ) ) {
+							$v_id  = $available_variations[0]['variation_id'];
+							$attrs = ! empty( $available_variations[0]['attributes'] ) ? $available_variations[0]['attributes'] : array();
+						}
+					}
+				}
+				if ( $v_id ) {
+					$cart->add_to_cart( $p_id, $qty, $v_id, $attrs );
+				}
+			} else {
+				$cart->add_to_cart( $p_id, $qty );
 			}
 		}
 

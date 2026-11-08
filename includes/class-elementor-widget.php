@@ -104,6 +104,21 @@ class Elementor_Widget extends Widget_Base {
 			)
 		);
 
+		$default_mode = ( 'wcsc_bundle_checkout' === $this->get_name() ) ? 'bundle' : 'single';
+
+		$this->add_control(
+			'checkout_mode',
+			array(
+				'label'   => esc_html__( 'Checkout Mode', 'wc-smart-checkout-builder' ),
+				'type'    => Controls_Manager::SELECT,
+				'default' => $default_mode,
+				'options' => array(
+					'single' => esc_html__( 'Single Product / Variation', 'wc-smart-checkout-builder' ),
+					'bundle' => esc_html__( 'Multi-Product Bundle & Tiered Discounts', 'wc-smart-checkout-builder' ),
+				),
+			)
+		);
+
 		$this->add_control(
 			'use_current_product',
 			array(
@@ -113,6 +128,9 @@ class Elementor_Widget extends Widget_Base {
 				'label_off'    => esc_html__( 'No', 'wc-smart-checkout-builder' ),
 				'return_value' => 'yes',
 				'default'      => 'yes',
+				'condition'    => array(
+					'checkout_mode' => 'single',
+				),
 			)
 		);
 
@@ -125,8 +143,249 @@ class Elementor_Widget extends Widget_Base {
 				'options'     => Product_Handler::get_product_options(),
 				'default'     => '',
 				'condition'   => array(
+					'checkout_mode'        => 'single',
 					'use_current_product!' => 'yes',
 				),
+			)
+		);
+
+		$this->add_control(
+			'bundle_products',
+			array(
+				'label'       => esc_html__( 'Select Bundle Products', 'wc-smart-checkout-builder' ),
+				'type'        => Controls_Manager::SELECT2,
+				'multiple'    => true,
+				'options'     => Product_Handler::get_product_options(),
+				'description' => esc_html__( 'Choose products (simple or variable) to include in this bundle grid.', 'wc-smart-checkout-builder' ),
+				'label_block' => true,
+				'condition'   => array(
+					'checkout_mode' => 'bundle',
+				),
+			)
+		);
+
+		$this->add_responsive_control(
+			'bundle_columns',
+			array(
+				'label'          => esc_html__( 'Grid Columns', 'wc-smart-checkout-builder' ),
+				'type'           => Controls_Manager::SELECT,
+				'default'        => '3',
+				'tablet_default' => '2',
+				'mobile_default' => '1',
+				'options'        => array(
+					'1' => '1 Column',
+					'2' => '2 Columns',
+					'3' => '3 Columns',
+					'4' => '4 Columns',
+				),
+				'selectors'      => array(
+					'{{WRAPPER}} .wcsc-bundle-grid' => 'grid-template-columns: repeat({{VALUE}}, minmax(0, 1fr));',
+				),
+				'condition'      => array(
+					'checkout_mode' => 'bundle',
+				),
+			)
+		);
+
+		$this->add_control(
+			'bundle_min_items',
+			array(
+				'label'       => esc_html__( 'Minimum Items Required', 'wc-smart-checkout-builder' ),
+				'type'        => Controls_Manager::NUMBER,
+				'default'     => 1,
+				'min'         => 1,
+				'condition'   => array(
+					'checkout_mode' => 'bundle',
+				),
+			)
+		);
+
+		$this->add_control(
+			'bundle_max_items',
+			array(
+				'label'       => esc_html__( 'Maximum Items Allowed (0 = Unlimited)', 'wc-smart-checkout-builder' ),
+				'type'        => Controls_Manager::NUMBER,
+				'default'     => 0,
+				'min'         => 0,
+				'condition'   => array(
+					'checkout_mode' => 'bundle',
+				),
+			)
+		);
+
+		$this->add_control(
+			'bundle_badge_text',
+			array(
+				'label'       => esc_html__( 'Selected Badge Text', 'wc-smart-checkout-builder' ),
+				'type'        => Controls_Manager::TEXT,
+				'default'     => esc_html__( 'SELECTED', 'wc-smart-checkout-builder' ),
+				'condition'   => array(
+					'checkout_mode' => 'bundle',
+				),
+			)
+		);
+
+		$this->add_control(
+			'bundle_select_btn_text',
+			array(
+				'label'       => esc_html__( 'Select Button Text', 'wc-smart-checkout-builder' ),
+				'type'        => Controls_Manager::TEXT,
+				'default'     => esc_html__( 'Select', 'wc-smart-checkout-builder' ),
+				'condition'   => array(
+					'checkout_mode' => 'bundle',
+				),
+			)
+		);
+
+		$this->add_control(
+			'bundle_selected_btn_text',
+			array(
+				'label'       => esc_html__( 'Selected Button Text', 'wc-smart-checkout-builder' ),
+				'type'        => Controls_Manager::TEXT,
+				'default'     => esc_html__( 'Selected', 'wc-smart-checkout-builder' ),
+				'condition'   => array(
+					'checkout_mode' => 'bundle',
+				),
+			)
+		);
+
+		$this->end_controls_section();
+
+		// --- Section: Tiered Discounts (Bundle Mode) ---
+		$this->start_controls_section(
+			'section_bundle_discounts',
+			array(
+				'label'     => esc_html__( 'Tiered Quantity Discounts', 'wc-smart-checkout-builder' ),
+				'tab'       => Controls_Manager::TAB_CONTENT,
+				'condition' => array(
+					'checkout_mode' => 'bundle',
+				),
+			)
+		);
+
+		$this->add_control(
+			'enable_tiered_discount',
+			array(
+				'label'        => esc_html__( 'Enable Tiered Discounts', 'wc-smart-checkout-builder' ),
+				'type'         => Controls_Manager::SWITCHER,
+				'default'      => 'yes',
+				'return_value' => 'yes',
+			)
+		);
+
+		$bundle_repeater = new Repeater();
+
+		$bundle_repeater->add_control(
+			'min_qty',
+			array(
+				'label'   => esc_html__( 'Minimum Items (Qty)', 'wc-smart-checkout-builder' ),
+				'type'    => Controls_Manager::NUMBER,
+				'default' => 2,
+				'min'     => 1,
+			)
+		);
+
+		$bundle_repeater->add_control(
+			'discount_type',
+			array(
+				'label'   => esc_html__( 'Discount Type', 'wc-smart-checkout-builder' ),
+				'type'    => Controls_Manager::SELECT,
+				'default' => 'percentage',
+				'options' => array(
+					'percentage' => esc_html__( 'Percentage (%)', 'wc-smart-checkout-builder' ),
+					'fixed'      => esc_html__( 'Fixed Amount', 'wc-smart-checkout-builder' ),
+				),
+			)
+		);
+
+		$bundle_repeater->add_control(
+			'discount_amount',
+			array(
+				'label'   => esc_html__( 'Discount Value', 'wc-smart-checkout-builder' ),
+				'type'    => Controls_Manager::NUMBER,
+				'default' => 10,
+				'min'     => 0,
+			)
+		);
+
+		$bundle_repeater->add_control(
+			'tier_badge',
+			array(
+				'label'   => esc_html__( 'Tier Badge (Optional)', 'wc-smart-checkout-builder' ),
+				'type'    => Controls_Manager::TEXT,
+				'default' => esc_html__( '10% OFF', 'wc-smart-checkout-builder' ),
+			)
+		);
+
+		$this->add_control(
+			'discount_tiers',
+			array(
+				'label'       => esc_html__( 'Discount Rules', 'wc-smart-checkout-builder' ),
+				'type'        => Controls_Manager::REPEATER,
+				'fields'      => $bundle_repeater->get_controls(),
+				'default'     => array(
+					array(
+						'min_qty'         => 1,
+						'discount_type'   => 'percentage',
+						'discount_amount' => 0,
+						'tier_badge'      => '',
+					),
+					array(
+						'min_qty'         => 2,
+						'discount_type'   => 'percentage',
+						'discount_amount' => 10,
+						'tier_badge'      => '10% OFF',
+					),
+					array(
+						'min_qty'         => 3,
+						'discount_type'   => 'percentage',
+						'discount_amount' => 15,
+						'tier_badge'      => '15% OFF - POPULAR',
+					),
+					array(
+						'min_qty'         => 5,
+						'discount_type'   => 'percentage',
+						'discount_amount' => 20,
+						'tier_badge'      => '20% OFF - BEST VALUE',
+					),
+				),
+				'title_field' => '{{{ min_qty }}} Items = {{{ discount_amount }}}{{{ discount_type == "percentage" ? "%" : "$" }}} Discount',
+				'condition'   => array(
+					'enable_tiered_discount' => 'yes',
+				),
+			)
+		);
+
+		$this->end_controls_section();
+
+		// --- Section: Summary Bar (Bundle Mode) ---
+		$this->start_controls_section(
+			'section_bundle_summary',
+			array(
+				'label'     => esc_html__( 'Summary Bar & CTA', 'wc-smart-checkout-builder' ),
+				'tab'       => Controls_Manager::TAB_CONTENT,
+				'condition' => array(
+					'checkout_mode' => 'bundle',
+				),
+			)
+		);
+
+		$this->add_control(
+			'show_summary_bar',
+			array(
+				'label'        => esc_html__( 'Show Dynamic Summary Bar', 'wc-smart-checkout-builder' ),
+				'type'         => Controls_Manager::SWITCHER,
+				'default'      => 'yes',
+				'return_value' => 'yes',
+			)
+		);
+
+		$this->add_control(
+			'bundle_cta_button_text',
+			array(
+				'label'       => esc_html__( 'CTA Button Text', 'wc-smart-checkout-builder' ),
+				'type'        => Controls_Manager::TEXT,
+				'default'     => esc_html__( 'Proceed to Checkout', 'wc-smart-checkout-builder' ),
 			)
 		);
 
@@ -4737,6 +4996,12 @@ class Elementor_Widget extends Widget_Base {
 	 */
 	protected function render() {
 		$settings = $this->get_settings_for_display();
+		$checkout_mode = ! empty( $settings['checkout_mode'] ) ? $settings['checkout_mode'] : 'single';
+
+		if ( 'bundle' === $checkout_mode ) {
+			$this->render_bundle_mode( $settings );
+			return;
+		}
 
 		$product  = Product_Handler::get_product_from_settings( $settings );
 
@@ -4964,6 +5229,183 @@ class Elementor_Widget extends Widget_Base {
 
 			<div class="wcsc-checkout-section">
 				<?php Checkout_Handler::render_checkout_section( $product, $settings ); ?>
+			</div>
+
+		</div>
+		<?php
+	}
+
+	/**
+	 * Render Multi-Product Bundle Mode Grid, Tiered Discounts & Checkout.
+	 *
+	 * @param array $settings
+	 */
+	protected function render_bundle_mode( $settings ) {
+		$product_ids = ! empty( $settings['bundle_products'] ) ? (array) $settings['bundle_products'] : array();
+		$product_ids = array_filter( array_map( 'absint', $product_ids ) );
+
+		if ( empty( $product_ids ) ) {
+			if ( \Elementor\Plugin::$instance->editor->is_edit_mode() ) {
+				?>
+				<div class="wcsc-notice-warning" style="padding: 20px; background: #fff3cd; border: 1px solid #ffeeba; border-radius: 8px; color: #856404; text-align: center;">
+					<h3 style="margin: 0 0 8px 0;"><?php esc_html_e( 'Bundle Mode: No Products Selected', 'wc-smart-checkout-builder' ); ?></h3>
+					<p style="margin: 0;"><?php esc_html_e( 'Please select products from the "Product Selection" panel in Elementor to display the bundle grid.', 'wc-smart-checkout-builder' ); ?></p>
+				</div>
+				<?php
+			}
+			return;
+		}
+
+		$min_items = ! empty( $settings['bundle_min_items'] ) ? max( 1, absint( $settings['bundle_min_items'] ) ) : 1;
+		$max_items = ! empty( $settings['bundle_max_items'] ) ? absint( $settings['bundle_max_items'] ) : 0;
+		$tiers     = ! empty( $settings['discount_tiers'] ) ? (array) $settings['discount_tiers'] : array();
+		$badge_txt = ! empty( $settings['bundle_badge_text'] ) ? $settings['bundle_badge_text'] : __( 'SELECTED', 'wc-smart-checkout-builder' );
+		$sel_txt   = ! empty( $settings['bundle_select_btn_text'] ) ? $settings['bundle_select_btn_text'] : __( 'Select', 'wc-smart-checkout-builder' );
+		$seled_txt = ! empty( $settings['bundle_selected_btn_text'] ) ? $settings['bundle_selected_btn_text'] : __( 'Selected', 'wc-smart-checkout-builder' );
+		$cta_text  = ! empty( $settings['bundle_cta_button_text'] ) ? $settings['bundle_cta_button_text'] : __( 'Proceed to Checkout', 'wc-smart-checkout-builder' );
+
+		$tiers_data = array();
+		if ( 'yes' === ( $settings['enable_tiered_discount'] ?? 'yes' ) && is_array( $tiers ) ) {
+			foreach ( $tiers as $tier ) {
+				$tiers_data[] = array(
+					'min_qty'         => absint( $tier['min_qty'] ?? 1 ),
+					'discount_type'   => sanitize_key( $tier['discount_type'] ?? 'percentage' ),
+					'discount_amount' => floatval( $tier['discount_amount'] ?? 0 ),
+					'tier_badge'      => sanitize_text_field( $tier['tier_badge'] ?? '' ),
+				);
+			}
+		}
+		?>
+		<div class="wcsc-product-checkout-widget wcas-checkout-wrapper wcsc-bundle-checkout-wrapper"
+			id="wcsc-product-checkout-<?php echo esc_attr( $this->get_id() ); ?>"
+			data-widget-id="<?php echo esc_attr( $this->get_id() ); ?>"
+			data-min-items="<?php echo esc_attr( $min_items ); ?>"
+			data-max-items="<?php echo esc_attr( $max_items ); ?>"
+			data-tiers="<?php echo esc_attr( wp_json_encode( $tiers_data ) ); ?>"
+			<?php echo Checkout_Handler::render_data_attrs( $settings ); ?>>
+
+			<div class="wcsc-bundle-grid">
+				<?php
+				$first_item = true;
+				foreach ( $product_ids as $pid ) :
+					$prod = wc_get_product( $pid );
+					if ( ! $prod || ! $prod->is_purchasable() ) {
+						continue;
+					}
+
+					$is_var        = $prod->is_type( 'variable' );
+					$img_id        = $prod->get_image_id();
+					$img_url       = $img_id ? wp_get_attachment_image_url( $img_id, 'woocommerce_thumbnail' ) : wc_placeholder_img_src();
+					$price_val     = (float) $prod->get_price();
+					$var_json_data = $is_var ? Variation_Handler::get_available_variations_json( $prod ) : array();
+					$attr_data     = $is_var ? Variation_Handler::get_product_attributes_data( $prod, $settings ) : array();
+
+					// If variable, default initial variation id & price from first variation
+					$init_var_id = 0;
+					if ( $is_var && ! empty( $var_json_data ) ) {
+						$init_var_id = absint( $var_json_data[0]['variation_id'] ?? 0 );
+						if ( ! empty( $var_json_data[0]['display_price'] ) ) {
+							$price_val = (float) $var_json_data[0]['display_price'];
+						}
+					}
+
+					$card_active = $first_item ? ' is-selected' : '';
+					$first_item  = false;
+				?>
+					<div class="wcsc-bundle-card<?php echo esc_attr( $card_active ); ?>"
+						data-product-id="<?php echo esc_attr( $pid ); ?>"
+						data-is-variable="<?php echo $is_var ? 'yes' : 'no'; ?>"
+						data-base-price="<?php echo esc_attr( $price_val ); ?>"
+						data-current-price="<?php echo esc_attr( $price_val ); ?>"
+						data-variation-id="<?php echo esc_attr( $init_var_id ); ?>"
+						data-qty="1">
+
+						<div class="wcsc-bundle-badge"><?php echo esc_html( $badge_txt ); ?></div>
+
+						<div class="wcsc-bundle-card-image">
+							<img src="<?php echo esc_url( $img_url ); ?>" alt="<?php echo esc_attr( $prod->get_name() ); ?>" class="wcsc-card-img" />
+						</div>
+
+						<div class="wcsc-bundle-card-body">
+							<h4 class="wcsc-bundle-card-title"><?php echo esc_html( $prod->get_name() ); ?></h4>
+
+							<div class="wcsc-bundle-card-price">
+								<?php echo $prod->get_price_html(); ?>
+							</div>
+
+							<?php if ( $is_var && ! empty( $attr_data ) ) : ?>
+								<div class="wcsc-bundle-variations-wrapper">
+									<?php foreach ( $attr_data as $attr_name => $attr_info ) : ?>
+										<div class="wcsc-bundle-attr-row" data-attribute="<?php echo esc_attr( sanitize_title( $attr_name ) ); ?>">
+											<span class="wcsc-bundle-attr-label"><?php echo esc_html( $attr_info['label'] ); ?>:</span>
+											<div class="wcsc-bundle-var-buttons">
+												<?php
+												$first_opt = true;
+												foreach ( $attr_info['options'] as $opt ) :
+													$opt_active = $first_opt ? ' is-selected' : '';
+													$first_opt  = false;
+												?>
+													<button type="button"
+														class="wcsc-bundle-var-btn<?php echo esc_attr( $opt_active ); ?>"
+														data-attr="<?php echo esc_attr( sanitize_title( $attr_name ) ); ?>"
+														data-value="<?php echo esc_attr( $opt['value'] ); ?>">
+														<?php echo esc_html( $opt['label'] ); ?>
+													</button>
+												<?php endforeach; ?>
+											</div>
+										</div>
+									<?php endforeach; ?>
+
+									<script type="application/json" class="wcsc-product-variations-json">
+										<?php echo wp_json_encode( $var_json_data ); ?>
+									</script>
+								</div>
+							<?php endif; ?>
+
+							<div class="wcsc-bundle-card-actions">
+								<div class="wcsc-bundle-qty">
+									<button type="button" class="wcsc-bundle-qty-btn minus" aria-label="<?php esc_attr_e( 'Decrease quantity', 'wc-smart-checkout-builder' ); ?>">&minus;</button>
+									<input type="number" class="wcsc-bundle-qty-val" value="1" min="1" max="999" />
+									<button type="button" class="wcsc-bundle-qty-btn plus" aria-label="<?php esc_attr_e( 'Increase quantity', 'wc-smart-checkout-builder' ); ?>">&plus;</button>
+								</div>
+
+								<button type="button" class="wcsc-bundle-select-btn">
+									<span class="btn-text-select"><?php echo esc_html( $sel_txt ); ?></span>
+									<span class="btn-text-selected"><?php echo esc_html( $seled_txt ); ?></span>
+								</button>
+							</div>
+
+						</div>
+					</div>
+				<?php endforeach; ?>
+			</div>
+
+			<?php if ( 'yes' === ( $settings['show_summary_bar'] ?? 'yes' ) ) : ?>
+				<div class="wcsc-bundle-summary-bar">
+					<div class="wcsc-summary-info">
+						<div class="wcsc-summary-count-line">
+							<strong class="wcsc-summary-count">1</strong> <?php esc_html_e( 'item(s) selected', 'wc-smart-checkout-builder' ); ?>
+						</div>
+						<div class="wcsc-summary-savings" style="display: none;">
+							<span class="wcsc-savings-badge"></span>
+							<span class="wcsc-savings-amount"></span>
+						</div>
+					</div>
+					<div class="wcsc-summary-actions">
+						<div class="wcsc-summary-total-box">
+							<span class="wcsc-total-label"><?php esc_html_e( 'Total:', 'wc-smart-checkout-builder' ); ?></span>
+							<span class="wcsc-summary-total-val">—</span>
+						</div>
+						<a href="#wcsc-bundle-checkout-section" class="wcsc-summary-cta-btn">
+							<span class="wcsc-cta-text"><?php echo esc_html( $cta_text ); ?></span>
+							<span class="wcsc-cta-arrow">&darr;</span>
+						</a>
+					</div>
+				</div>
+			<?php endif; ?>
+
+			<div id="wcsc-bundle-checkout-section" class="wcsc-checkout-section">
+				<?php Checkout_Handler::render_checkout_section( null, $settings ); ?>
 			</div>
 
 		</div>

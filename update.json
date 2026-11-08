@@ -1,9 +1,9 @@
 {
-  "version": "1.9.29",
+  "version": "1.9.30",
   "requires": "5.8",
   "tested": "6.7",
   "requires_php": "7.4",
   "download_url": "https://raw.githubusercontent.com/developer-zahir/wc-smart-checkout-builder/main/wc-smart-checkout-builder.zip",
   "details_url": "https://github.com/developer-zahir/wc-smart-checkout-builder",
-  "changelog": "## v1.9.29\n\n- NEW: Unified All-in-One 'Bundle Smart Checkout' Elementor Widget (wcsc_bundle_checkout)\n  - Multi-product bundle grid with selection states\n  - Inline variation buttons for variable products directly on product cards\n  - Tiered quantity discounts with real-time dynamic summary bar\n  - Integrated Order Bump section with 1-click toggle\n  - Complete native WooCommerce checkout form with AJAX order placement\n- Existing 'Product Variation & Checkout' and 'Thank You' widgets remain completely untouched and backward-compatible\n- Linux/cPanel POSIX ZIP standard package"
+  "changelog": "## v1.9.30\n\n- Fix: Resolved infinite auto-reload loop when adding variable products to bundle checkout\n- Enhanced: Variable products now automatically resolve and match valid variations on selection to prevent empty cart rejects\n- Added: woocommerce_checkout_redirect_empty_cart filter and AJAX reload suppressor\n- Full Control Parity: Integrated multi-product bundle mode directly into the core widget so all 5,000+ lines of checkout layouts, order bump, typography, borders, and animations are 100% available in both Single and Bundle modes"
 }

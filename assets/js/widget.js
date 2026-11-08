@@ -1231,13 +1231,21 @@
 
 			// Run initial calculation and cart synchronization
 			this.updateCalculations();
-			this.syncCartWithCheckout();
+			if (!window.wcsc_params || !window.wcsc_params.is_elementor_edit) {
+				this.syncCartWithCheckout();
+			}
 		},
 
 		resolveCardInitialVariation: function ($card) {
 			if ($card.data('is-variable') !== 'yes') {
 				return;
 			}
+			// If no variation buttons are selected in an attribute row, select the first button
+			$card.find('.wcsc-bundle-attr-row').each(function () {
+				if (!$(this).find('.wcsc-bundle-var-btn.is-selected').length) {
+					$(this).find('.wcsc-bundle-var-btn:first').addClass('is-selected');
+				}
+			});
 			this.matchCardVariation($card);
 		},
 
@@ -1387,13 +1395,22 @@
 			if (!window.wcsc_params || !window.wcsc_params.ajax_url) {
 				return;
 			}
+			if (window.wcsc_params.is_elementor_edit) {
+				return;
+			}
 
+			var self = this;
 			var items = [];
 			this.$wrapper.find('.wcsc-bundle-card.is-selected').each(function () {
 				var $card = $(this);
 				var pid = parseInt($card.data('product-id'), 10);
 				var vid = parseInt($card.data('variation-id'), 10) || 0;
 				var qty = parseInt($card.find('.wcsc-bundle-qty-val').val(), 10) || parseInt($card.data('qty'), 10) || 1;
+
+				if ($card.data('is-variable') === 'yes' && !vid) {
+					self.resolveCardInitialVariation($card);
+					vid = parseInt($card.data('variation-id'), 10) || 0;
+				}
 
 				var attrs = {};
 				$card.find('.wcsc-bundle-var-btn.is-selected').each(function () {
@@ -1424,8 +1441,10 @@
 					items: JSON.stringify(items),
 					tiers: JSON.stringify(this.tiers)
 				},
-				success: function () {
-					$(document.body).trigger('update_checkout');
+				success: function (res) {
+					if (res && res.success) {
+						$(document.body).trigger('update_checkout');
+					}
 				}
 			});
 		}
@@ -1476,6 +1495,16 @@
 				}
 			);
 		}
+	});
+
+	// Suppress WooCommerce checkout auto-reload on transient empty cart
+	$(document).ajaxComplete(function (event, xhr, settings) {
+		if (!$('.wcas-checkout-wrapper').length) return;
+		try {
+			if (xhr && xhr.responseJSON && (xhr.responseJSON.reload === true || xhr.responseJSON.reload === 'true')) {
+				xhr.responseJSON.reload = false;
+			}
+		} catch (e) {}
 	});
 
 })(jQuery);
