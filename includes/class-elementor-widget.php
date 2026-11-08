@@ -485,11 +485,10 @@ class Elementor_Widget extends Widget_Base {
 			array(
 				'label'     => esc_html__( 'Summary Bar Layout', 'wc-smart-checkout-builder' ),
 				'type'      => Controls_Manager::SELECT,
-				'default'   => 'horizontal',
+				'default'   => 'modern_bar',
 				'options'   => array(
-					'horizontal' => esc_html__( '1. Modern Horizontal Inline Bar', 'wc-smart-checkout-builder' ),
-					'stacked'    => esc_html__( '2. Split 2-Tier Card (Timer Top, Total Bottom)', 'wc-smart-checkout-builder' ),
-					'floating'   => esc_html__( '3. Sticky Floating Bottom Bar', 'wc-smart-checkout-builder' ),
+					'modern_bar'   => esc_html__( 'Layout 1: Modern Horizontal Bar (Default)', 'wc-smart-checkout-builder' ),
+					'compact_card' => esc_html__( 'Layout 2: Structured Order Summary Card', 'wc-smart-checkout-builder' ),
 				),
 				'condition' => array(
 					'show_summary_bar' => 'yes',
@@ -1032,7 +1031,7 @@ class Elementor_Widget extends Widget_Base {
 			array(
 				'label'        => esc_html__( 'Show Checkout Header', 'wc-smart-checkout-builder' ),
 				'type'         => Controls_Manager::SWITCHER,
-				'default'      => 'yes',
+				'default'      => 'no',
 				'return_value' => 'yes',
 			)
 		);
@@ -1553,7 +1552,7 @@ class Elementor_Widget extends Widget_Base {
 			array(
 				'label'     => esc_html__( 'Background Color', 'wc-smart-checkout-builder' ),
 				'type'      => Controls_Manager::COLOR,
-				'default'   => '#ffffff',
+				'default'   => 'transparent',
 				'selectors' => array(
 					'{{WRAPPER}} .wcsc-checkout-section' => 'background-color: {{VALUE}};',
 				),
@@ -6614,7 +6613,7 @@ class Elementor_Widget extends Widget_Base {
 	 * @param array $settings
 	 */
 	protected function render_checkout_header( $settings ) {
-		if ( 'yes' !== ( $settings['show_checkout_header'] ?? 'yes' ) ) {
+		if ( 'yes' !== ( $settings['show_checkout_header'] ?? 'no' ) ) {
 			return;
 		}
 
@@ -7060,7 +7059,7 @@ class Elementor_Widget extends Widget_Base {
 			</div>
 
 			<?php if ( 'yes' === ( $settings['show_summary_bar'] ?? 'yes' ) ) :
-				$summary_layout = ! empty( $settings['bundle_summary_layout'] ) ? sanitize_key( $settings['bundle_summary_layout'] ) : 'horizontal';
+				$summary_layout = ! empty( $settings['bundle_summary_layout'] ) ? sanitize_key( $settings['bundle_summary_layout'] ) : 'modern_bar';
 			?>
 				<div class="wcsc-bundle-summary-bar wcsc-summary-layout-<?php echo esc_attr( $summary_layout ); ?>">
 					<?php if ( 'yes' === ( $settings['enable_summary_timer'] ?? 'no' ) ) :

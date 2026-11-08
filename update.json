@@ -1,9 +1,9 @@
 {
-  "version": "1.9.36",
+  "version": "1.9.37",
   "requires": "5.8",
   "tested": "6.7",
   "requires_php": "7.4",
   "download_url": "https://raw.githubusercontent.com/developer-zahir/wc-smart-checkout-builder/main/wc-smart-checkout-builder.zip",
   "details_url": "https://github.com/developer-zahir/wc-smart-checkout-builder",
-  "changelog": "## v1.9.36\n\n- Default Ribbon Badge: Bundle selected badge now defaults to the sleek top-right corner rotated ribbon\n- Compact/Table Mode Refinements: Fixed price alignment and removed the top border on quantity and select buttons\n- Equal Card Border Controls: Normal and selected states now share equal border width (default 2px) with subtle opacity for normal and active color for selected, eliminating card jumping/shifting\n- Complete Box-Shadow Removal: Stripped all box-shadows across bundle cards, hover states, badges, and summary bars for a clean flat aesthetic\n- Checkout Field Display Modes: Added control to toggle between Both Labels & Placeholders, Placeholders Only (hide labels), and Labels Only (hide placeholders)\n- Bengali Default Headings: Defaulted billing heading to 'কাস্টমার তথ্য' and order review heading to 'আপনার অর্ডার'\n- 3 Professional Summary Bar Layouts: Added layout picker for Modern Horizontal Inline Bar, Stacked 2-Tier Card, and Sticky Floating Bottom Bar"
+  "changelog": "## v1.9.37\n\n- Checkout Header Default Off: Checkout header is now disabled by default ('no') to preserve existing landing pages without unwanted headings\n- Transparent Checkout Container: Checkout section background defaults to 100% transparent with zero default padding/borders to integrate seamlessly with existing page designs\n- Professional Summary Bar Redesign: Removed sticky/floating layout completely and engineered 2 clean, high-converting ecommerce designs (Modern Horizontal Bar & Structured Order Summary Card) with zero box-shadow\n- Sleek Urgency Pill: Redesigned urgency countdown timer into a crisp, high-end badge pill"
 }
