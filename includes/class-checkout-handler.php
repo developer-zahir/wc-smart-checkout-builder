@@ -676,7 +676,7 @@ class Checkout_Handler {
 	public static function get_billing_label() {
 		return ! empty( self::$active_widget_settings['billing_heading_text'] )
 			? sanitize_text_field( self::$active_widget_settings['billing_heading_text'] )
-			: esc_html__( 'Customer information', 'wc-smart-checkout-builder' );
+			: esc_html__( 'কাস্টমার তথ্য', 'wc-smart-checkout-builder' );
 	}
 
 	/**
@@ -1064,7 +1064,7 @@ class Checkout_Handler {
 	private static function render_order_review_block( $is_visible = true ) {
 		$heading = ! empty( self::$active_widget_settings['order_review_heading_text'] )
 			? sanitize_text_field( self::$active_widget_settings['order_review_heading_text'] )
-			: esc_html__( 'Your order', 'wc-smart-checkout-builder' );
+			: esc_html__( 'আপনার অর্ডার', 'wc-smart-checkout-builder' );
 
 		$class = $is_visible ? 'wcas-block wcas-block-order-review' : 'wcas-block wcas-block-order-review wcas-layout-hidden';
 		$style = $is_visible ? '' : ' style="display: none !important;"';

@@ -2667,23 +2667,36 @@ body.elementor-editor-active .wcsc-floating-btn-wrap,
 	flex-direction: row;
 	align-items: center;
 	justify-content: space-between;
-	flex-wrap: wrap;
-	gap: 12px;
+	flex-wrap: nowrap;
+	gap: 16px;
 }
 .wcas-checkout-wrapper .wcsc-bundle-container.wcsc-bundle-layout-table .wcsc-bundle-card-title {
 	font-size: 15px;
 	margin-bottom: 0;
-}
-.wcas-checkout-wrapper .wcsc-bundle-container.wcsc-bundle-layout-table .wcsc-bundle-card-price {
-	margin-bottom: 0;
-	font-size: 14px;
-	white-space: nowrap;
+	flex: 1;
+	min-width: 120px;
 }
 .wcas-checkout-wrapper .wcsc-bundle-container.wcsc-bundle-layout-table .wcsc-bundle-variations-wrapper {
 	margin-bottom: 0;
+	flex-shrink: 0;
+}
+.wcas-checkout-wrapper .wcsc-bundle-container.wcsc-bundle-layout-table .wcsc-bundle-card-price {
+	margin-bottom: 0;
+	font-size: 15px;
+	font-weight: 700;
+	white-space: nowrap;
+	min-width: 80px;
+	text-align: right;
+	display: inline-flex;
+	align-items: center;
+	justify-content: flex-end;
+	gap: 4px;
+	flex-shrink: 0;
 }
 .wcas-checkout-wrapper .wcsc-bundle-container.wcsc-bundle-layout-table .wcsc-bundle-card-actions {
-	margin-top: 0;
+	margin-top: 0 !important;
+	padding-top: 0 !important;
+	border-top: none !important;
 	gap: 10px;
 	align-items: center;
 	flex-shrink: 0;
@@ -2704,27 +2717,27 @@ body.elementor-editor-active .wcsc-floating-btn-wrap,
 .wcas-checkout-wrapper .wcsc-bundle-card {
 	position: relative;
 	background: #ffffff;
-	border: 1.5px solid #e2e8f0;
+	border: 2px solid rgba(34, 113, 177, 0.18);
 	border-radius: 12px;
 	padding: 16px;
 	display: flex;
 	flex-direction: column;
 	justify-content: space-between;
 	cursor: pointer;
-	transition: all 0.25s ease-in-out;
-	box-shadow: 0 1px 3px rgba(0, 0, 0, 0.05);
+	transition: border-color 0.2s ease, background-color 0.2s ease;
+	box-shadow: none !important;
 }
 
 .wcas-checkout-wrapper .wcsc-bundle-card:hover {
-	border-color: #cbd5e1;
-	box-shadow: 0 4px 12px rgba(0, 0, 0, 0.08);
+	border-color: rgba(34, 113, 177, 0.38);
+	box-shadow: none !important;
 }
 
 .wcas-checkout-wrapper .wcsc-bundle-card.is-selected {
 	border-color: #2271b1 !important;
-	border-width: 2px;
+	border-width: 2px !important;
 	background-color: #f8fbff;
-	box-shadow: 0 4px 14px rgba(34, 113, 177, 0.15);
+	box-shadow: none !important;
 }
 
 /* Corner Selected Badge (Pill & Rotated Ribbon) */
@@ -2979,17 +2992,83 @@ body.elementor-editor-active .wcsc-floating-btn-wrap,
 /* ==========================================================================
    Summary Bar Styles
    ========================================================================== */
+/* Base Summary Bar - Zero Box Shadow */
 .wcas-checkout-wrapper .wcsc-bundle-summary-bar {
+	background: #f8fafc;
+	border: 1.5px solid #e2e8f0;
+	border-radius: 12px;
+	padding: 16px 24px;
+	margin: 24px 0 32px 0;
+	box-shadow: none !important;
+}
+
+/* Layout 1: Modern Horizontal Inline Bar (Default) */
+.wcas-checkout-wrapper .wcsc-bundle-summary-bar.wcsc-summary-layout-horizontal,
+.wcas-checkout-wrapper .wcsc-bundle-summary-bar:not(.wcsc-summary-layout-stacked):not(.wcsc-summary-layout-floating) {
 	display: flex;
 	align-items: center;
 	justify-content: space-between;
 	flex-wrap: wrap;
 	gap: 16px;
-	background: #f0f7ff;
-	border: 1.5px solid #bfdbfe;
-	border-radius: 12px;
-	padding: 16px 24px;
-	margin: 24px 0 32px 0;
+}
+
+/* Layout 2: Stacked 2-Tier Card */
+.wcas-checkout-wrapper .wcsc-bundle-summary-bar.wcsc-summary-layout-stacked {
+	display: flex;
+	flex-direction: column;
+	gap: 16px;
+	background: #ffffff;
+	border: 2px solid #e2e8f0;
+	border-radius: 14px;
+	padding: 20px 24px;
+}
+.wcas-checkout-wrapper .wcsc-bundle-summary-bar.wcsc-summary-layout-stacked .wcsc-bundle-timer-box {
+	margin-bottom: 0;
+	background: #f8fafc;
+	border: 1px solid #e2e8f0;
+	border-radius: 8px;
+	padding: 8px 14px;
+}
+.wcas-checkout-wrapper .wcsc-bundle-summary-bar.wcsc-summary-layout-stacked .wcsc-summary-info {
+	display: flex;
+	flex-direction: row;
+	justify-content: space-between;
+	align-items: center;
+	border-bottom: 1px dashed #e2e8f0;
+	padding-bottom: 14px;
+}
+.wcas-checkout-wrapper .wcsc-bundle-summary-bar.wcsc-summary-layout-stacked .wcsc-summary-actions {
+	display: flex;
+	align-items: center;
+	justify-content: space-between;
+	width: 100%;
+	gap: 16px;
+}
+.wcas-checkout-wrapper .wcsc-bundle-summary-bar.wcsc-summary-layout-stacked .wcsc-summary-cta-btn {
+	flex: 1;
+	max-width: 280px;
+	justify-content: center;
+}
+
+/* Layout 3: Sticky Floating Bottom Bar */
+.wcas-checkout-wrapper .wcsc-bundle-summary-bar.wcsc-summary-layout-floating {
+	position: fixed !important;
+	bottom: 0 !important;
+	left: 0 !important;
+	right: 0 !important;
+	width: 100% !important;
+	z-index: 99999 !important;
+	margin: 0 !important;
+	border-radius: 0 !important;
+	border: none !important;
+	border-top: 3px solid #2271b1 !important;
+	background: #ffffff !important;
+	box-shadow: none !important;
+	padding: 12px 24px !important;
+	display: flex !important;
+	align-items: center !important;
+	justify-content: space-around !important;
+	gap: 16px !important;
 }
 
 .wcas-checkout-wrapper .wcsc-summary-info {
@@ -3061,7 +3140,7 @@ body.elementor-editor-active .wcsc-floating-btn-wrap,
 	font-weight: 700;
 	border-radius: 8px;
 	text-decoration: none !important;
-	box-shadow: 0 4px 10px rgba(34, 113, 177, 0.25);
+	box-shadow: none !important;
 	transition: all 0.2s ease;
 	cursor: pointer;
 }
@@ -3069,7 +3148,7 @@ body.elementor-editor-active .wcsc-floating-btn-wrap,
 .wcas-checkout-wrapper .wcsc-summary-cta-btn:hover {
 	background: #1b5b8d;
 	transform: translateY(-1px);
-	box-shadow: 0 6px 14px rgba(34, 113, 177, 0.35);
+	box-shadow: none !important;
 }
 
 .wcas-checkout-wrapper .wcsc-summary-cta-btn .wcsc-cta-arrow {
@@ -3335,4 +3414,36 @@ body.elementor-editor-active .wcsc-floating-btn-wrap,
 	.wcas-checkout-wrapper .wcsc-bundle-timer-box {
 		flex-direction: column;
 	}
+}
+
+/* ==========================================================================
+   Checkout Field Display Modes (Labels vs Placeholders)
+   ========================================================================== */
+.wcsc-field-mode-placeholder-only .wcas-checkout-wrapper .form-row:not(.woocommerce-form__label-for-checkbox) > label,
+.wcsc-field-mode-placeholder-only.wcas-checkout-wrapper .form-row:not(.woocommerce-form__label-for-checkbox) > label,
+.wcsc-field-mode-placeholder-only .wcas-checkout-wrapper .woocommerce-billing-fields .form-row:not(.woocommerce-form__label-for-checkbox) > label,
+.wcsc-field-mode-placeholder-only .wcas-checkout-wrapper .woocommerce-shipping-fields .form-row:not(.woocommerce-form__label-for-checkbox) > label,
+.wcsc-field-mode-placeholder-only .wcas-checkout-wrapper .woocommerce-additional-fields .form-row:not(.woocommerce-form__label-for-checkbox) > label {
+	display: none !important;
+}
+
+.wcsc-field-mode-label-only .wcas-checkout-wrapper input::placeholder,
+.wcsc-field-mode-label-only.wcas-checkout-wrapper input::placeholder,
+.wcsc-field-mode-label-only .wcas-checkout-wrapper textarea::placeholder,
+.wcsc-field-mode-label-only.wcas-checkout-wrapper textarea::placeholder {
+	color: transparent !important;
+	opacity: 0 !important;
+}
+
+/* Strict Box Shadow Suppression */
+.wcas-checkout-wrapper .wcsc-bundle-card,
+.wcas-checkout-wrapper .wcsc-bundle-card:hover,
+.wcas-checkout-wrapper .wcsc-bundle-card.is-selected,
+.wcas-checkout-wrapper .wcsc-bundle-badge,
+.wcas-checkout-wrapper .wcsc-bundle-badge.wcsc-badge-ribbon,
+.wcas-checkout-wrapper .wcsc-bundle-summary-bar,
+.wcas-checkout-wrapper .wcsc-summary-cta-btn,
+.wcas-checkout-wrapper .wcsc-summary-cta-btn:hover,
+.wcas-checkout-wrapper .wcsc-bundle-timer-box {
+	box-shadow: none !important;
 }

@@ -282,7 +282,7 @@ class Elementor_Widget extends Widget_Base {
 			array(
 				'label'   => esc_html__( 'Selected Badge Style', 'wc-smart-checkout-builder' ),
 				'type'    => Controls_Manager::SELECT,
-				'default' => 'pill',
+				'default' => 'ribbon',
 				'options' => array(
 					'pill'   => esc_html__( 'Floating Pill Badge', 'wc-smart-checkout-builder' ),
 					'ribbon' => esc_html__( 'Top-Right Corner Rotated Ribbon', 'wc-smart-checkout-builder' ),
@@ -477,6 +477,23 @@ class Elementor_Widget extends Widget_Base {
 				'type'         => Controls_Manager::SWITCHER,
 				'default'      => 'yes',
 				'return_value' => 'yes',
+			)
+		);
+
+		$this->add_control(
+			'bundle_summary_layout',
+			array(
+				'label'     => esc_html__( 'Summary Bar Layout', 'wc-smart-checkout-builder' ),
+				'type'      => Controls_Manager::SELECT,
+				'default'   => 'horizontal',
+				'options'   => array(
+					'horizontal' => esc_html__( '1. Modern Horizontal Inline Bar', 'wc-smart-checkout-builder' ),
+					'stacked'    => esc_html__( '2. Split 2-Tier Card (Timer Top, Total Bottom)', 'wc-smart-checkout-builder' ),
+					'floating'   => esc_html__( '3. Sticky Floating Bottom Bar', 'wc-smart-checkout-builder' ),
+				),
+				'condition' => array(
+					'show_summary_bar' => 'yes',
+				),
 			)
 		);
 
@@ -974,6 +991,30 @@ class Elementor_Widget extends Widget_Base {
 			)
 		);
 
+		$this->add_control(
+			'heading_field_display_mode',
+			array(
+				'label'     => esc_html__( 'Field Labels & Placeholders', 'wc-smart-checkout-builder' ),
+				'type'      => Controls_Manager::HEADING,
+				'separator' => 'before',
+			)
+		);
+
+		$this->add_control(
+			'checkout_field_display_mode',
+			array(
+				'label'        => esc_html__( 'Field Display Mode', 'wc-smart-checkout-builder' ),
+				'type'         => Controls_Manager::SELECT,
+				'default'      => 'both',
+				'options'      => array(
+					'both'             => esc_html__( 'Show Both (Labels & Placeholders)', 'wc-smart-checkout-builder' ),
+					'placeholder_only' => esc_html__( 'Show Placeholders Only (Hide Labels)', 'wc-smart-checkout-builder' ),
+					'label_only'       => esc_html__( 'Show Labels Only (Hide Placeholders)', 'wc-smart-checkout-builder' ),
+				),
+				'prefix_class' => 'wcsc-field-mode-',
+			)
+		);
+
 		$this->end_controls_section();
 
 		// --- Section: Checkout Translation (trimmed to 6 keys — req 40) ---
@@ -1067,7 +1108,7 @@ class Elementor_Widget extends Widget_Base {
 			array(
 				'label'   => esc_html__( 'Customer Information Title', 'wc-smart-checkout-builder' ),
 				'type'    => Controls_Manager::TEXT,
-				'default' => esc_html__( 'Customer information', 'wc-smart-checkout-builder' ),
+				'default' => esc_html__( 'কাস্টমার তথ্য', 'wc-smart-checkout-builder' ),
 			)
 		);
 
@@ -1076,7 +1117,7 @@ class Elementor_Widget extends Widget_Base {
 			array(
 				'label'   => esc_html__( 'Order Review Title', 'wc-smart-checkout-builder' ),
 				'type'    => Controls_Manager::TEXT,
-				'default' => esc_html__( 'Your Order', 'wc-smart-checkout-builder' ),
+				'default' => esc_html__( 'আপনার অর্ডার', 'wc-smart-checkout-builder' ),
 			)
 		);
 
@@ -5351,18 +5392,42 @@ class Elementor_Widget extends Widget_Base {
 			)
 		);
 
-		$this->add_group_control(
-			Group_Control_Border::get_type(),
+		$this->add_responsive_control(
+			'bundle_card_border_width',
 			array(
-				'name'     => 'bundle_card_border',
-				'selector' => '{{WRAPPER}} .wcsc-bundle-card',
+				'label'      => esc_html__( 'Border Width (Equal for Normal & Selected)', 'wc-smart-checkout-builder' ),
+				'type'       => Controls_Manager::SLIDER,
+				'size_units' => array( 'px' ),
+				'range'      => array(
+					'px' => array( 'min' => 0, 'max' => 6 ),
+				),
+				'default'    => array(
+					'unit' => 'px',
+					'size' => 2,
+				),
+				'selectors'  => array(
+					'{{WRAPPER}} .wcsc-bundle-card'             => 'border-width: {{SIZE}}{{UNIT}} !important; border-style: solid;',
+					'{{WRAPPER}} .wcsc-bundle-card.is-selected' => 'border-width: {{SIZE}}{{UNIT}} !important; border-style: solid;',
+				),
+			)
+		);
+
+		$this->add_control(
+			'bundle_card_normal_border_color',
+			array(
+				'label'     => esc_html__( 'Normal Border Color (Low Opacity/Subtle)', 'wc-smart-checkout-builder' ),
+				'type'      => Controls_Manager::COLOR,
+				'default'   => 'rgba(34, 113, 177, 0.18)',
+				'selectors' => array(
+					'{{WRAPPER}} .wcsc-bundle-card:not(.is-selected)' => 'border-color: {{VALUE}} !important;',
+				),
 			)
 		);
 
 		$this->add_control(
 			'bundle_card_active_border_color',
 			array(
-				'label'     => esc_html__( 'Selected Border Color', 'wc-smart-checkout-builder' ),
+				'label'     => esc_html__( 'Selected Border Color (High Opacity/Active)', 'wc-smart-checkout-builder' ),
 				'type'      => Controls_Manager::COLOR,
 				'default'   => '#2271b1',
 				'selectors' => array(
@@ -6654,8 +6719,10 @@ class Elementor_Widget extends Widget_Base {
 				$data_string .= ' ' . esc_attr( $k ) . '="' . esc_attr( $v ) . '"';
 			}
 		}
-	$checkout_layout_val = ! empty( $settings['checkout_layout'] ) ? $settings['checkout_layout'] : '2_columns';
+		$checkout_layout_val = ! empty( $settings['checkout_layout'] ) ? $settings['checkout_layout'] : '2_columns';
+		$field_display_mode  = ! empty( $settings['checkout_field_display_mode'] ) ? sanitize_key( $settings['checkout_field_display_mode'] ) : 'both';
 		$layout_class_name   = ( '1_column' === $checkout_layout_val ) ? 'wcsc-layout-1-col wcas-layout-one-column' : 'wcsc-layout-2-col wcas-layout-two-column';
+		$layout_class_name  .= ' wcsc-field-mode-' . $field_display_mode;
 		?>
 		<div class="wcsc-product-checkout-widget <?php echo esc_attr( $layout_class_name ); ?>"<?php echo $data_string; // phpcs:ignore WordPress.Security.EscapeOutput.OutputNotEscaped ?>>
 
@@ -6881,7 +6948,8 @@ class Elementor_Widget extends Widget_Base {
 			}
 		}
 		?>
-		<div class="wcsc-product-checkout-widget wcas-checkout-wrapper wcsc-bundle-checkout-wrapper"
+		<?php $field_display_mode = ! empty( $settings['checkout_field_display_mode'] ) ? sanitize_key( $settings['checkout_field_display_mode'] ) : 'both'; ?>
+		<div class="wcsc-product-checkout-widget wcas-checkout-wrapper wcsc-bundle-checkout-wrapper wcsc-field-mode-<?php echo esc_attr( $field_display_mode ); ?>"
 			id="wcsc-product-checkout-<?php echo esc_attr( $this->get_id() ); ?>"
 			data-widget-id="<?php echo esc_attr( $this->get_id() ); ?>"
 			data-min-items="<?php echo esc_attr( $min_items ); ?>"
@@ -6914,7 +6982,7 @@ class Elementor_Widget extends Widget_Base {
 						}
 					}
 
-					$badge_style       = ! empty( $settings['bundle_badge_style'] ) ? $settings['bundle_badge_style'] : 'pill';
+					$badge_style       = ! empty( $settings['bundle_badge_style'] ) ? $settings['bundle_badge_style'] : 'ribbon';
 					$badge_pos         = ! empty( $settings['bundle_badge_position'] ) ? $settings['bundle_badge_position'] : 'top_right';
 					$card_ribbon_class = ( 'ribbon' === $badge_style ) ? ' has-badge-ribbon' : '';
 					$badge_classes     = 'wcsc-bundle-badge wcsc-badge-' . esc_attr( $badge_style ) . ' pos-' . esc_attr( $badge_pos );
@@ -6991,8 +7059,10 @@ class Elementor_Widget extends Widget_Base {
 				<?php endforeach; ?>
 			</div>
 
-			<?php if ( 'yes' === ( $settings['show_summary_bar'] ?? 'yes' ) ) : ?>
-				<div class="wcsc-bundle-summary-bar">
+			<?php if ( 'yes' === ( $settings['show_summary_bar'] ?? 'yes' ) ) :
+				$summary_layout = ! empty( $settings['bundle_summary_layout'] ) ? sanitize_key( $settings['bundle_summary_layout'] ) : 'horizontal';
+			?>
+				<div class="wcsc-bundle-summary-bar wcsc-summary-layout-<?php echo esc_attr( $summary_layout ); ?>">
 					<?php if ( 'yes' === ( $settings['enable_summary_timer'] ?? 'no' ) ) :
 						$timer_label = ! empty( $settings['summary_timer_label'] ) ? $settings['summary_timer_label'] : __( 'Hurry! Special offer expires in:', 'wc-smart-checkout-builder' );
 						$timer_h     = max( 0, absint( $settings['summary_timer_hours'] ?? 0 ) );
