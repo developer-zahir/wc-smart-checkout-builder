@@ -100,6 +100,24 @@ class Checkout_Handler {
 		// License verification on order placement.
 		add_action( 'woocommerce_checkout_process', array( __CLASS__, 'validate_license_checkout_submission' ) );
 		add_action( 'woocommerce_after_checkout_validation', array( __CLASS__, 'validate_license_after_checkout_validation' ), 5, 2 );
+
+		// Custom Order Tagging & Meta Tracking
+		add_action( 'woocommerce_checkout_create_order', array( __CLASS__, 'add_smart_checkout_order_meta' ), 20, 2 );
+		add_action( 'woocommerce_checkout_update_order_meta', array( __CLASS__, 'save_smart_checkout_order_meta' ), 20, 2 );
+
+		// Order list admin columns (standard post-type and HPOS)
+		add_filter( 'manage_edit-shop_order_columns', array( __CLASS__, 'add_order_source_column' ), 20 );
+		add_action( 'manage_shop_order_posts_custom_column', array( __CLASS__, 'render_order_source_column' ), 20, 2 );
+		add_filter( 'manage_woocommerce_page_wc-orders_columns', array( __CLASS__, 'add_order_source_column' ), 20 );
+		add_action( 'manage_woocommerce_page_wc-orders_custom_column', array( __CLASS__, 'render_hpos_order_source_column' ), 20, 2 );
+		add_action( 'woocommerce_admin_order_data_after_order_details', array( __CLASS__, 'render_order_source_admin_badge' ) );
+
+		// Tiered dynamic fee discount calculation
+		add_action( 'woocommerce_cart_calculate_fees', array( __CLASS__, 'apply_tiered_bundle_discount' ), 20, 1 );
+
+		// AJAX endpoints for modular product grid cart sync
+		add_action( 'wp_ajax_wcsc_sync_bundle_cart', array( __CLASS__, 'ajax_sync_bundle_cart' ) );
+		add_action( 'wp_ajax_nopriv_wcsc_sync_bundle_cart', array( __CLASS__, 'ajax_sync_bundle_cart' ) );
 	}
 
 	/**
@@ -154,6 +172,16 @@ class Checkout_Handler {
 
 		// Direct POST field
 		if ( isset( $_POST['wcsc_is_smart_checkout'] ) && ( 'yes' === $_POST['wcsc_is_smart_checkout'] || '1' === (string) $_POST['wcsc_is_smart_checkout'] ) ) {
+			return true;
+		}
+
+		// Direct Order Source POST field
+		if ( ! empty( $_POST['wcsc_order_source'] ) ) {
+			return true;
+		}
+
+		// Session flag from active smart checkout
+		if ( function_exists( 'WC' ) && WC()->session && WC()->session->get( 'wcsc_order_placed' ) ) {
 			return true;
 		}
 
@@ -1651,6 +1679,243 @@ class Checkout_Handler {
 			);
 			$errors->add( 'unauthorized_license', $msg );
 		}
+	}
+
+	/**
+	 * Attach Smart Checkout custom order meta & tags when order is created.
+	 *
+	 * @param \WC_Order $order
+	 * @param array     $data
+	 */
+	public static function add_smart_checkout_order_meta( $order, $data ) {
+		if ( ! is_a( $order, 'WC_Order' ) ) {
+			return;
+		}
+
+		if ( self::is_widget_checkout_context() || ( function_exists( 'WC' ) && WC()->session && WC()->session->get( 'wcsc_order_placed' ) ) ) {
+			$order->update_meta_data( '_wcsc_order_source', 'WC Smart Checkout' );
+			$order->update_meta_data( '_wcsc_order_tag', 'WC SC' );
+			$order->update_meta_data( 'Order Source', 'WC Smart Checkout' );
+
+			// Add private note to order
+			$order->add_order_note( __( '[WC Smart Checkout] Order placed via WC Smart Checkout Builder.', 'wc-smart-checkout-builder' ) );
+
+			if ( function_exists( 'WC' ) && WC()->session ) {
+				WC()->session->__unset( 'wcsc_order_placed' );
+				WC()->session->__unset( 'wcsc_bundle_tiers' );
+			}
+		}
+	}
+
+	/**
+	 * Fallback hook to save order meta on checkout completion.
+	 *
+	 * @param int   $order_id
+	 * @param array $data
+	 */
+	public static function save_smart_checkout_order_meta( $order_id, $data ) {
+		if ( self::is_widget_checkout_context() ) {
+			update_post_meta( $order_id, '_wcsc_order_source', 'WC Smart Checkout' );
+			update_post_meta( $order_id, '_wcsc_order_tag', 'WC SC' );
+		}
+	}
+
+	/**
+	 * Add "Source" column in WooCommerce Orders list.
+	 *
+	 * @param array $columns
+	 * @return array
+	 */
+	public static function add_order_source_column( $columns ) {
+		$new_cols = array();
+		foreach ( $columns as $key => $title ) {
+			$new_cols[ $key ] = $title;
+			if ( 'order_status' === $key ) {
+				$new_cols['wcsc_source'] = __( 'Source', 'wc-smart-checkout-builder' );
+			}
+		}
+		if ( ! isset( $new_cols['wcsc_source'] ) ) {
+			$new_cols['wcsc_source'] = __( 'Source', 'wc-smart-checkout-builder' );
+		}
+		return $new_cols;
+	}
+
+	/**
+	 * Render "Source" column badge for legacy post-type orders table.
+	 *
+	 * @param string $column
+	 * @param int    $post_id
+	 */
+	public static function render_order_source_column( $column, $post_id ) {
+		if ( 'wcsc_source' === $column ) {
+			$source = get_post_meta( $post_id, '_wcsc_order_source', true );
+			if ( ! empty( $source ) ) {
+				echo '<span class="wcsc-order-badge" style="display:inline-block;padding:3px 8px;font-size:11px;font-weight:700;border-radius:4px;background:#2563eb;color:#ffffff;letter-spacing:0.5px;">' . esc_html( $source ) . '</span>';
+			} else {
+				echo '<span style="color:#94a3b8;">&ndash;</span>';
+			}
+		}
+	}
+
+	/**
+	 * Render "Source" column badge for WooCommerce HPOS orders table.
+	 *
+	 * @param string    $column
+	 * @param \WC_Order $order
+	 */
+	public static function render_hpos_order_source_column( $column, $order ) {
+		if ( 'wcsc_source' === $column && is_a( $order, 'WC_Order' ) ) {
+			$source = $order->get_meta( '_wcsc_order_source' );
+			if ( ! empty( $source ) ) {
+				echo '<span class="wcsc-order-badge" style="display:inline-block;padding:3px 8px;font-size:11px;font-weight:700;border-radius:4px;background:#2563eb;color:#ffffff;letter-spacing:0.5px;">' . esc_html( $source ) . '</span>';
+			} else {
+				echo '<span style="color:#94a3b8;">&ndash;</span>';
+			}
+		}
+	}
+
+	/**
+	 * Render source badge in Single Order Admin details view.
+	 *
+	 * @param \WC_Order $order
+	 */
+	public static function render_order_source_admin_badge( $order ) {
+		if ( is_a( $order, 'WC_Order' ) ) {
+			$source = $order->get_meta( '_wcsc_order_source' );
+			if ( ! empty( $source ) ) {
+				echo '<p class="form-field form-field-wide"><strong>' . esc_html__( 'Smart Checkout Source:', 'wc-smart-checkout-builder' ) . '</strong> <span style="display:inline-block;padding:3px 8px;font-size:11px;font-weight:700;border-radius:4px;background:#2563eb;color:#ffffff;">' . esc_html( $source ) . '</span></p>';
+			}
+		}
+	}
+
+	/**
+	 * Apply tiered discount as dynamic cart fee.
+	 *
+	 * @param \WC_Cart $cart
+	 */
+	public static function apply_tiered_bundle_discount( $cart ) {
+		if ( is_admin() && ! defined( 'DOING_AJAX' ) ) {
+			return;
+		}
+
+		if ( ! function_exists( 'WC' ) || ! WC()->session ) {
+			return;
+		}
+
+		$tiers = WC()->session->get( 'wcsc_bundle_tiers' );
+		if ( empty( $tiers ) || ! is_array( $tiers ) ) {
+			return;
+		}
+
+		$total_count = $cart->get_cart_contents_count();
+		if ( $total_count <= 0 ) {
+			return;
+		}
+
+		// Sort tiers descending by min_qty
+		usort( $tiers, function( $a, $b ) {
+			$qa = isset( $a['min_qty'] ) ? (int) $a['min_qty'] : 0;
+			$qb = isset( $b['min_qty'] ) ? (int) $b['min_qty'] : 0;
+			return $qb - $qa;
+		} );
+
+		$applicable_tier = null;
+		foreach ( $tiers as $tier ) {
+			$min_qty = isset( $tier['min_qty'] ) ? (int) $tier['min_qty'] : 0;
+			if ( $total_count >= $min_qty ) {
+				$applicable_tier = $tier;
+				break;
+			}
+		}
+
+		if ( ! $applicable_tier ) {
+			return;
+		}
+
+		$discount_type = isset( $applicable_tier['discount_type'] ) ? $applicable_tier['discount_type'] : 'percentage';
+		$discount_val  = isset( $applicable_tier['discount_value'] ) ? floatval( $applicable_tier['discount_value'] ) : 0;
+		$tier_label    = ! empty( $applicable_tier['tier_label'] ) ? sanitize_text_field( $applicable_tier['tier_label'] ) : '';
+
+		if ( $discount_val <= 0 ) {
+			return;
+		}
+
+		$cart_subtotal = $cart->get_subtotal();
+		$discount_amount = 'percentage' === $discount_type ? ( $cart_subtotal * $discount_val ) / 100 : $discount_val;
+
+		if ( empty( $tier_label ) ) {
+			$tier_label = 'percentage' === $discount_type
+				? sprintf( __( 'Tier Discount (%s%%)', 'wc-smart-checkout-builder' ), $discount_val )
+				: __( 'Tier Discount', 'wc-smart-checkout-builder' );
+		}
+
+		if ( $discount_amount > $cart_subtotal ) {
+			$discount_amount = $cart_subtotal;
+		}
+
+		if ( $discount_amount > 0 ) {
+			$cart->add_fee( $tier_label, -$discount_amount, true );
+		}
+	}
+
+	/**
+	 * AJAX handler for modular product selector & grid selection sync.
+	 */
+	public static function ajax_sync_bundle_cart() {
+		check_ajax_referer( 'wcsc_checkout_nonce', 'nonce' );
+
+		if ( ! function_exists( 'WC' ) || ! WC()->cart ) {
+			wp_send_json_error( array( 'message' => __( 'WooCommerce cart unavailable.', 'wc-smart-checkout-builder' ) ) );
+		}
+
+		$items_raw = isset( $_POST['items'] ) ? wp_unslash( $_POST['items'] ) : array();
+		$tiers_raw = isset( $_POST['tiers'] ) ? wp_unslash( $_POST['tiers'] ) : array();
+
+		$items = is_string( $items_raw ) ? json_decode( $items_raw, true ) : $items_raw;
+		$tiers = is_string( $tiers_raw ) ? json_decode( $tiers_raw, true ) : $tiers_raw;
+
+		$cart = WC()->cart;
+
+		if ( WC()->session ) {
+			WC()->session->set( 'wcsc_order_placed', 'WC Smart Checkout' );
+			WC()->session->__unset( 'wcsc_bundle_tiers' );
+		}
+
+		$cart->empty_cart();
+
+		if ( is_array( $items ) ) {
+			foreach ( $items as $item ) {
+				$p_id   = isset( $item['product_id'] ) ? absint( $item['product_id'] ) : 0;
+				$v_id   = isset( $item['variation_id'] ) ? absint( $item['variation_id'] ) : 0;
+				$qty    = isset( $item['quantity'] ) ? max( 1, absint( $item['quantity'] ) ) : 1;
+				$attrs  = isset( $item['attributes'] ) && is_array( $item['attributes'] ) ? array_map( 'sanitize_text_field', $item['attributes'] ) : array();
+
+				if ( ! $p_id ) continue;
+
+				$product = wc_get_product( $v_id ? $v_id : $p_id );
+				if ( ! $product || ! $product->is_purchasable() ) continue;
+
+				$cart->add_to_cart( $p_id, $qty, $v_id, $attrs );
+			}
+		}
+
+		if ( ! empty( $tiers ) && is_array( $tiers ) && WC()->session ) {
+			WC()->session->set( 'wcsc_bundle_tiers', $tiers );
+		}
+
+		$cart->calculate_totals();
+
+		$clean_total = html_entity_decode( wp_strip_all_tags( $cart->get_total() ), ENT_QUOTES, 'UTF-8' );
+		$clean_total = str_replace( "\xc2\xa0", ' ', $clean_total );
+
+		wp_send_json_success( array(
+			'cart_hash'     => $cart->get_cart_hash(),
+			'item_count'    => $cart->get_cart_contents_count(),
+			'subtotal'      => $cart->get_cart_subtotal(),
+			'total'         => $cart->get_total(),
+			'raw_total'     => $cart->get_total( 'edit' ),
+			'currency_text' => $clean_total,
+		) );
 	}
 
 }

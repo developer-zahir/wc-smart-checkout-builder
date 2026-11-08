@@ -1,9 +1,9 @@
 {
-  "version": "1.9.23",
+  "version": "1.9.24",
   "requires": "5.8",
   "tested": "6.7",
   "requires_php": "7.4",
   "download_url": "https://raw.githubusercontent.com/developer-zahir/wc-smart-checkout-builder/main/wc-smart-checkout-builder.zip",
   "details_url": "https://github.com/developer-zahir/wc-smart-checkout-builder",
-  "changelog": "## v1.9.23\n\n- Fix: Direct dashboard update detection with raw GitHub zip delivery\n- Added WooFlexiBundle Builder: Product bundle grid with tiered discounts and AJAX checkout\n- Seamless 1-click update support"
+  "changelog": "## v1.9.24\n\n- New Modular Elementor Widget: Product Selector & Grid with tiered discounts, selection badges, and real-time total summary\n- New Modular Elementor Widget: Product Variation Selector with image/price preview and swatch/dropdown UI\n- New Modular Elementor Widget: Embedded Checkout Form with direct AJAX submission\n- New: Order Tagging System automatically tags orders with 'WC Smart Checkout' / 'WC SC' and displays admin badges in WooCommerce orders list (Standard & HPOS)\n- Auto-updater: 1-click update support directly from WordPress admin dashboard"
 }
