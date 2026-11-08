@@ -3,7 +3,7 @@
  * Plugin Name:       WC Smart Checkout Builder
  * Plugin URI:        https://github.com/developer-zahir/wc-smart-checkout-builder
  * Description:       A lightweight Elementor widget for selecting WooCommerce products and checking out.
- * Version:           1.9.27
+ * Version:           1.9.28
  * Author:            Developer Zahir
  * Author URI:        https://developerzahir.com
  * Text Domain:       wc-smart-checkout-builder
@@ -21,7 +21,7 @@ if ( ! defined( 'ABSPATH' ) ) {
 	exit; // Exit if accessed directly.
 }
 
-define( 'WCSC_VERSION', '1.9.27' );
+define( 'WCSC_VERSION', '1.9.28' );
 define( 'WCSC_FILE', __FILE__ );
 define( 'WCSC_PATH', plugin_dir_path( __FILE__ ) );
 define( 'WCSC_URL', plugin_dir_url( __FILE__ ) );
@@ -71,9 +71,18 @@ function wcsc_cleanup_legacy_subplugin() {
 	if ( $installed_ver !== WCSC_VERSION ) {
 		delete_site_transient( 'wcsc_github_release_data' );
 		delete_site_transient( 'update_plugins' );
+		update_option( 'wcsc_flush_rewrite_rules', 'yes' );
 		update_option( 'wcsc_version', WCSC_VERSION );
 	}
 }
+
+/**
+ * Plugin activation hook: schedule rewrite rules flush.
+ */
+function wcsc_activate() {
+	update_option( 'wcsc_flush_rewrite_rules', 'yes' );
+}
+register_activation_hook( WCSC_FILE, 'wcsc_activate' );
 
 function wcsc_init() {
 	wcsc_cleanup_legacy_subplugin();

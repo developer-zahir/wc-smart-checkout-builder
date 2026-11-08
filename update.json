@@ -1,9 +1,9 @@
 {
-  "version": "1.9.27",
+  "version": "1.9.28",
   "requires": "5.8",
   "tested": "6.7",
   "requires_php": "7.4",
   "download_url": "https://raw.githubusercontent.com/developer-zahir/wc-smart-checkout-builder/main/wc-smart-checkout-builder.zip",
   "details_url": "https://github.com/developer-zahir/wc-smart-checkout-builder",
-  "changelog": "## v1.9.27\n\n- Fix: Standardized ZIP archive directory paths to POSIX forward-slashes (/), preventing cPanel/Linux extraction failure and rollback folder generation\n- Hardened upgrader_post_install hooks against WP_Error and unexpected non-array returns\n- Added self-healing cleanup for legacy sub-plugin folders and database entries\n- 3 Modular Elementor Widgets: Product Grid with Tiered Discounts, Variation Selector, Embedded Checkout\n- Order Tagging System and HPOS Admin Badges"
+  "changelog": "## v1.9.28\n\n- Fix: Permanent resolution for landing pages 404 (Oops! That page can't be found)\n- Added automatic rewrite rules check & flush on CPT registration and version upgrade\n- Added dynamic 404 recovery handler for landing page URLs\n- Built with POSIX forward-slash standard ZIP package for Linux/cPanel compatibility"
 }

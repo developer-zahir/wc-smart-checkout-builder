@@ -67,6 +67,7 @@ class Plugin {
 
 		// Custom Thank You Redirect & Return URL Filter for Tracking Safety
 		add_action( 'template_redirect', array( $this, 'custom_thank_you_redirect' ) );
+		add_action( 'template_redirect', array( $this, 'recover_landing_page_404' ) );
 		add_filter( 'woocommerce_get_checkout_order_received_url', array( $this, 'filter_order_received_url' ), 10, 2 );
 		add_filter( 'woocommerce_get_return_url', array( $this, 'filter_order_received_url' ), 10, 2 );
 		add_filter( 'woocommerce_is_order_received_page', array( $this, 'filter_is_order_received_page' ) );
@@ -126,6 +127,15 @@ class Plugin {
 		if ( 'yes' === get_option( 'wcsc_flush_rewrite_rules' ) ) {
 			flush_rewrite_rules( false );
 			delete_option( 'wcsc_flush_rewrite_rules' );
+		} else {
+			// Auto-check if CPT rewrite rules are missing from WordPress rewrite table
+			$rules = get_option( 'rewrite_rules' );
+			if ( is_array( $rules ) && ! empty( $rules ) ) {
+				$matched = preg_grep( '#^' . preg_quote( $cpt_slug, '#' ) . '/#', array_keys( $rules ) );
+				if ( empty( $matched ) ) {
+					flush_rewrite_rules( false );
+				}
+			}
 		}
 	}
 
@@ -1142,5 +1152,40 @@ class Plugin {
 			}
 		}
 		return $template;
+	}
+
+	/**
+	 * Automatically recover from 404 errors on landing pages caused by stale rewrite rules.
+	 */
+	public function recover_landing_page_404() {
+		if ( ! is_404() ) {
+			return;
+		}
+
+		$cpt_slug = get_option( 'wcsc_cpt_slug', 'landing-page' );
+		$cpt_slug = sanitize_title( trim( $cpt_slug ) );
+		if ( empty( $cpt_slug ) ) {
+			$cpt_slug = 'landing-page';
+		}
+
+		$request_uri = isset( $_SERVER['REQUEST_URI'] ) ? trim( parse_url( $_SERVER['REQUEST_URI'], PHP_URL_PATH ), '/' ) : '';
+		if ( empty( $request_uri ) ) {
+			return;
+		}
+
+		$parts = explode( '/', $request_uri );
+		$post_name = end( $parts );
+
+		// Check if a wcsc_page exists matching this slug
+		$page = get_page_by_path( $post_name, OBJECT, 'wcsc_page' );
+		if ( ! $page && count( $parts ) > 1 ) {
+			$page = get_page_by_path( implode( '/', array_slice( $parts, 1 ) ), OBJECT, 'wcsc_page' );
+		}
+
+		if ( $page && 'wcsc_page' === $page->post_type ) {
+			flush_rewrite_rules( false );
+			wp_safe_redirect( get_permalink( $page->ID ) );
+			exit;
+		}
 	}
 }
