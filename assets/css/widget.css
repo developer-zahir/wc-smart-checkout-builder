@@ -2632,22 +2632,48 @@ body.elementor-editor-active .wcsc-floating-btn-wrap,
 	box-shadow: 0 4px 14px rgba(34, 113, 177, 0.15);
 }
 
-/* Corner Selected Badge */
+/* Corner Selected Badge (Pill & Rotated Ribbon) */
 .wcas-checkout-wrapper .wcsc-bundle-badge {
 	display: none;
-	position: absolute;
-	top: -10px;
-	right: 12px;
 	background: #2271b1;
 	color: #ffffff;
 	font-size: 11px;
 	font-weight: 700;
-	padding: 3px 10px;
-	border-radius: 12px;
 	letter-spacing: 0.5px;
 	text-transform: uppercase;
-	box-shadow: 0 2px 6px rgba(34, 113, 177, 0.3);
-	z-index: 2;
+	box-shadow: none !important;
+	z-index: 3;
+}
+
+/* 1. Floating Pill Style (Default) */
+.wcas-checkout-wrapper .wcsc-bundle-badge.wcsc-badge-pill {
+	position: absolute;
+	top: -10px;
+	right: 12px;
+	padding: 4px 12px;
+	border-radius: 12px;
+}
+.wcas-checkout-wrapper .wcsc-bundle-badge.wcsc-badge-pill.pos-top-left {
+	right: auto;
+	left: 12px;
+}
+
+/* 2. Top-Right Corner Rotated Ribbon */
+.wcas-checkout-wrapper .wcsc-bundle-card.has-badge-ribbon {
+	overflow: hidden !important;
+}
+.wcas-checkout-wrapper .wcsc-bundle-badge.wcsc-badge-ribbon {
+	position: absolute;
+	top: 16px;
+	right: -36px;
+	width: 135px;
+	transform: rotate(45deg);
+	text-align: center;
+	padding: 4px 0;
+	font-size: 10px;
+	font-weight: 700;
+	letter-spacing: 0.6px;
+	border-radius: 0;
 }
 
 .wcas-checkout-wrapper .wcsc-bundle-card.is-selected .wcsc-bundle-badge {
@@ -2988,5 +3014,157 @@ body.elementor-editor-active .wcsc-floating-btn-wrap,
 	.wcas-checkout-wrapper .wcsc-summary-cta-btn {
 		justify-content: center;
 		width: 100%;
+	}
+}
+/* ==========================================================================
+   Countdown Urgency Timer (Bundle Summary Bar)
+   ========================================================================== */
+.wcas-checkout-wrapper .wcsc-bundle-timer-box {
+	display: flex;
+	align-items: center;
+	justify-content: center;
+	flex-wrap: wrap;
+	gap: 12px;
+	width: 100%;
+	padding: 10px 16px;
+	margin-bottom: 12px;
+	background: #fff1f2;
+	border: 1px solid #fecdd3;
+	border-radius: 8px;
+	text-align: center;
+}
+.wcas-checkout-wrapper .wcsc-timer-label {
+	display: inline-flex;
+	align-items: center;
+	gap: 6px;
+	font-size: 13px;
+	font-weight: 700;
+	color: #be123c;
+}
+.wcas-checkout-wrapper .wcsc-timer-countdown {
+	display: inline-flex;
+	align-items: center;
+	gap: 5px;
+}
+.wcas-checkout-wrapper .wcsc-timer-unit {
+	display: inline-flex;
+	align-items: center;
+	gap: 4px;
+}
+.wcas-checkout-wrapper .wcsc-timer-digit {
+	display: inline-block;
+	min-width: 28px;
+	padding: 3px 6px;
+	background: #e11d48;
+	color: #ffffff;
+	font-size: 14px;
+	font-weight: 800;
+	border-radius: 5px;
+	text-align: center;
+	line-height: 1.2;
+}
+.wcas-checkout-wrapper .wcsc-timer-unit-label {
+	font-size: 11px;
+	font-weight: 600;
+	color: #9f1239;
+	text-transform: uppercase;
+}
+.wcas-checkout-wrapper .wcsc-timer-sep {
+	font-size: 14px;
+	font-weight: 800;
+	color: #e11d48;
+}
+
+/* ==========================================================================
+   Before-Checkout Features & Badges Section
+   ========================================================================== */
+.wcas-checkout-wrapper .wcsc-before-checkout-features-wrap {
+	background: #ffffff;
+	border: 1.5px solid #e2e8f0;
+	border-radius: 12px;
+	padding: 20px 24px;
+	margin: 24px 0 28px 0;
+}
+.wcas-checkout-wrapper .wcsc-features-header {
+	text-align: center;
+	margin-bottom: 20px;
+}
+.wcas-checkout-wrapper .wcsc-features-main-title {
+	margin: 0 0 6px 0;
+	font-size: 20px;
+	font-weight: 700;
+	color: #1e293b;
+}
+.wcas-checkout-wrapper .wcsc-features-subtitle {
+	margin: 0;
+	font-size: 14px;
+	color: #64748b;
+}
+.wcas-checkout-wrapper .wcsc-features-grid {
+	display: grid;
+	grid-template-columns: repeat(3, minmax(0, 1fr));
+	gap: 16px;
+}
+.wcas-checkout-wrapper .wcsc-features-layout-list .wcsc-features-grid {
+	display: flex;
+	flex-direction: column;
+	gap: 12px;
+}
+.wcas-checkout-wrapper .wcsc-feature-item {
+	display: flex;
+	align-items: flex-start;
+	gap: 14px;
+	background: #f8fafc;
+	border: 1px solid #f1f5f9;
+	border-radius: 10px;
+	padding: 14px 16px;
+	transition: all 0.2s ease;
+}
+.wcas-checkout-wrapper .wcsc-feature-item:hover {
+	background: #f1f5f9;
+	border-color: #e2e8f0;
+}
+.wcas-checkout-wrapper .wcsc-feature-icon-box {
+	display: flex;
+	align-items: center;
+	justify-content: center;
+	flex-shrink: 0;
+	width: 42px;
+	height: 42px;
+	border-radius: 8px;
+	background: #eff6ff;
+	color: #2271b1;
+}
+.wcas-checkout-wrapper .wcsc-feature-icon-box i,
+.wcas-checkout-wrapper .wcsc-feature-icon-box svg {
+	font-size: 20px;
+	width: 20px;
+	height: 20px;
+	color: #2271b1;
+	fill: #2271b1;
+}
+.wcas-checkout-wrapper .wcsc-feature-content {
+	flex: 1;
+	min-width: 0;
+}
+.wcas-checkout-wrapper .wcsc-feature-title {
+	margin: 0 0 4px 0;
+	font-size: 15px;
+	font-weight: 700;
+	color: #1e293b;
+}
+.wcas-checkout-wrapper .wcsc-feature-desc {
+	margin: 0;
+	font-size: 13px;
+	line-height: 1.45;
+	color: #64748b;
+}
+
+@media (max-width: 767px) {
+	.wcas-checkout-wrapper .wcsc-features-grid {
+		grid-template-columns: 1fr !important;
+	}
+	.wcas-checkout-wrapper .wcsc-bundle-timer-box {
+		flex-direction: column;
 	}
 }

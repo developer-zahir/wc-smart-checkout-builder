@@ -1237,6 +1237,73 @@
 			if (!window.wcsc_params || !window.wcsc_params.is_elementor_edit) {
 				this.syncCartWithCheckout();
 			}
+
+			// Initialize evergreen repeating countdown timer
+			this.initCountdownTimer();
+		},
+
+		initCountdownTimer: function () {
+			var $timer = this.$wrapper.find('.wcsc-bundle-timer-box');
+			if (!$timer.length) return;
+
+			var hours = parseInt($timer.data('hours'), 10) || 0;
+			var minutes = parseInt($timer.data('minutes'), 10) || 0;
+			var seconds = parseInt($timer.data('seconds'), 10) || 0;
+			var isLoop = $timer.data('loop') !== 'no';
+
+			var totalSeconds = (hours * 3600) + (minutes * 60) + seconds;
+			if (totalSeconds <= 0) {
+				totalSeconds = 15 * 60;
+			}
+
+			var widgetId = this.$wrapper.data('widget-id') || 'default';
+			var storageKey = 'wcsc_bundle_timer_end_' + widgetId;
+
+			var now = Math.floor(Date.now() / 1000);
+			var endTime = parseInt(localStorage.getItem(storageKey), 10);
+
+			if (!endTime || endTime <= now) {
+				endTime = now + totalSeconds;
+				try {
+					localStorage.setItem(storageKey, endTime);
+				} catch (e) {}
+			}
+
+			var $hrs = $timer.find('.wcsc-timer-digit.hrs');
+			var $mins = $timer.find('.wcsc-timer-digit.mins');
+			var $secs = $timer.find('.wcsc-timer-digit.secs');
+
+			function pad(n) {
+				return n < 10 ? '0' + n : n;
+			}
+
+			function updateTimer() {
+				var currentNow = Math.floor(Date.now() / 1000);
+				var diff = endTime - currentNow;
+
+				if (diff <= 0) {
+					if (isLoop) {
+						endTime = currentNow + totalSeconds;
+						try {
+							localStorage.setItem(storageKey, endTime);
+						} catch (e) {}
+						diff = totalSeconds;
+					} else {
+						diff = 0;
+					}
+				}
+
+				var h = Math.floor(diff / 3600);
+				var m = Math.floor((diff % 3600) / 60);
+				var s = Math.floor(diff % 60);
+
+				if ($hrs.length) $hrs.text(pad(h));
+				if ($mins.length) $mins.text(pad(m));
+				if ($secs.length) $secs.text(pad(s));
+			}
+
+			updateTimer();
+			setInterval(updateTimer, 1000);
 		},
 
 		resolveCardInitialVariation: function ($card) {
