@@ -7520,7 +7520,7 @@ class Elementor_Widget extends Widget_Base {
 							<h4 class="wcsc-summary-title"><?php echo esc_html( $summary_title ); ?></h4>
 							<?php endif; ?>
 							<?php if ( ! empty( $summary_desc ) ) : ?>
-								p class="wcsc-summary-desc"><?php echo esc_html( $summary_desc ); ?></p>
+								<p class="wcsc-summary-desc"><?php echo esc_html( $summary_desc ); ?></p>
 							<?php endif; ?>
 							<div class="wcsc-summary-price-row">
 								<span class="wcsc-summary-price-wrap">
@@ -7547,13 +7547,11 @@ class Elementor_Widget extends Widget_Base {
 									data-seconds="<?php echo esc_attr( $timer_s ); ?>"
 									data-loop="<?php echo esc_attr( $timer_loop ); ?>">
 									<div class="wcsc-timer-countdown">
-										<?php if ( $timer_h > 0 ) : ?>
-											<div class="wcsc-timer-unit wcsc-timer-hours">
-												<span class="wcsc-timer-digit hrs"><?php echo esc_html( sprintf( '%02d', $timer_h ) ); ?></span>
-												<span class="wcsc-timer-unit-label"><?php esc_html_e( 'Hrs', 'wc-smart-checkout-builder' ); ?></span>
-											</div>
-											<span class="wcsc-timer-sep sep-hrs">:</span>
-										<?php endif; ?>
+										<div class="wcsc-timer-unit wcsc-timer-hours">
+											<span class="wcsc-timer-digit hrs"><?php echo esc_html( sprintf( '%02d', $timer_h ) ); ?></span>
+											<span class="wcsc-timer-unit-label"><?php esc_html_e( 'Hrs', 'wc-smart-checkout-builder' ); ?></span>
+										</div>
+										<span class="wcsc-timer-sep sep-hrs">:</span>
 										<div class="wcsc-timer-unit wcsc-timer-mins">
 											<span class="wcsc-timer-digit mins"><?php echo esc_html( sprintf( '%02d', $timer_m ) ); ?></span>
 											<span class="wcsc-timer-unit-label"><?php esc_html_e( 'Mins', 'wc-smart-checkout-builder' ); ?></span>
@@ -7584,13 +7582,11 @@ class Elementor_Widget extends Widget_Base {
 								data-seconds="<?php echo esc_attr( $timer_s ); ?>"
 								data-loop="<?php echo esc_attr( $timer_loop ); ?>">
 								<div class="wcsc-timer-countdown">
-									<?php if ( $timer_h > 0 ) : ?>
-										<div class="wcsc-timer-unit wcsc-timer-hours">
-											<span class="wcsc-timer-digit hrs"><?php echo esc_html( sprintf( '%02d', $timer_h ) ); ?></span>
-											<span class="wcsc-timer-unit-label"><?php esc_html_e( 'Hrs', 'wc-smart-checkout-builder' ); ?></span>
-										</div>
-										<span class="wcsc-timer-sep sep-hrs">:</span>
-									<?php endif; ?>
+									<div class="wcsc-timer-unit wcsc-timer-hours">
+										<span class="wcsc-timer-digit hrs"><?php echo esc_html( sprintf( '%02d', $timer_h ) ); ?></span>
+										<span class="wcsc-timer-unit-label"><?php esc_html_e( 'Hrs', 'wc-smart-checkout-builder' ); ?></span>
+									</div>
+									<span class="wcsc-timer-sep sep-hrs">:</span>
 									<div class="wcsc-timer-unit wcsc-timer-mins">
 										<span class="wcsc-timer-digit mins"><?php echo esc_html( sprintf( '%02d', $timer_m ) ); ?></span>
 										<span class="wcsc-timer-unit-label"><?php esc_html_e( 'Mins', 'wc-smart-checkout-builder' ); ?></span>

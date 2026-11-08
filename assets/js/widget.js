@@ -1258,15 +1258,22 @@
 
 			var widgetId = this.$wrapper.data('widget-id') || 'default';
 			var storageKey = 'wcsc_bundle_timer_end_' + widgetId;
+			var totalKey = 'wcsc_bundle_timer_total_' + widgetId;
 
 			var now = Math.floor(Date.now() / 1000);
-			var endTime = parseInt(localStorage.getItem(storageKey), 10);
+			var isEditor = !!(window.wcsc_params && window.wcsc_params.is_elementor_edit);
+			var endTime = isEditor ? 0 : parseInt(localStorage.getItem(storageKey), 10);
+			var storedTotal = isEditor ? 0 : parseInt(localStorage.getItem(totalKey), 10);
 
-			if (!endTime || endTime <= now) {
+			// Reset timer if duration was modified or expired
+			if (!endTime || endTime <= now || storedTotal !== totalSeconds) {
 				endTime = now + totalSeconds;
-				try {
-					localStorage.setItem(storageKey, endTime);
-				} catch (e) {}
+				if (!isEditor) {
+					try {
+						localStorage.setItem(storageKey, endTime);
+						localStorage.setItem(totalKey, totalSeconds);
+					} catch (e) {}
+				}
 			}
 
 			var $hrs = $timer.find('.wcsc-timer-digit.hrs');
@@ -1284,9 +1291,12 @@
 				if (diff <= 0) {
 					if (isLoop) {
 						endTime = currentNow + totalSeconds;
-						try {
-							localStorage.setItem(storageKey, endTime);
-						} catch (e) {}
+						if (!isEditor) {
+							try {
+								localStorage.setItem(storageKey, endTime);
+								localStorage.setItem(totalKey, totalSeconds);
+							} catch (e) {}
+						}
 						diff = totalSeconds;
 					} else {
 						diff = 0;
@@ -1302,8 +1312,12 @@
 				if ($secs.length) $secs.text(pad(s));
 			}
 
+			if (this.countdownInterval) {
+				clearInterval(this.countdownInterval);
+			}
+
 			updateTimer();
-			setInterval(updateTimer, 1000);
+			this.countdownInterval = setInterval(updateTimer, 1000);
 		},
 
 		resolveCardInitialVariation: function ($card) {

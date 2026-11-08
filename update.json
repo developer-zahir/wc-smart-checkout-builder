@@ -1,9 +1,9 @@
 {
-  "version": "1.9.39",
+  "version": "1.9.40",
   "requires": "5.8",
   "tested": "6.7",
   "requires_php": "7.4",
   "download_url": "https://raw.githubusercontent.com/developer-zahir/wc-smart-checkout-builder/main/wc-smart-checkout-builder.zip",
   "details_url": "https://github.com/developer-zahir/wc-smart-checkout-builder",
-  "changelog": "## v1.9.39\n\n- Summary Bar 1 Column Alignment: Added responsive Content Alignment control (Left, Center, Right) for Layout 1\n- Summary Bar 2 Column Fix: Fixed class selector matching so 2 Column layout renders side-by-side (content left, timer right)\n- Timer Digit Border: Added border customization option for countdown timer digit boxes\n- Timer Block Border Removed: Removed container border from timer block for clean, borderless urgency presentation"
+  "changelog": "## v1.9.40\n\n- Layout 2 HTML Fix: Fixed missing '<' on short description paragraph tag in Summary Bar Layout 2\n- Timer Hours Fix: Hours unit block is now always rendered in DOM, and timer countdown JS automatically busts cached endTime when duration hours/minutes/seconds are updated in settings"
 }
