@@ -1,9 +1,9 @@
 {
-  "version": "1.9.37",
+  "version": "1.9.38",
   "requires": "5.8",
   "tested": "6.7",
   "requires_php": "7.4",
   "download_url": "https://raw.githubusercontent.com/developer-zahir/wc-smart-checkout-builder/main/wc-smart-checkout-builder.zip",
   "details_url": "https://github.com/developer-zahir/wc-smart-checkout-builder",
-  "changelog": "## v1.9.37\n\n- Checkout Header Default Off: Checkout header is now disabled by default ('no') to preserve existing landing pages without unwanted headings\n- Transparent Checkout Container: Checkout section background defaults to 100% transparent with zero default padding/borders to integrate seamlessly with existing page designs\n- Professional Summary Bar Redesign: Removed sticky/floating layout completely and engineered 2 clean, high-converting ecommerce designs (Modern Horizontal Bar & Structured Order Summary Card) with zero box-shadow\n- Sleek Urgency Pill: Redesigned urgency countdown timer into a crisp, high-end badge pill"
+  "changelog": "## v1.9.38\n\n- Summary Bar Layout 1 (1 Column Centered): Vertical stack featuring title, short description, clean urgency countdown digit blocks (hours, minutes, seconds only), regular & offer prices, and CTA button\n- Summary Bar Layout 2 (2 Columns Split): Two-column layout with title, description, prices, and CTA button on the left, and countdown timer digit blocks on the right\n- CTA Bounce Animation & Icon: Smooth subtle bounce animation on CTA button, customizable button text, and icon picker with before/after positioning\n- Comprehensive Element Styling: Added extensive styling controls for container box (bg, border, radius, padding, margin), title, description, timer digits, prices, and CTA button"
 }

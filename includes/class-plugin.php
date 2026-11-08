@@ -222,10 +222,12 @@ class Plugin {
 			'wcsc-widget-script',
 			'wcsc_params',
 			array(
-				'ajax_url'        => admin_url( 'admin-ajax.php' ),
-				'nonce'           => wp_create_nonce( 'wcsc_checkout_nonce' ),
+				'ajax_url'          => admin_url( 'admin-ajax.php' ),
+				'nonce'             => wp_create_nonce( 'wcsc_checkout_nonce' ),
 				'is_elementor_edit' => class_exists( '\Elementor\Plugin' ) && isset( \Elementor\Plugin::$instance->editor ) && \Elementor\Plugin::$instance->editor->is_edit_mode(),
-				'i18n'            => array(
+				'currency_symbol'   => function_exists( 'get_woocommerce_currency_symbol' ) ? html_entity_decode( get_woocommerce_currency_symbol(), ENT_QUOTES, 'UTF-8' ) : '৳',
+				'currency_pos'      => function_exists( 'get_option' ) ? get_option( 'woocommerce_currency_pos', 'left' ) : 'left',
+				'i18n'              => array(
 					'select_variation' => esc_html__( 'Please select a variation option.', 'wc-smart-checkout-builder' ),
 					'out_of_stock'     => esc_html__( 'Out of stock', 'wc-smart-checkout-builder' ),
 					'in_stock'         => esc_html__( 'In stock', 'wc-smart-checkout-builder' ),

@@ -473,7 +473,7 @@ class Elementor_Widget extends Widget_Base {
 		$this->add_control(
 			'show_summary_bar',
 			array(
-				'label'        => esc_html__( 'Show Dynamic Summary Bar', 'wc-smart-checkout-builder' ),
+				'label'        => esc_html__( 'Show Summary Bar & CTA', 'wc-smart-checkout-builder' ),
 				'type'         => Controls_Manager::SWITCHER,
 				'default'      => 'yes',
 				'return_value' => 'yes',
@@ -483,13 +483,50 @@ class Elementor_Widget extends Widget_Base {
 		$this->add_control(
 			'bundle_summary_layout',
 			array(
-				'label'     => esc_html__( 'Summary Bar Layout', 'wc-smart-checkout-builder' ),
+				'label'     => esc_html__( 'Layout', 'wc-smart-checkout-builder' ),
 				'type'      => Controls_Manager::SELECT,
-				'default'   => 'modern_bar',
+				'default'   => 'layout_1',
 				'options'   => array(
-					'modern_bar'   => esc_html__( 'Layout 1: Modern Horizontal Bar (Default)', 'wc-smart-checkout-builder' ),
-					'compact_card' => esc_html__( 'Layout 2: Structured Order Summary Card', 'wc-smart-checkout-builder' ),
+					'layout_1' => esc_html__( 'Layout 1: 1 Column Stack (Centered)', 'wc-smart-checkout-builder' ),
+					'layout_2' => esc_html__( 'Layout 2: 2 Columns (Content Left, Timer Right)', 'wc-smart-checkout-builder' ),
 				),
+				'condition' => array(
+					'show_summary_bar' => 'yes',
+				),
+			)
+		);
+
+		$this->add_control(
+			'bundle_summary_title',
+			array(
+				'label'       => esc_html__( 'Title', 'wc-smart-checkout-builder' ),
+				'type'        => Controls_Manager::TEXT,
+				'default'     => esc_html__( 'সীমিত সময়ের বিশেষ অফার!', 'wc-smart-checkout-builder' ),
+				'condition'   => array(
+					'show_summary_bar' => 'yes',
+				),
+			)
+		);
+
+		$this->add_control(
+			'bundle_summary_desc',
+			array(
+				'label'       => esc_html__( 'Short Description', 'wc-smart-checkout-builder' ),
+				'type'        => Controls_Manager::TEXTAREA,
+				'rows'        => 3,
+				'default'     => esc_html__( 'অফারটি শেষ হওয়ার আগেই অর্ডার কনফার্ম করে নিশ্চিত করুন আপনার প্যাকেজটি।', 'wc-smart-checkout-builder' ),
+				'condition'   => array(
+					'show_summary_bar' => 'yes',
+				),
+			)
+		);
+
+		$this->add_control(
+			'heading_summary_cta',
+			array(
+				'label'     => esc_html__( 'CTA Button Settings', 'wc-smart-checkout-builder' ),
+				'type'      => Controls_Manager::HEADING,
+				'separator' => 'before',
 				'condition' => array(
 					'show_summary_bar' => 'yes',
 				),
@@ -499,18 +536,69 @@ class Elementor_Widget extends Widget_Base {
 		$this->add_control(
 			'bundle_cta_button_text',
 			array(
-				'label'       => esc_html__( 'CTA Button Text', 'wc-smart-checkout-builder' ),
+				'label'       => esc_html__( 'Button Text', 'wc-smart-checkout-builder' ),
 				'type'        => Controls_Manager::TEXT,
-				'default'     => esc_html__( 'Proceed to Checkout', 'wc-smart-checkout-builder' ),
+				'default'     => esc_html__( 'অর্ডার কনফার্ম করতে ক্লিক করুন', 'wc-smart-checkout-builder' ),
+				'condition'   => array(
+					'show_summary_bar' => 'yes',
+				),
+			)
+		);
+
+		$this->add_control(
+			'bundle_cta_icon',
+			array(
+				'label'       => esc_html__( 'Button Icon', 'wc-smart-checkout-builder' ),
+				'type'        => Controls_Manager::ICONS,
+				'default'     => array(
+					'value'   => 'fas fa-arrow-down',
+					'library' => 'fa-solid',
+				),
+				'condition'   => array(
+					'show_summary_bar' => 'yes',
+				),
+			)
+		);
+
+		$this->add_control(
+			'bundle_cta_icon_pos',
+			array(
+				'label'     => esc_html__( 'Icon Position', 'wc-smart-checkout-builder' ),
+				'type'      => Controls_Manager::SELECT,
+				'default'   => 'after',
+				'options'   => array(
+					'before' => esc_html__( 'Before Text', 'wc-smart-checkout-builder' ),
+					'after'  => esc_html__( 'After Text', 'wc-smart-checkout-builder' ),
+				),
+				'condition' => array(
+					'show_summary_bar' => 'yes',
+				),
+			)
+		);
+
+		$this->add_control(
+			'bundle_cta_bounce',
+			array(
+				'label'        => esc_html__( 'Bounce Animation', 'wc-smart-checkout-builder' ),
+				'type'         => Controls_Manager::SWITCHER,
+				'default'      => 'yes',
+				'return_value' => 'yes',
+				'description'  => esc_html__( 'Add continuous subtle bounce animation to attract clicks.', 'wc-smart-checkout-builder' ),
+				'condition'    => array(
+					'show_summary_bar' => 'yes',
+				),
 			)
 		);
 
 		$this->add_control(
 			'heading_summary_timer',
 			array(
-				'label'     => esc_html__( 'Countdown Urgency Timer', 'wc-smart-checkout-builder' ),
+				'label'     => esc_html__( 'Countdown Timer Settings', 'wc-smart-checkout-builder' ),
 				'type'      => Controls_Manager::HEADING,
 				'separator' => 'before',
+				'condition' => array(
+					'show_summary_bar' => 'yes',
+				),
 			)
 		);
 
@@ -519,19 +607,10 @@ class Elementor_Widget extends Widget_Base {
 			array(
 				'label'        => esc_html__( 'Enable Countdown Timer', 'wc-smart-checkout-builder' ),
 				'type'         => Controls_Manager::SWITCHER,
-				'default'      => 'no',
+				'default'      => 'yes',
 				'return_value' => 'yes',
-			)
-		);
-
-		$this->add_control(
-			'summary_timer_label',
-			array(
-				'label'       => esc_html__( 'Timer Title / Urgency Label', 'wc-smart-checkout-builder' ),
-				'type'        => Controls_Manager::TEXT,
-				'default'     => esc_html__( 'Hurry! Special offer expires in:', 'wc-smart-checkout-builder' ),
-				'condition'   => array(
-					'enable_summary_timer' => 'yes',
+				'condition'    => array(
+					'show_summary_bar' => 'yes',
 				),
 			)
 		);
@@ -545,6 +624,7 @@ class Elementor_Widget extends Widget_Base {
 				'min'         => 0,
 				'max'         => 72,
 				'condition'   => array(
+					'show_summary_bar'     => 'yes',
 					'enable_summary_timer' => 'yes',
 				),
 			)
@@ -559,6 +639,7 @@ class Elementor_Widget extends Widget_Base {
 				'min'         => 0,
 				'max'         => 59,
 				'condition'   => array(
+					'show_summary_bar'     => 'yes',
 					'enable_summary_timer' => 'yes',
 				),
 			)
@@ -573,6 +654,7 @@ class Elementor_Widget extends Widget_Base {
 				'min'         => 0,
 				'max'         => 59,
 				'condition'   => array(
+					'show_summary_bar'     => 'yes',
 					'enable_summary_timer' => 'yes',
 				),
 			)
@@ -585,15 +667,16 @@ class Elementor_Widget extends Widget_Base {
 				'type'         => Controls_Manager::SWITCHER,
 				'default'      => 'yes',
 				'return_value' => 'yes',
-				'description'  => esc_html__( 'When countdown reaches 00:00, it automatically loops and restarts the countdown.', 'wc-smart-checkout-builder' ),
+				'description'  => esc_html__( 'When countdown reaches 00:00, it automatically loops and restarts.', 'wc-smart-checkout-builder' ),
 				'condition'    => array(
+					'show_summary_bar'     => 'yes',
 					'enable_summary_timer' => 'yes',
 				),
 			)
 		);
 
-		$this->end_controls_section();
-
+		$this->end_controls_section();
+
 		// --- Section: Display Elements (Show/Hide) ---
 		$this->start_controls_section(
 			'section_display_elements',
@@ -6022,14 +6105,25 @@ class Elementor_Widget extends Widget_Base {
 		$this->end_controls_section();
 
 		// --- Section: Bundle Summary Bar ---
+		// --- Section: Style Summary Bar & CTA ---
 		$this->start_controls_section(
 			'section_style_bundle_summary_bar',
 			array(
-				'label'     => esc_html__( 'Bundle Summary Bar', 'wc-smart-checkout-builder' ),
+				'label'     => esc_html__( 'Summary Bar & CTA', 'wc-smart-checkout-builder' ),
 				'tab'       => Controls_Manager::TAB_STYLE,
 				'condition' => array(
-					'checkout_mode' => 'bundle',
+					'checkout_mode'    => 'bundle',
+					'show_summary_bar' => 'yes',
 				),
+			)
+		);
+
+		// --- Container Box ---
+		$this->add_control(
+			'heading_style_summary_box',
+			array(
+				'label' => esc_html__( 'Container Box', 'wc-smart-checkout-builder' ),
+				'type'  => Controls_Manager::HEADING,
 			)
 		);
 
@@ -6038,7 +6132,7 @@ class Elementor_Widget extends Widget_Base {
 			array(
 				'label'     => esc_html__( 'Background Color', 'wc-smart-checkout-builder' ),
 				'type'      => Controls_Manager::COLOR,
-				'default'   => '#f0f7ff',
+				'default'   => '#ffffff',
 				'selectors' => array(
 					'{{WRAPPER}} .wcsc-bundle-summary-bar' => 'background-color: {{VALUE}};',
 				),
@@ -6077,24 +6171,36 @@ class Elementor_Widget extends Widget_Base {
 			)
 		);
 
-		$this->add_control(
-			'bundle_summary_text_color',
+		$this->add_responsive_control(
+			'bundle_summary_margin',
 			array(
-				'label'     => esc_html__( 'Info Text Color', 'wc-smart-checkout-builder' ),
-				'type'      => Controls_Manager::COLOR,
-				'selectors' => array(
-					'{{WRAPPER}} .wcsc-summary-count-line' => 'color: {{VALUE}};',
+				'label'      => esc_html__( 'Margin', 'wc-smart-checkout-builder' ),
+				'type'       => Controls_Manager::DIMENSIONS,
+				'size_units' => array( 'px', 'em' ),
+				'selectors'  => array(
+					'{{WRAPPER}} .wcsc-bundle-summary-bar' => 'margin: {{TOP}}{{UNIT}} {{RIGHT}}{{UNIT}} {{BOTTOM}}{{UNIT}} {{LEFT}}{{UNIT}};',
 				),
 			)
 		);
 
+		// --- Title Styling ---
 		$this->add_control(
-			'bundle_summary_total_color',
+			'heading_style_summary_title',
 			array(
-				'label'     => esc_html__( 'Total Amount Color', 'wc-smart-checkout-builder' ),
+				'label'     => esc_html__( 'Title', 'wc-smart-checkout-builder' ),
+				'type'      => Controls_Manager::HEADING,
+				'separator' => 'before',
+			)
+		);
+
+		$this->add_control(
+			'bundle_summary_title_color',
+			array(
+				'label'     => esc_html__( 'Title Color', 'wc-smart-checkout-builder' ),
 				'type'      => Controls_Manager::COLOR,
+				'default'   => '#1e293b',
 				'selectors' => array(
-					'{{WRAPPER}} .wcsc-summary-total-val' => 'color: {{VALUE}};',
+					'{{WRAPPER}} .wcsc-summary-title' => 'color: {{VALUE}};',
 				),
 			)
 		);
@@ -6102,15 +6208,366 @@ class Elementor_Widget extends Widget_Base {
 		$this->add_group_control(
 			Group_Control_Typography::get_type(),
 			array(
-				'name'     => 'bundle_summary_total_typography',
-				'selector' => '{{WRAPPER}} .wcsc-summary-total-val',
+				'name'     => 'bundle_summary_title_typography',
+				'selector' => '{{WRAPPER}} .wcsc-summary-title',
+			)
+		);
+
+		$this->add_responsive_control(
+			'bundle_summary_title_margin',
+			array(
+				'label'      => esc_html__( 'Title Margin', 'wc-smart-checkout-builder' ),
+				'type'       => Controls_Manager::DIMENSIONS,
+				'size_units' => array( 'px', 'em' ),
+				'selectors'  => array(
+					'{{WRAPPER}} .wcsc-summary-title' => 'margin: {{TOP}}{{UNIT}} {{RIGHT}}{{UNIT}} {{BOTTOM}}{{UNIT}} {{LEFT}}{{UNIT}};',
+				),
+			)
+		);
+
+		// --- Short Description Styling ---
+		$this->add_control(
+			'heading_style_summary_desc',
+			array(
+				'label'     => esc_html__( 'Short Description', 'wc-smart-checkout-builder' ),
+				'type'      => Controls_Manager::HEADING,
+				'separator' => 'before',
 			)
 		);
 
 		$this->add_control(
+			'bundle_summary_desc_color',
+			array(
+				'label'     => esc_html__( 'Description Color', 'wc-smart-checkout-builder' ),
+				'type'      => Controls_Manager::COLOR,
+				'default'   => '#64748b',
+				'selectors' => array(
+					'{{WRAPPER}} .wcsc-summary-desc' => 'color: {{VALUE}};',
+				),
+			)
+		);
+
+		$this->add_group_control(
+			Group_Control_Typography::get_type(),
+			array(
+				'name'     => 'bundle_summary_desc_typography',
+				'selector' => '{{WRAPPER}} .wcsc-summary-desc',
+			)
+		);
+
+		$this->add_responsive_control(
+			'bundle_summary_desc_margin',
+			array(
+				'label'      => esc_html__( 'Description Margin', 'wc-smart-checkout-builder' ),
+				'type'       => Controls_Manager::DIMENSIONS,
+				'size_units' => array( 'px', 'em' ),
+				'selectors'  => array(
+					'{{WRAPPER}} .wcsc-summary-desc' => 'margin: {{TOP}}{{UNIT}} {{RIGHT}}{{UNIT}} {{BOTTOM}}{{UNIT}} {{LEFT}}{{UNIT}};',
+				),
+			)
+		);
+
+		// --- Urgency Countdown Timer Styling ---
+		$this->add_control(
+			'heading_style_summary_timer',
+			array(
+				'label'     => esc_html__( 'Countdown Urgency Timer', 'wc-smart-checkout-builder' ),
+				'type'      => Controls_Manager::HEADING,
+				'separator' => 'before',
+				'condition' => array(
+					'enable_summary_timer' => 'yes',
+				),
+			)
+		);
+
+		$this->add_control(
+			'summary_timer_box_bg',
+			array(
+				'label'     => esc_html__( 'Timer Box Background', 'wc-smart-checkout-builder' ),
+				'type'      => Controls_Manager::COLOR,
+				'default'   => 'transparent',
+				'selectors' => array(
+					'{{WRAPPER}} .wcsc-bundle-timer-box' => 'background-color: {{VALUE}};',
+				),
+				'condition' => array(
+					'enable_summary_timer' => 'yes',
+				),
+			)
+		);
+
+		$this->add_group_control(
+			Group_Control_Border::get_type(),
+			array(
+				'name'      => 'summary_timer_box_border',
+				'selector'  => '{{WRAPPER}} .wcsc-bundle-timer-box',
+				'condition' => array(
+					'enable_summary_timer' => 'yes',
+				),
+			)
+		);
+
+		$this->add_responsive_control(
+			'summary_timer_box_radius',
+			array(
+				'label'      => esc_html__( 'Timer Box Radius', 'wc-smart-checkout-builder' ),
+				'type'       => Controls_Manager::DIMENSIONS,
+				'size_units' => array( 'px', '%' ),
+				'selectors'  => array(
+					'{{WRAPPER}} .wcsc-bundle-timer-box' => 'border-radius: {{TOP}}{{UNIT}} {{RIGHT}}{{UNIT}} {{BOTTOM}}{{UNIT}} {{LEFT}}{{UNIT}};',
+				),
+				'condition'  => array(
+					'enable_summary_timer' => 'yes',
+				),
+			)
+		);
+
+		$this->add_responsive_control(
+			'summary_timer_box_padding',
+			array(
+				'label'      => esc_html__( 'Timer Box Padding', 'wc-smart-checkout-builder' ),
+				'size_units' => array( 'px', 'em' ),
+				'type'       => Controls_Manager::DIMENSIONS,
+				'selectors'  => array(
+					'{{WRAPPER}} .wcsc-bundle-timer-box' => 'padding: {{TOP}}{{UNIT}} {{RIGHT}}{{UNIT}} {{BOTTOM}}{{UNIT}} {{LEFT}}{{UNIT}};',
+				),
+				'condition'  => array(
+					'enable_summary_timer' => 'yes',
+				),
+			)
+		);
+
+		$this->add_responsive_control(
+			'summary_timer_box_margin',
+			array(
+				'label'      => esc_html__( 'Timer Box Margin', 'wc-smart-checkout-builder' ),
+				'size_units' => array( 'px', 'em' ),
+				'type'       => Controls_Manager::DIMENSIONS,
+				'selectors'  => array(
+					'{{WRAPPER}} .wcsc-bundle-timer-box' => 'margin: {{TOP}}{{UNIT}} {{RIGHT}}{{UNIT}} {{BOTTOM}}{{UNIT}} {{LEFT}}{{UNIT}};',
+				),
+				'condition'  => array(
+					'enable_summary_timer' => 'yes',
+				),
+			)
+		);
+
+		$this->add_control(
+			'summary_timer_digit_color',
+			array(
+				'label'     => esc_html__( 'Digit Number Color', 'wc-smart-checkout-builder' ),
+				'type'      => Controls_Manager::COLOR,
+				'default'   => '#ffffff',
+				'selectors' => array(
+					'{{WRAPPER}} .wcsc-timer-digit' => 'color: {{VALUE}};',
+				),
+				'condition' => array(
+					'enable_summary_timer' => 'yes',
+				),
+			)
+		);
+
+		$this->add_control(
+			'summary_timer_digit_bg',
+			array(
+				'label'     => esc_html__( 'Digit Box Background', 'wc-smart-checkout-builder' ),
+				'type'      => Controls_Manager::COLOR,
+				'default'   => '#ef4444',
+				'selectors' => array(
+					'{{WRAPPER}} .wcsc-timer-digit' => 'background-color: {{VALUE}};',
+				),
+				'condition' => array(
+					'enable_summary_timer' => 'yes',
+				),
+			)
+		);
+
+		$this->add_group_control(
+			Group_Control_Typography::get_type(),
+			array(
+				'name'      => 'summary_timer_digit_typography',
+				'selector'  => '{{WRAPPER}} .wcsc-timer-digit',
+				'condition' => array(
+					'enable_summary_timer' => 'yes',
+				),
+			)
+		);
+
+		$this->add_responsive_control(
+			'summary_timer_digit_radius',
+			array(
+				'label'      => esc_html__( 'Digit Box Radius', 'wc-smart-checkout-builder' ),
+				'type'       => Controls_Manager::DIMENSIONS,
+				'size_units' => array( 'px', '%' ),
+				'selectors'  => array(
+					'{{WRAPPER}} .wcsc-timer-digit' => 'border-radius: {{TOP}}{{UNIT}} {{RIGHT}}{{UNIT}} {{BOTTOM}}{{UNIT}} {{LEFT}}{{UNIT}};',
+				),
+				'condition'  => array(
+					'enable_summary_timer' => 'yes',
+				),
+			)
+		);
+
+		$this->add_responsive_control(
+			'summary_timer_digit_size',
+			array(
+				'label'      => esc_html__( 'Digit Box Size', 'wc-smart-checkout-builder' ),
+				'type'       => Controls_Manager::SLIDER,
+				'size_units' => array( 'px' ),
+				'range'      => array(
+					'px' => array(
+						'min' => 24,
+						'max' => 80,
+					),
+				),
+				'selectors'  => array(
+					'{{WRAPPER}} .wcsc-timer-digit' => 'min-width: {{SIZE}}{{UNIT}}; height: {{SIZE}}{{UNIT}};',
+				),
+				'condition'  => array(
+					'enable_summary_timer' => 'yes',
+				),
+			)
+		);
+
+		$this->add_control(
+			'summary_timer_unit_color',
+			array(
+				'label'     => esc_html__( 'Unit Label Color (Hrs/Mins/Secs)', 'wc-smart-checkout-builder' ),
+				'type'      => Controls_Manager::COLOR,
+				'default'   => '#64748b',
+				'selectors' => array(
+					'{{WRAPPER}} .wcsc-timer-unit-label' => 'color: {{VALUE}};',
+				),
+				'condition' => array(
+					'enable_summary_timer' => 'yes',
+				),
+			)
+		);
+
+		$this->add_group_control(
+			Group_Control_Typography::get_type(),
+			array(
+				'name'      => 'summary_timer_unit_typography',
+				'selector'  => '{{WRAPPER}} .wcsc-timer-unit-label',
+				'condition' => array(
+					'enable_summary_timer' => 'yes',
+				),
+			)
+		);
+
+		$this->add_control(
+			'summary_timer_sep_color',
+			array(
+				'label'     => esc_html__( 'Separator (:) Color', 'wc-smart-checkout-builder' ),
+				'type'      => Controls_Manager::COLOR,
+				'default'   => '#ef4444',
+				'selectors' => array(
+					'{{WRAPPER}} .wcsc-timer-sep' => 'color: {{VALUE}};',
+				),
+				'condition' => array(
+					'enable_summary_timer' => 'yes',
+				),
+			)
+		);
+
+		// --- Price Row Styling ---
+		$this->add_control(
+			'heading_style_summary_price',
+			array(
+				'label'     => esc_html__( 'Price Display', 'wc-smart-checkout-builder' ),
+				'type'      => Controls_Manager::HEADING,
+				'separator' => 'before',
+			)
+		);
+
+		$this->add_responsive_control(
+			'bundle_summary_price_margin',
+			array(
+				'label'      => esc_html__( 'Price Row Margin', 'wc-smart-checkout-builder' ),
+				'type'       => Controls_Manager::DIMENSIONS,
+				'size_units' => array( 'px', 'em' ),
+				'selectors'  => array(
+					'{{WRAPPER}} .wcsc-summary-price-row' => 'margin: {{TOP}}{{UNIT}} {{RIGHT}}{{UNIT}} {{BOTTOM}}{{UNIT}} {{LEFT}}{{UNIT}};',
+				),
+			)
+		);
+
+		$this->add_control(
+			'bundle_summary_regular_price_color',
+			array(
+				'label'     => esc_html__( 'Regular Price (Original) Color', 'wc-smart-checkout-builder' ),
+				'type'      => Controls_Manager::COLOR,
+				'default'   => '#94a3b8',
+				'selectors' => array(
+					'{{WRAPPER}} .wcsc-summary-regular-price' => 'color: {{VALUE}};',
+				),
+			)
+		);
+
+		$this->add_group_control(
+			Group_Control_Typography::get_type(),
+			array(
+				'name'     => 'bundle_summary_regular_price_typography',
+				'selector' => '{{WRAPPER}} .wcsc-summary-regular-price',
+			)
+		);
+
+		$this->add_control(
+			'bundle_summary_offer_price_color',
+			array(
+				'label'     => esc_html__( 'Offer Price (Discounted) Color', 'wc-smart-checkout-builder' ),
+				'type'      => Controls_Manager::COLOR,
+				'default'   => '#0f172a',
+				'selectors' => array(
+					'{{WRAPPER}} .wcsc-summary-offer-price' => 'color: {{VALUE}};',
+				),
+			)
+		);
+
+		$this->add_group_control(
+			Group_Control_Typography::get_type(),
+			array(
+				'name'     => 'bundle_summary_offer_price_typography',
+				'selector' => '{{WRAPPER}} .wcsc-summary-offer-price',
+			)
+		);
+
+		$this->add_control(
+			'bundle_summary_savings_bg',
+			array(
+				'label'     => esc_html__( 'Savings Badge Background', 'wc-smart-checkout-builder' ),
+				'type'      => Controls_Manager::COLOR,
+				'default'   => '#dcfce7',
+				'selectors' => array(
+					'{{WRAPPER}} .wcsc-summary-price-row .wcsc-savings-badge' => 'background-color: {{VALUE}};',
+				),
+			)
+		);
+
+		$this->add_control(
+			'bundle_summary_savings_color',
+			array(
+				'label'     => esc_html__( 'Savings Badge Text Color', 'wc-smart-checkout-builder' ),
+				'type'      => Controls_Manager::COLOR,
+				'default'   => '#15803d',
+				'selectors' => array(
+					'{{WRAPPER}} .wcsc-summary-price-row .wcsc-savings-badge' => 'color: {{VALUE}};',
+				),
+			)
+		);
+
+		$this->add_group_control(
+			Group_Control_Typography::get_type(),
+			array(
+				'name'     => 'bundle_summary_savings_typography',
+				'selector' => '{{WRAPPER}} .wcsc-summary-price-row .wcsc-savings-badge',
+			)
+		);
+
+		// --- CTA Button Styling ---
+		$this->add_control(
 			'bundle_cta_heading',
 			array(
-				'label'     => esc_html__( 'Summary CTA Button', 'wc-smart-checkout-builder' ),
+				'label'     => esc_html__( 'CTA Button', 'wc-smart-checkout-builder' ),
 				'type'      => Controls_Manager::HEADING,
 				'separator' => 'before',
 			)
@@ -6124,13 +6581,24 @@ class Elementor_Widget extends Widget_Base {
 			)
 		);
 
+		$this->start_controls_tabs( 'tabs_bundle_cta' );
+
+		// Normal Tab
+		$this->start_controls_tab(
+			'tab_bundle_cta_normal',
+			array(
+				'label' => esc_html__( 'Normal', 'wc-smart-checkout-builder' ),
+			)
+		);
+
 		$this->add_control(
 			'bundle_cta_color',
 			array(
-				'label'     => esc_html__( 'Button Text Color', 'wc-smart-checkout-builder' ),
+				'label'     => esc_html__( 'Text Color', 'wc-smart-checkout-builder' ),
 				'type'      => Controls_Manager::COLOR,
+				'default'   => '#ffffff',
 				'selectors' => array(
-					'{{WRAPPER}} .wcsc-summary-cta-btn' => 'color: {{VALUE}};',
+					'{{WRAPPER}} .wcsc-summary-cta-btn' => 'color: {{VALUE}} !important;',
 				),
 			)
 		);
@@ -6138,10 +6606,41 @@ class Elementor_Widget extends Widget_Base {
 		$this->add_control(
 			'bundle_cta_bg',
 			array(
-				'label'     => esc_html__( 'Button Background Color', 'wc-smart-checkout-builder' ),
+				'label'     => esc_html__( 'Background Color', 'wc-smart-checkout-builder' ),
 				'type'      => Controls_Manager::COLOR,
+				'default'   => '#2563eb',
 				'selectors' => array(
 					'{{WRAPPER}} .wcsc-summary-cta-btn' => 'background-color: {{VALUE}};',
+				),
+			)
+		);
+
+		$this->add_group_control(
+			Group_Control_Border::get_type(),
+			array(
+				'name'     => 'bundle_cta_border',
+				'selector' => '{{WRAPPER}} .wcsc-summary-cta-btn',
+			)
+		);
+
+		$this->end_controls_tab();
+
+		// Hover Tab
+		$this->start_controls_tab(
+			'tab_bundle_cta_hover',
+			array(
+				'label' => esc_html__( 'Hover', 'wc-smart-checkout-builder' ),
+			)
+		);
+
+		$this->add_control(
+			'bundle_cta_hover_color',
+			array(
+				'label'     => esc_html__( 'Text Color', 'wc-smart-checkout-builder' ),
+				'type'      => Controls_Manager::COLOR,
+				'default'   => '#ffffff',
+				'selectors' => array(
+					'{{WRAPPER}} .wcsc-summary-cta-btn:hover' => 'color: {{VALUE}} !important;',
 				),
 			)
 		);
@@ -6149,13 +6648,29 @@ class Elementor_Widget extends Widget_Base {
 		$this->add_control(
 			'bundle_cta_hover_bg',
 			array(
-				'label'     => esc_html__( 'Button Hover Background', 'wc-smart-checkout-builder' ),
+				'label'     => esc_html__( 'Background Color', 'wc-smart-checkout-builder' ),
 				'type'      => Controls_Manager::COLOR,
+				'default'   => '#1d4ed8',
 				'selectors' => array(
 					'{{WRAPPER}} .wcsc-summary-cta-btn:hover' => 'background-color: {{VALUE}};',
 				),
 			)
 		);
+
+		$this->add_control(
+			'bundle_cta_hover_border_color',
+			array(
+				'label'     => esc_html__( 'Border Color', 'wc-smart-checkout-builder' ),
+				'type'      => Controls_Manager::COLOR,
+				'selectors' => array(
+					'{{WRAPPER}} .wcsc-summary-cta-btn:hover' => 'border-color: {{VALUE}};',
+				),
+			)
+		);
+
+		$this->end_controls_tab();
+
+		$this->end_controls_tabs();
 
 		$this->add_responsive_control(
 			'bundle_cta_radius',
@@ -6181,170 +6696,46 @@ class Elementor_Widget extends Widget_Base {
 			)
 		);
 
-		// Countdown Urgency Timer Styles
-		$this->add_control(
-			'heading_style_summary_timer',
+		$this->add_responsive_control(
+			'bundle_cta_icon_size',
 			array(
-				'label'     => esc_html__( 'Countdown Urgency Timer Style', 'wc-smart-checkout-builder' ),
-				'type'      => Controls_Manager::HEADING,
-				'separator' => 'before',
-				'condition' => array(
-					'checkout_mode'        => 'bundle',
-					'enable_summary_timer' => 'yes',
+				'label'      => esc_html__( 'Icon Size', 'wc-smart-checkout-builder' ),
+				'type'       => Controls_Manager::SLIDER,
+				'size_units' => array( 'px' ),
+				'range'      => array(
+					'px' => array(
+						'min' => 10,
+						'max' => 40,
+					),
 				),
-			)
-		);
-
-		$this->add_control(
-			'summary_timer_box_bg',
-			array(
-				'label'     => esc_html__( 'Timer Box Background', 'wc-smart-checkout-builder' ),
-				'type'      => Controls_Manager::COLOR,
-				'default'   => '#fff1f2',
-				'selectors' => array(
-					'{{WRAPPER}} .wcsc-bundle-timer-box' => 'background-color: {{VALUE}};',
-				),
-				'condition' => array(
-					'checkout_mode'        => 'bundle',
-					'enable_summary_timer' => 'yes',
-				),
-			)
-		);
-
-		$this->add_group_control(
-			Group_Control_Border::get_type(),
-			array(
-				'name'      => 'summary_timer_box_border',
-				'selector'  => '{{WRAPPER}} .wcsc-bundle-timer-box',
-				'condition' => array(
-					'checkout_mode'        => 'bundle',
-					'enable_summary_timer' => 'yes',
+				'selectors'  => array(
+					'{{WRAPPER}} .wcsc-summary-cta-btn .wcsc-cta-icon' => 'font-size: {{SIZE}}{{UNIT}};',
+					'{{WRAPPER}} .wcsc-summary-cta-btn .wcsc-cta-icon svg' => 'width: {{SIZE}}{{UNIT}}; height: {{SIZE}}{{UNIT}};',
 				),
 			)
 		);
 
 		$this->add_responsive_control(
-			'summary_timer_box_radius',
+			'bundle_cta_icon_spacing',
 			array(
-				'label'      => esc_html__( 'Timer Box Radius', 'wc-smart-checkout-builder' ),
-				'type'       => Controls_Manager::DIMENSIONS,
-				'size_units' => array( 'px', '%' ),
+				'label'      => esc_html__( 'Icon Spacing', 'wc-smart-checkout-builder' ),
+				'type'       => Controls_Manager::SLIDER,
+				'size_units' => array( 'px' ),
+				'range'      => array(
+					'px' => array(
+						'min' => 0,
+						'max' => 30,
+					),
+				),
 				'selectors'  => array(
-					'{{WRAPPER}} .wcsc-bundle-timer-box' => 'border-radius: {{TOP}}{{UNIT}} {{RIGHT}}{{UNIT}} {{BOTTOM}}{{UNIT}} {{LEFT}}{{UNIT}};',
-				),
-				'condition'  => array(
-					'checkout_mode'        => 'bundle',
-					'enable_summary_timer' => 'yes',
+					'{{WRAPPER}} .wcsc-summary-cta-btn .wcsc-cta-icon-before' => 'margin-right: {{SIZE}}{{UNIT}};',
+					'{{WRAPPER}} .wcsc-summary-cta-btn .wcsc-cta-icon-after'  => 'margin-left: {{SIZE}}{{UNIT}};',
 				),
 			)
 		);
 
-		$this->add_responsive_control(
-			'summary_timer_box_padding',
-			array(
-				'label'      => esc_html__( 'Timer Box Padding', 'wc-smart-checkout-builder' ),
-				'type'       => Controls_Manager::DIMENSIONS,
-				'size_units' => array( 'px', 'em' ),
-				'selectors'  => array(
-					'{{WRAPPER}} .wcsc-bundle-timer-box' => 'padding: {{TOP}}{{UNIT}} {{RIGHT}}{{UNIT}} {{BOTTOM}}{{UNIT}} {{LEFT}}{{UNIT}};',
-				),
-				'condition'  => array(
-					'checkout_mode'        => 'bundle',
-					'enable_summary_timer' => 'yes',
-				),
-			)
-		);
-
-		$this->add_control(
-			'summary_timer_label_color',
-			array(
-				'label'     => esc_html__( 'Timer Label Color', 'wc-smart-checkout-builder' ),
-				'type'      => Controls_Manager::COLOR,
-				'default'   => '#be123c',
-				'selectors' => array(
-					'{{WRAPPER}} .wcsc-timer-text' => 'color: {{VALUE}};',
-				),
-				'condition' => array(
-					'checkout_mode'        => 'bundle',
-					'enable_summary_timer' => 'yes',
-				),
-			)
-		);
-
-		$this->add_group_control(
-			Group_Control_Typography::get_type(),
-			array(
-				'name'      => 'summary_timer_label_typography',
-				'selector'  => '{{WRAPPER}} .wcsc-timer-text',
-				'condition' => array(
-					'checkout_mode'        => 'bundle',
-					'enable_summary_timer' => 'yes',
-				),
-			)
-		);
-
-		$this->add_control(
-			'summary_timer_digit_color',
-			array(
-				'label'     => esc_html__( 'Digit Number Color', 'wc-smart-checkout-builder' ),
-				'type'      => Controls_Manager::COLOR,
-				'default'   => '#ffffff',
-				'selectors' => array(
-					'{{WRAPPER}} .wcsc-timer-digit' => 'color: {{VALUE}};',
-				),
-				'condition' => array(
-					'checkout_mode'        => 'bundle',
-					'enable_summary_timer' => 'yes',
-				),
-			)
-		);
-
-		$this->add_control(
-			'summary_timer_digit_bg',
-			array(
-				'label'     => esc_html__( 'Digit Box Background', 'wc-smart-checkout-builder' ),
-				'type'      => Controls_Manager::COLOR,
-				'default'   => '#e11d48',
-				'selectors' => array(
-					'{{WRAPPER}} .wcsc-timer-digit' => 'background-color: {{VALUE}};',
-				),
-				'condition' => array(
-					'checkout_mode'        => 'bundle',
-					'enable_summary_timer' => 'yes',
-				),
-			)
-		);
-
-		$this->add_group_control(
-			Group_Control_Typography::get_type(),
-			array(
-				'name'      => 'summary_timer_digit_typography',
-				'selector'  => '{{WRAPPER}} .wcsc-timer-digit',
-				'condition' => array(
-					'checkout_mode'        => 'bundle',
-					'enable_summary_timer' => 'yes',
-				),
-			)
-		);
-
-		$this->add_responsive_control(
-			'summary_timer_digit_radius',
-			array(
-				'label'      => esc_html__( 'Digit Box Radius', 'wc-smart-checkout-builder' ),
-				'type'       => Controls_Manager::DIMENSIONS,
-				'size_units' => array( 'px', '%' ),
-				'selectors'  => array(
-					'{{WRAPPER}} .wcsc-timer-digit' => 'border-radius: {{TOP}}{{UNIT}} {{RIGHT}}{{UNIT}} {{BOTTOM}}{{UNIT}} {{LEFT}}{{UNIT}};',
-				),
-				'condition'  => array(
-					'checkout_mode'        => 'bundle',
-					'enable_summary_timer' => 'yes',
-				),
-			)
-		);
-
-		$this->end_controls_section();
-
+		$this->end_controls_section();
+
 		// --- Section: Bundle Selected Badge Styling ---
 		$this->start_controls_section(
 			'section_style_bundle_badge',
@@ -7059,64 +7450,130 @@ class Elementor_Widget extends Widget_Base {
 			</div>
 
 			<?php if ( 'yes' === ( $settings['show_summary_bar'] ?? 'yes' ) ) :
-				$summary_layout = ! empty( $settings['bundle_summary_layout'] ) ? sanitize_key( $settings['bundle_summary_layout'] ) : 'modern_bar';
+				$summary_layout = ! empty( $settings['bundle_summary_layout'] ) ? sanitize_key( $settings['bundle_summary_layout'] ) : 'layout_1';
+				$summary_title  = ! empty( $settings['bundle_summary_title'] ) ? $settings['bundle_summary_title'] : '';
+				$summary_desc   = ! empty( $settings['bundle_summary_desc'] ) ? $settings['bundle_summary_desc'] : '';
+				$cta_text       = ! empty( $settings['bundle_cta_button_text'] ) ? $settings['bundle_cta_button_text'] : __( 'অর্ডার কনফার্ম করতে ক্লিক করুন', 'wc-smart-checkout-builder' );
+				$cta_bounce     = ( 'yes' === ( $settings['bundle_cta_bounce'] ?? 'yes' ) ) ? 'wcsc-has-bounce' : '';
+				$icon_pos       = ! empty( $settings['bundle_cta_icon_pos'] ) ? $settings['bundle_cta_icon_pos'] : 'after';
+				$has_icon       = ! empty( $settings['bundle_cta_icon']['value'] );
+
+				$enable_timer = ( 'yes' === ( $settings['enable_summary_timer'] ?? 'yes' ) );
+				$timer_h      = max( 0, absint( $settings['summary_timer_hours'] ?? 0 ) );
+				$timer_m      = max( 0, min( 59, absint( $settings['summary_timer_minutes'] ?? 15 ) ) );
+				$timer_s      = max( 0, min( 59, absint( $settings['summary_timer_seconds'] ?? 0 ) ) );
+				$timer_loop   = ( 'yes' === ( $settings['summary_timer_loop'] ?? 'yes' ) ) ? 'yes' : 'no';
 			?>
 				<div class="wcsc-bundle-summary-bar wcsc-summary-layout-<?php echo esc_attr( $summary_layout ); ?>">
-					<?php if ( 'yes' === ( $settings['enable_summary_timer'] ?? 'no' ) ) :
-						$timer_label = ! empty( $settings['summary_timer_label'] ) ? $settings['summary_timer_label'] : __( 'Hurry! Special offer expires in:', 'wc-smart-checkout-builder' );
-						$timer_h     = max( 0, absint( $settings['summary_timer_hours'] ?? 0 ) );
-						$timer_m     = max( 0, min( 59, absint( $settings['summary_timer_minutes'] ?? 15 ) ) );
-						$timer_s     = max( 0, min( 59, absint( $settings['summary_timer_seconds'] ?? 0 ) ) );
-						$timer_loop  = ( 'yes' === ( $settings['summary_timer_loop'] ?? 'yes' ) ) ? 'yes' : 'no';
-					?>
-						<div class="wcsc-bundle-timer-box"
-							data-hours="<?php echo esc_attr( $timer_h ); ?>"
-							data-minutes="<?php echo esc_attr( $timer_m ); ?>"
-							data-seconds="<?php echo esc_attr( $timer_s ); ?>"
-							data-loop="<?php echo esc_attr( $timer_loop ); ?>">
-							<div class="wcsc-timer-label">
-								<span class="wcsc-timer-icon">⏳</span>
-								<span class="wcsc-timer-text"><?php echo esc_html( $timer_label ); ?></span>
+					<?php if ( 'layout_2' === $summary_layout ) : ?>
+						<!-- Layout 2: 2 Column (Content Left, Timer Right) -->
+						<div class="wcsc-summary-col wcsc-summary-col-left">
+							<?php if ( ! empty( $summary_title ) ) : ?>
+								<h4 class="wcsc-summary-title"><?php echo esc_html( $summary_title ); ?></h4>
+							<?php endif; ?>
+							<?php if ( ! empty( $summary_desc ) ) : ?>
+								<p class="wcsc-summary-desc"><?php echo esc_html( $summary_desc ); ?></p>
+							<?php endif; ?>
+							<div class="wcsc-summary-price-row">
+								<span class="wcsc-summary-price-wrap">
+									<del class="wcsc-summary-regular-price" style="display: none;"></del>
+									<ins class="wcsc-summary-offer-price">—</ins>
+								</span>
+								<span class="wcsc-savings-badge" style="display: none;"></span>
 							</div>
-							<div class="wcsc-timer-countdown">
-								<?php if ( $timer_h > 0 ) : ?>
-									<div class="wcsc-timer-unit wcsc-timer-hours">
-										<span class="wcsc-timer-digit hrs"><?php echo esc_html( sprintf( '%02d', $timer_h ) ); ?></span>
-										<span class="wcsc-timer-unit-label"><?php esc_html_e( 'Hrs', 'wc-smart-checkout-builder' ); ?></span>
-									</div>
-									<span class="wcsc-timer-sep sep-hrs">:</span>
+							<a href="#wcsc-bundle-checkout-section" class="wcsc-summary-cta-btn <?php echo esc_attr( $cta_bounce ); ?>">
+								<?php if ( $has_icon && 'before' === $icon_pos ) : ?>
+									<span class="wcsc-cta-icon wcsc-cta-icon-before"><?php \Elementor\Icons_Manager::render_icon( $settings['bundle_cta_icon'], array( 'aria-hidden' => 'true' ) ); ?></span>
 								<?php endif; ?>
-								<div class="wcsc-timer-unit wcsc-timer-mins">
-									<span class="wcsc-timer-digit mins"><?php echo esc_html( sprintf( '%02d', $timer_m ) ); ?></span>
-									<span class="wcsc-timer-unit-label"><?php esc_html_e( 'Mins', 'wc-smart-checkout-builder' ); ?></span>
-								</div>
-								<span class="wcsc-timer-sep">:</span>
-								<div class="wcsc-timer-unit wcsc-timer-secs">
-									<span class="wcsc-timer-digit secs"><?php echo esc_html( sprintf( '%02d', $timer_s ) ); ?></span>
-									<span class="wcsc-timer-unit-label"><?php esc_html_e( 'Secs', 'wc-smart-checkout-builder' ); ?></span>
+								<span class="wcsc-cta-text"><?php echo esc_html( $cta_text ); ?></span>
+								<?php if ( $has_icon && 'after' === $icon_pos ) : ?>
+									<span class="wcsc-cta-icon wcsc-cta-icon-after"><?php \Elementor\Icons_Manager::render_icon( $settings['bundle_cta_icon'], array( 'aria-hidden' => 'true' ) ); ?></span>
+								<?php endif; ?>
+							</a>
+						</div>
+						<?php if ( $enable_timer ) : ?>
+							<div class="wcsc-summary-col wcsc-summary-col-right">
+								<div class="wcsc-bundle-timer-box"
+									data-hours="<?php echo esc_attr( $timer_h ); ?>"
+									data-minutes="<?php echo esc_attr( $timer_m ); ?>"
+									data-seconds="<?php echo esc_attr( $timer_s ); ?>"
+									data-loop="<?php echo esc_attr( $timer_loop ); ?>">
+									<div class="wcsc-timer-countdown">
+										<?php if ( $timer_h > 0 ) : ?>
+											<div class="wcsc-timer-unit wcsc-timer-hours">
+												<span class="wcsc-timer-digit hrs"><?php echo esc_html( sprintf( '%02d', $timer_h ) ); ?></span>
+												<span class="wcsc-timer-unit-label"><?php esc_html_e( 'Hrs', 'wc-smart-checkout-builder' ); ?></span>
+											</div>
+											<span class="wcsc-timer-sep sep-hrs">:</span>
+										<?php endif; ?>
+										<div class="wcsc-timer-unit wcsc-timer-mins">
+											<span class="wcsc-timer-digit mins"><?php echo esc_html( sprintf( '%02d', $timer_m ) ); ?></span>
+											<span class="wcsc-timer-unit-label"><?php esc_html_e( 'Mins', 'wc-smart-checkout-builder' ); ?></span>
+										</div>
+										<span class="wcsc-timer-sep">:</span>
+										<div class="wcsc-timer-unit wcsc-timer-secs">
+											<span class="wcsc-timer-digit secs"><?php echo esc_html( sprintf( '%02d', $timer_s ) ); ?></span>
+											<span class="wcsc-timer-unit-label"><?php esc_html_e( 'Secs', 'wc-smart-checkout-builder' ); ?></span>
+										</div>
+									</div>
 								</div>
 							</div>
+						<?php endif; ?>
+
+					<?php else : ?>
+						<!-- Layout 1: 1 Column Stack (Centered) -->
+						<?php if ( ! empty( $summary_title ) ) : ?>
+							<h4 class="wcsc-summary-title"><?php echo esc_html( $summary_title ); ?></h4>
+						<?php endif; ?>
+						<?php if ( ! empty( $summary_desc ) ) : ?>
+							<p class="wcsc-summary-desc"><?php echo esc_html( $summary_desc ); ?></p>
+						<?php endif; ?>
+
+						<?php if ( $enable_timer ) : ?>
+							<div class="wcsc-bundle-timer-box"
+								data-hours="<?php echo esc_attr( $timer_h ); ?>"
+								data-minutes="<?php echo esc_attr( $timer_m ); ?>"
+								data-seconds="<?php echo esc_attr( $timer_s ); ?>"
+								data-loop="<?php echo esc_attr( $timer_loop ); ?>">
+								<div class="wcsc-timer-countdown">
+									<?php if ( $timer_h > 0 ) : ?>
+										<div class="wcsc-timer-unit wcsc-timer-hours">
+											<span class="wcsc-timer-digit hrs"><?php echo esc_html( sprintf( '%02d', $timer_h ) ); ?></span>
+											<span class="wcsc-timer-unit-label"><?php esc_html_e( 'Hrs', 'wc-smart-checkout-builder' ); ?></span>
+										</div>
+										<span class="wcsc-timer-sep sep-hrs">:</span>
+									<?php endif; ?>
+									<div class="wcsc-timer-unit wcsc-timer-mins">
+										<span class="wcsc-timer-digit mins"><?php echo esc_html( sprintf( '%02d', $timer_m ) ); ?></span>
+										<span class="wcsc-timer-unit-label"><?php esc_html_e( 'Mins', 'wc-smart-checkout-builder' ); ?></span>
+									</div>
+									<span class="wcsc-timer-sep">:</span>
+									<div class="wcsc-timer-unit wcsc-timer-secs">
+										<span class="wcsc-timer-digit secs"><?php echo esc_html( sprintf( '%02d', $timer_s ) ); ?></span>
+										<span class="wcsc-timer-unit-label"><?php esc_html_e( 'Secs', 'wc-smart-checkout-builder' ); ?></span>
+									</div>
+								</div>
+							</div>
+						<?php endif; ?>
+
+						<div class="wcsc-summary-price-row">
+							<span class="wcsc-summary-price-wrap">
+								<del class="wcsc-summary-regular-price" style="display: none;"></del>
+								<ins class="wcsc-summary-offer-price">—</ins>
+							</span>
+							<span class="wcsc-savings-badge" style="display: none;"></span>
 						</div>
-					<?php endif; ?>
-					<div class="wcsc-summary-info">
-						<div class="wcsc-summary-count-line">
-							<strong class="wcsc-summary-count">1</strong> <?php esc_html_e( 'item(s) selected', 'wc-smart-checkout-builder' ); ?>
-						</div>
-						<div class="wcsc-summary-savings" style="display: none;">
-							<span class="wcsc-savings-badge"></span>
-							<span class="wcsc-savings-amount"></span>
-						</div>
-					</div>
-					<div class="wcsc-summary-actions">
-						<div class="wcsc-summary-total-box">
-							<span class="wcsc-total-label"><?php esc_html_e( 'Total:', 'wc-smart-checkout-builder' ); ?></span>
-							<span class="wcsc-summary-total-val">—</span>
-						</div>
-						<a href="#wcsc-bundle-checkout-section" class="wcsc-summary-cta-btn">
+
+						<a href="#wcsc-bundle-checkout-section" class="wcsc-summary-cta-btn <?php echo esc_attr( $cta_bounce ); ?>">
+							<?php if ( $has_icon && 'before' === $icon_pos ) : ?>
+								<span class="wcsc-cta-icon wcsc-cta-icon-before"><?php \Elementor\Icons_Manager::render_icon( $settings['bundle_cta_icon'], array( 'aria-hidden' => 'true' ) ); ?></span>
+							<?php endif; ?>
 							<span class="wcsc-cta-text"><?php echo esc_html( $cta_text ); ?></span>
-							<span class="wcsc-cta-arrow">&darr;</span>
+							<?php if ( $has_icon && 'after' === $icon_pos ) : ?>
+								<span class="wcsc-cta-icon wcsc-cta-icon-after"><?php \Elementor\Icons_Manager::render_icon( $settings['bundle_cta_icon'], array( 'aria-hidden' => 'true' ) ); ?></span>
+							<?php endif; ?>
 						</a>
-					</div>
+					<?php endif; ?>
 				</div>
 			<?php endif; ?>
 

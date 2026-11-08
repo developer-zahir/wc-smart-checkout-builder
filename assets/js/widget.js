@@ -1436,21 +1436,36 @@
 			var finalTotal = Math.max(0, subtotal - discountAmount);
 
 			var $savingsBox = this.$wrapper.find('.wcsc-summary-savings');
+			var $savingsBadge = this.$wrapper.find('.wcsc-savings-badge');
+			var $regPrice = this.$wrapper.find('.wcsc-summary-regular-price');
+			var $offerPrice = this.$wrapper.find('.wcsc-summary-offer-price');
+
 			if (discountAmount > 0 && bestTier) {
 				var badgeTxt = bestTier.tier_badge ? bestTier.tier_badge : (bestTier.discount_amount + '% OFF');
 				$savingsBox.find('.wcsc-savings-badge').text(badgeTxt);
 				$savingsBox.find('.wcsc-savings-amount').text('(Saved ' + this.formatPrice(discountAmount) + ')');
 				$savingsBox.show();
+				$savingsBadge.text(badgeTxt).show();
+				$regPrice.text(this.formatPrice(subtotal)).show();
 			} else {
 				$savingsBox.hide();
+				$savingsBadge.hide();
+				$regPrice.hide();
 			}
 
+			$offerPrice.text(this.formatPrice(finalTotal));
 			this.$wrapper.find('.wcsc-summary-total-val').text(this.formatPrice(finalTotal));
 		},
 
 		formatPrice: function (amount) {
-			if (isNaN(amount)) return '$0.00';
-			return '$' + amount.toFixed(2);
+			if (isNaN(amount)) return '0.00';
+			var sym = (window.wcsc_params && window.wcsc_params.currency_symbol) ? window.wcsc_params.currency_symbol : '';
+			var pos = (window.wcsc_params && window.wcsc_params.currency_pos) ? window.wcsc_params.currency_pos : 'left';
+			var formatted = Number(amount).toLocaleString(undefined, { minimumFractionDigits: 0, maximumFractionDigits: 2 });
+			if (pos === 'right' || pos === 'right_space') {
+				return formatted + (sym ? ' ' + sym : '');
+			}
+			return (sym ? sym + ' ' : '') + formatted;
 		},
 
 		debouncedSync: function (immediate) {
