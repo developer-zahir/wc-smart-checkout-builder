@@ -1,9 +1,9 @@
 {
-  "version": "1.9.32",
+  "version": "1.9.33",
   "requires": "5.8",
   "tested": "6.7",
   "requires_php": "7.4",
   "download_url": "https://raw.githubusercontent.com/developer-zahir/wc-smart-checkout-builder/main/wc-smart-checkout-builder.zip",
   "details_url": "https://github.com/developer-zahir/wc-smart-checkout-builder",
-  "changelog": "## v1.9.32\n\n- Conditional Style Rendering: Style tab sections are now strictly separated by mode (Single Product style controls only show in Single mode, and Bundle style controls only show in Bundle mode)\n- Looping Countdown Urgency Timer: Added repeating evergreen countdown timer option inside Bundle Summary Bar with custom duration and complete styling controls\n- Before-Checkout Features & Badges: Added new customizable section before checkout form with Icon, Title, Short Description, repeater items, and full styling controls\n- Enhanced Selected Badge: Removed default box-shadow, added full styling controls, and introduced Top-Right Corner Rotated Ribbon style"
+  "changelog": "## v1.9.33\n\n- Bundle Badge Show/Hide & Corner Ribbon: Added toggle to hide/show bundle selected badge, removed default box-shadow, added full styling, and added Top-Right corner rotated ribbon style\n- Checkout Section Header: Added dedicated title and description header before checkout form with default Bengali text ('অর্ডার করুন' / 'অর্ডার করতে নিচের ফর্মটি সঠিক ভাবে পূরণ করুন...')\n- Checkout Section Styling: Added comprehensive container styling for the entire checkout section including background, border, border-radius, padding, margin, box-shadow, and divider line"
 }
